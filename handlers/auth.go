@@ -77,27 +77,35 @@ type userPayload struct {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	var req loginReq
 	fmt.Println("Login request received")
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+
+	// ✅ support form values instead of JSON
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
+
+	phone := r.FormValue("phone")
+	password := r.FormValue("password")
+
 	var u models.User
-	if err := config.DB.Where("phone = ?", req.Phone).First(&u).Error; err != nil {
+	if err := config.DB.Where("phone = ?", phone).First(&u).Error; err != nil {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password)); err != nil {
+
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
+
 	token, err := middleware.GenerateToken(u.ID.String(), u.Role, u.Name, u.Phone)
 	if err != nil {
 		http.Error(w, "couldn't create token", http.StatusInternalServerError)
 		return
 	}
-	u.PasswordHash = "" // don't leak password hash
+
+	u.PasswordHash = ""
 	out := loginResp{
 		Token: token,
 		User: userPayload{
@@ -108,8 +116,44 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			Role:  u.Role,
 		},
 	}
+
 	json.NewEncoder(w).Encode(out)
 }
+
+// func Login(w http.ResponseWriter, r *http.Request) {
+// 	var req loginReq
+// 	fmt.Println("Login request received")
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		http.Error(w, "invalid JSON", http.StatusBadRequest)
+// 		return
+// 	}
+// 	var u models.User
+// 	if err := config.DB.Where("phone = ?", req.Phone).First(&u).Error; err != nil {
+// 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
+// 		return
+// 	}
+// 	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password)); err != nil {
+// 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
+// 		return
+// 	}
+// 	token, err := middleware.GenerateToken(u.ID.String(), u.Role, u.Name, u.Phone)
+// 	if err != nil {
+// 		http.Error(w, "couldn't create token", http.StatusInternalServerError)
+// 		return
+// 	}
+// 	u.PasswordHash = "" // don't leak password hash
+// 	out := loginResp{
+// 		Token: token,
+// 		User: userPayload{
+// 			ID:    u.ID,
+// 			Name:  u.Name,
+// 			Email: u.Email,
+// 			Phone: u.Phone,
+// 			Role:  u.Role,
+// 		},
+// 	}
+// 	json.NewEncoder(w).Encode(out)
+// }
 
 func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	// 1) Extract token
