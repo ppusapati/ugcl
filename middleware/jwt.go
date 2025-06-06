@@ -83,13 +83,25 @@ func JWTMiddleware(next http.Handler) http.Handler {
 }
 
 // RequireRole wraps a handler and ensures the JWT’s role matches
+//
+//	func RequireRole(role string, next http.Handler) http.Handler {
+//		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//			if GetRole(r) != role {
+//				http.Error(w, "forbidden", http.StatusForbidden)
+//				return
+//			}
+//			next.ServeHTTP(w, r)
+//		})
+//	}
 func RequireRole(role string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if GetRole(r) != role {
-			http.Error(w, "forbidden", http.StatusForbidden)
+		userRole := GetRole(r)
+		// Super Admin can do anything!
+		if userRole == "Super Admin" || userRole == role {
+			next.ServeHTTP(w, r)
 			return
 		}
-		next.ServeHTTP(w, r)
+		http.Error(w, "forbidden", http.StatusForbidden)
 	})
 }
 

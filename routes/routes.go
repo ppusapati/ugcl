@@ -35,6 +35,7 @@ func RegisterRoutes() http.Handler {
 		w.Write([]byte("secret admin stats"))
 	}).Methods("GET")
 
+	admin.HandleFunc("/users", handlers.GetAllUsers).Methods("GET")
 	api.HandleFunc("/dprsite", handlers.GetAllSiteEngineerReports).Methods("GET")
 	api.HandleFunc("/dprsite", handlers.CreateSiteEngineerReport).Methods("POST")
 	api.HandleFunc("/dprsite/{id}", handlers.GetSiteEngineerReport).Methods("GET")
@@ -119,6 +120,13 @@ func RegisterRoutes() http.Handler {
 	api.HandleFunc("/diesel/{id}", handlers.UpdateDieselReport).Methods("PUT")
 	api.HandleFunc("/diesel/{id}", handlers.DeleteDieselReport).Methods("DELETE")
 	api.HandleFunc("/diesel/batch", handlers.BatchDiesels).Methods("POST")
+
+	api.HandleFunc("/tasks", handlers.GetAllTasks).Methods("GET")
+	api.HandleFunc("/tasks", handlers.CreateTask).Methods("POST")
+	api.HandleFunc("/tasks/{id}", handlers.GetTask).Methods("GET")
+	api.HandleFunc("/tasks/{id}", handlers.UpdateTask).Methods("PUT")
+	api.HandleFunc("/tasks/{id}", handlers.DeleteTask).Methods("DELETE")
+	api.HandleFunc("/tasks/batch", handlers.BatchTasks).Methods("POST")
 
 	api.HandleFunc("/files/upload", handlers.UploadFile).Methods("POST")
 	return r

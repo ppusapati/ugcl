@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,7 +11,21 @@ import (
 	"p9e.in/ugcl/routes"
 )
 
+var (
+	Version   = "dev"
+	BuildTime = ""
+)
+
 func main() {
+
+	versionFlag := flag.Bool("version", false, "Print version info and exit")
+	flag.Parse()
+
+	if *versionFlag {
+		fmt.Printf("Version:   %s\n", Version)
+		fmt.Printf("BuildTime: %s\n", BuildTime)
+		os.Exit(0)
+	}
 	config.Connect()
 	port := os.Getenv("PORT")
 	if port == "" {

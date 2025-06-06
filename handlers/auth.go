@@ -148,3 +148,32 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(resp)
 }
+
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	var users []models.User
+	if err := config.DB.Where("is_active = ?", true).Where("role <> ?", "Super Admin").Find(&users).Error; err != nil {
+		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Don't return password hashes!
+	type userOut struct {
+		ID    uuid.UUID `json:"id"`
+		Name  string    `json:"name"`
+		Email string    `json:"email"`
+		Phone string    `json:"phone"`
+		Role  string    `json:"role"`
+	}
+	out := make([]userOut, len(users))
+	for i, u := range users {
+		out[i] = userOut{
+			ID:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+			Phone: u.Phone,
+			Role:  u.Role,
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(out)
+}
