@@ -9,11 +9,11 @@ import (
 func Migrations(db *gorm.DB) error {
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "20250520_create_tables",
+			ID: "09062025_create_tables",
 			Migrate: func(tx *gorm.DB) error {
 				return tx.AutoMigrate(&models.User{}, &models.DairySite{}, &models.DprSite{}, &models.Contractor{},
 					&models.Mnr{}, &models.Material{}, &models.Payment{}, &models.Diesel{}, &models.Eway{}, &models.Painting{},
-					&models.Stock{}, &models.Water{}, &models.Wrapping{})
+					&models.Stock{}, &models.Water{}, &models.Wrapping{}, &models.Task{}, &models.Nmr_Vehicle{})
 			},
 			Rollback: func(tx *gorm.DB) error {
 				return tx.Migrator().DropTable("dairy_sites")

@@ -17,9 +17,6 @@ type Mnr struct {
 	SkilledLabourCount   string         `gorm:"not null" json:"skilledLabourCount"`
 	UnskilledLabourCount string         `gorm:"not null" json:"unskilledLabourCount"`
 	WomenCount           string         `gorm:"not null" json:"womenCount"`
-	VehicleType          *string        `json:"vehicleType,omitempty"`
-	WorkedHoursPerDay    string         `gorm:"not null" json:"workedHoursPerDay"`
-	UOM                  datatypes.JSON `gorm:"type:jsonb;not null" json:"uom"` // e.g. ["Hours","Days"]
 	ContractorName       string         `gorm:"not null" json:"contractorName"`
 	AttendanceTakenBy    string         `gorm:"not null" json:"attendanceTakenBy"`
 	AttendancePhone      string         `gorm:"not null" json:"attendancePhone"`

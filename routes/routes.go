@@ -100,6 +100,13 @@ func RegisterRoutes() http.Handler {
 	api.HandleFunc("/mnr/{id}", handlers.DeleteMNRReport).Methods("DELETE")
 	api.HandleFunc("/mnr/batch", handlers.BatchMnrs).Methods("POST")
 
+	api.HandleFunc("/nmr_vehicle", handlers.GetAllNmrVehicle).Methods("GET")
+	api.HandleFunc("/nmr_vehicle", handlers.CreateNmrVehicle).Methods("POST")
+	api.HandleFunc("/nmr_vehicle/{id}", handlers.GetNmrVehicle).Methods("GET")
+	api.HandleFunc("/nmr_vehicle/{id}", handlers.UpdateNmrVehicle).Methods("PUT")
+	api.HandleFunc("/nmr_vehicle/{id}", handlers.DeleteNmrVehicle).Methods("DELETE")
+	api.HandleFunc("/nmr_vehicle1/batch", handlers.BatchNmrVehicle).Methods("POST")
+
 	api.HandleFunc("/contractor", handlers.GetAllContractorReports).Methods("GET")
 	api.HandleFunc("/contractor", handlers.CreateContractorReport).Methods("POST")
 	api.HandleFunc("/contractor/{id}", handlers.GetContractorReport).Methods("GET")
