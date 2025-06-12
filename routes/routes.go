@@ -15,6 +15,9 @@ func RegisterRoutes() http.Handler {
 	r.HandleFunc("/api/v1/register", handlers.Register).Methods("POST")
 	r.HandleFunc("/api/v1/login", handlers.Login).Methods("POST")
 	r.HandleFunc("/api/v1/token", handlers.GetCurrentUser).Methods("GET")
+	r.PathPrefix("/uploads/").Handler(
+		http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))),
+	)
 	// a protected endpoint
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.Use(middleware.JWTMiddleware)
@@ -135,6 +138,14 @@ func RegisterRoutes() http.Handler {
 	api.HandleFunc("/tasks/{id}", handlers.DeleteTask).Methods("DELETE")
 	api.HandleFunc("/tasks/batch", handlers.BatchTasks).Methods("POST")
 
+	api.HandleFunc("/vehiclelog", handlers.GetAllVehicleLogs).Methods("GET")
+	api.HandleFunc("/vehiclelog", handlers.CreateVehicleLog).Methods("POST")
+	api.HandleFunc("/vehiclelog/{id}", handlers.GetVehicleLog).Methods("GET")
+	api.HandleFunc("/vehiclelog/{id}", handlers.UpdateVehicleLog).Methods("PUT")
+	api.HandleFunc("/vehiclelog/{id}", handlers.DeleteVehicleLog).Methods("DELETE")
+	api.HandleFunc("/vehiclelog/batch", handlers.BatchVehicleLogs).Methods("POST")
+
 	api.HandleFunc("/files/upload", handlers.UploadFile).Methods("POST")
+
 	return r
 }
