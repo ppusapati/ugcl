@@ -9,7 +9,7 @@ import (
 )
 
 type VehicleLog struct {
-	ID                   uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	ID                   uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Email                string         `gorm:"type:varchar(255);not null" json:"email" validate:"required,email"`
 	SiteLocation         string         `gorm:"type:varchar(255);not null" json:"site_location"`
 	WorkingZone          string         `gorm:"type:varchar(255)" json:"working_zone,omitempty"`
