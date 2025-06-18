@@ -17,6 +17,9 @@ type Mnr struct {
 	SkilledLabourCount   string         `gorm:"not null" json:"skilledLabourCount"`
 	UnskilledLabourCount string         `gorm:"not null" json:"unskilledLabourCount"`
 	WomenCount           string         `gorm:"not null" json:"womenCount"`
+	LabourType           string         `gorm:"null" json:"labourType"` // e.g. "Skilled", "Unskilled",
+	StartTime            JSONTime       `gorm:"null" json:"startTime"`  // e.g. "2023-10-01T08:00:00Z"
+	EndTime              JSONTime       `gorm:"null" json:"endTime"`    // e.g. "2023-10-01T17:00:00Z"
 	ContractorName       string         `gorm:"not null" json:"contractorName"`
 	AttendanceTakenBy    string         `gorm:"not null" json:"attendanceTakenBy"`
 	AttendancePhone      string         `gorm:"not null" json:"attendancePhone"`

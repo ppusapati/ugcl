@@ -9,7 +9,7 @@ import (
 func Migrations(db *gorm.DB) error {
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		{
-			ID: "12062025_create_tables",
+			ID: "18062025_create_tables",
 			Migrate: func(tx *gorm.DB) error {
 				return tx.AutoMigrate(&models.User{}, &models.DairySite{}, &models.DprSite{}, &models.Contractor{},
 					&models.Mnr{}, &models.Material{}, &models.Payment{}, &models.Diesel{}, &models.Eway{}, &models.Painting{},

@@ -1,30 +1,30 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
+
+	"cloud.google.com/go/storage"
 )
 
-// POST /api/v1/files/upload
-func UploadFile(w http.ResponseWriter, r *http.Request) {
-	// 1) Ensure upload dir exists
-	uploadDir := "./uploads"
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		http.Error(w, "could not create upload dir: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+const (
+	projectID  = "ugcl-461407" // Your GCP project ID
+	bucketName = "sreeugcl"    // Replace with your GCS bucket
+)
 
-	// 2) Parse the multipart form
+func UploadFile(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	// Parse the multipart form
 	if err := r.ParseMultipartForm(50 << 20); err != nil {
 		http.Error(w, "bad multipart form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// 3) Grab the file
+	// Get the uploaded file
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "missing file field: "+err.Error(), http.StatusBadRequest)
@@ -32,22 +32,33 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// 4) Create destination file
-	dstPath := filepath.Join(uploadDir, header.Filename)
-	dst, err := os.Create(dstPath)
+	// Initialize GCS client
+	client, err := storage.NewClient(ctx)
 	if err != nil {
-		http.Error(w, "cannot save file: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to create GCS client: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer dst.Close()
+	defer client.Close()
 
-	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, "failed to write file: "+err.Error(), http.StatusInternalServerError)
+	// Create object in bucket
+	object := client.Bucket(bucketName).Object(header.Filename)
+	writer := object.NewWriter(ctx)
+
+	// Optional: Make the file publicly accessible
+	object.ACL().Set(ctx, storage.AllUsers, storage.RoleReader)
+
+	// Upload file content
+	if _, err := io.Copy(writer, file); err != nil {
+		http.Error(w, "failed to upload to GCS: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := writer.Close(); err != nil {
+		http.Error(w, "failed to finalize upload: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// 5) Return its public URL
-	url := fmt.Sprintf("http://%s/uploads/%s", r.Host, header.Filename)
+	// Return public GCS URL
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, header.Filename)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"url": url})
 }
