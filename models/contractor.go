@@ -18,6 +18,8 @@ type Contractor struct {
 	ChainageTo        string         `gorm:"not null" json:"chainageTo"`
 	ActualMeters      string         `gorm:"not null" json:"actualMeters"`
 	DieselTaken       string         `gorm:"not null" json:"dieselTaken"`
+	VehicleType       string         `json:"vehicleType"`
+	WoringHours       string         `json:"woringHours"`
 	MeterPhotos       pq.StringArray `gorm:"type:text[]" json:"meterPhotos"`
 	CardNumber        string         `gorm:"not null" json:"cardNumber"`
 	AreaPhotos        pq.StringArray `gorm:"type:text[]" json:"areaPhotos"`
