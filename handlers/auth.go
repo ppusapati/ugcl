@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -150,13 +151,41 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page := 1
+	limit := 10
+
+	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+		page = p
+	}
+	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+		limit = l
+	}
+	offset := (page - 1) * limit
+
 	var users []models.User
-	if err := config.DB.Where("is_active = ?", true).Where("role <> ?", "Super Admin").Find(&users).Error; err != nil {
+	if err := config.DB.
+		Where("is_active = ?", true).
+		Where("role <> ?", "Super Admin").
+		Limit(limit).
+		Offset(offset).
+		Find(&users).Error; err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Don't return password hashes!
+	var total int64
+	if err := config.DB.
+		Model(&models.User{}).
+		Where("is_active = ?", true).
+		Where("role <> ?", "Super Admin").
+		Count(&total).Error; err != nil {
+		http.Error(w, "DB count error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	type userOut struct {
 		ID    uuid.UUID `json:"id"`
 		Name  string    `json:"name"`
@@ -164,6 +193,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		Phone string    `json:"phone"`
 		Role  string    `json:"role"`
 	}
+
 	out := make([]userOut, len(users))
 	for i, u := range users {
 		out[i] = userOut{
@@ -174,6 +204,13 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 			Role:  u.Role,
 		}
 	}
+
+	response := map[string]interface{}{
+		"total": total,
+		"page":  page,
+		"limit": limit,
+		"data":  out,
+	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(out)
+	json.NewEncoder(w).Encode(response)
 }

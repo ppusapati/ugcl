@@ -13,9 +13,49 @@ import (
 )
 
 func GetAllContractorReports(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page := 1
+	limit := 10
+
+	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+		page = p
+	}
+	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+		limit = l
+	}
+	offset := (page - 1) * limit
+
+	// Fetch data with pagination
 	var items []models.Contractor
-	config.DB.Find(&items)
-	json.NewEncoder(w).Encode(items)
+	if err := config.DB.
+		Limit(limit).
+		Offset(offset).
+		Find(&items).Error; err != nil {
+		http.Error(w, "DB fetch error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get total count
+	var total int64
+	if err := config.DB.
+		Model(&models.Contractor{}).
+		Count(&total).Error; err != nil {
+		http.Error(w, "DB count error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Build response
+	response := map[string]interface{}{
+		"total": total,
+		"page":  page,
+		"limit": limit,
+		"data":  items,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func CreateContractorReport(w http.ResponseWriter, r *http.Request) {
