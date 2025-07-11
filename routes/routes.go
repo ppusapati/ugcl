@@ -108,7 +108,7 @@ func RegisterRoutes() http.Handler {
 	admin.HandleFunc("/nmr_vehicle/{id}", handlers.GetNmrVehicle).Methods("GET")
 	admin.HandleFunc("/nmr_vehicle/{id}", handlers.UpdateNmrVehicle).Methods("PUT")
 	admin.HandleFunc("/nmr_vehicle/{id}", handlers.DeleteNmrVehicle).Methods("DELETE")
-	api.HandleFunc("/nmr_vehicle1/batch", handlers.BatchNmrVehicle).Methods("POST")
+	api.HandleFunc("/nmr_vehicle/batch", handlers.BatchNmrVehicle).Methods("POST")
 
 	admin.HandleFunc("/contractor", handlers.GetAllContractorReports).Methods("GET")
 	api.HandleFunc("/contractor", handlers.CreateContractorReport).Methods("POST")

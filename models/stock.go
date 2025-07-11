@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -22,14 +22,14 @@ type Stock struct {
 	ItemQuantity           string         `gorm:"column:item_quantity;not null"        json:"itemQuantity"`
 	SpecialsDetail         *string        `gorm:"column:specials_detail"               json:"specialsDetail,omitempty"`
 	DefectiveMaterial      *string        `gorm:"column:defective_material"            json:"defectiveMaterial,omitempty"`
-	DefectivePhotos        pq.StringArray `gorm:"column:defective_photos;type:jsonb;not null" json:"defectivePhotos"`
+	DefectivePhotos        datatypes.JSON `gorm:"column:defective_photos;type:jsonb;not null" json:"defectivePhotos"`
 	ContractorName         string         `gorm:"column:contractor_name;not null"      json:"contractorName"`
 	LabelNumber            string         `gorm:"column:label_number;not null"         json:"labelNumber"`
 	VehicleNumber          string         `gorm:"column:vehicle_number;not null"       json:"vehicleNumber"`
 	Remarks                *string        `gorm:"column:remarks"                       json:"remarks,omitempty"`
 	YardInchargeName       string         `gorm:"column:yard_incharge_name;not null"   json:"yardInchargeName"`
 	YardInchargePhone      string         `gorm:"column:yard_incharge_phone;not null"  json:"yardInchargePhone"`
-	ChallanFiles           pq.StringArray `gorm:"column:challan_files;type:jsonb;not null" json:"challanFiles"`
+	ChallanFiles           datatypes.JSON `gorm:"column:challan_files;type:jsonb;not null" json:"challanFiles"`
 
 	Latitude    float64  `gorm:"column:latitude;not null"             json:"latitude"`
 	Longitude   float64  `gorm:"column:longitude;not null"            json:"longitude"`
