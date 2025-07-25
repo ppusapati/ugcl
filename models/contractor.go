@@ -20,9 +20,9 @@ type Contractor struct {
 	DieselTaken       string         `gorm:"not null" json:"dieselTaken"`
 	VehicleType       string         `json:"vehicleType"`
 	WoringHours       string         `json:"woringHours"`
-	MeterPhotos       pq.StringArray `gorm:"type:text[]" json:"meterPhotos"`
+	MeterPhotos       pq.StringArray `gorm:"type:text[]" json:"meterPhotos" swaggertype:"array,string"`
 	CardNumber        string         `gorm:"not null" json:"cardNumber"`
-	AreaPhotos        pq.StringArray `gorm:"type:text[]" json:"areaPhotos"`
+	AreaPhotos        pq.StringArray `gorm:"type:text[]" json:"areaPhotos" swaggertype:"array,string"`
 	SiteEngineerName  string         `gorm:"not null" json:"siteEngineerName"`
 	SiteEngineerPhone string         `gorm:"not null" json:"siteEngineerPhone"`
 	Latitude          float64        `gorm:"not null" json:"latitude"`

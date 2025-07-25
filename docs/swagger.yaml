@@ -1,0 +1,244 @@
+definitions:
+  models.Contractor:
+    properties:
+      actualMeters:
+        type: string
+      areaPhotos:
+        items:
+          type: string
+        type: array
+      cardNumber:
+        type: string
+      chainageFrom:
+        type: string
+      chainageTo:
+        type: string
+      contractorName:
+        type: string
+      contractorPhone:
+        type: string
+      createdAt:
+        type: string
+      dieselTaken:
+        type: string
+      id:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      meterPhotos:
+        items:
+          type: string
+        type: array
+      siteEngineerName:
+        type: string
+      siteEngineerPhone:
+        type: string
+      siteName:
+        type: string
+      submittedAt:
+        type: string
+      updatedAt:
+        type: string
+      vehicleType:
+        type: string
+      woringHours:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/admin/contractor:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves paginated list of contractor reports
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all contractor reports
+      tags:
+      - contractor
+  /api/v1/admin/contractor/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a contractor report by ID
+      parameters:
+      - description: Contractor Report ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete contractor report
+      tags:
+      - contractor
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a contractor report by ID
+      parameters:
+      - description: Contractor Report ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contractor'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get contractor report by ID
+      tags:
+      - contractor
+    put:
+      consumes:
+      - application/json
+      description: Updates a contractor report by ID
+      parameters:
+      - description: Contractor Report ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated contractor report data
+        in: body
+        name: contractor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Contractor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contractor'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update contractor report
+      tags:
+      - contractor
+  /api/v1/contractor:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new contractor report entry
+      parameters:
+      - description: Contractor Report Data
+        in: body
+        name: contractor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Contractor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contractor'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create contractor report
+      tags:
+      - contractor
+  /api/v1/contractor/batch:
+    post:
+      consumes:
+      - application/json
+      description: Bulk creates contractor reports. Existing IDs are ignored.
+      parameters:
+      - description: Array of contractor reports
+        in: body
+        name: batch
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Contractor'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Batch create contractor reports
+      tags:
+      - contractor
+swagger: "2.0"

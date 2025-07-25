@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "p9e.in/ugcl/docs"
 	"p9e.in/ugcl/handlers"
 	"p9e.in/ugcl/middleware"
 )
@@ -20,8 +21,8 @@ func RegisterRoutes() http.Handler {
 	)
 	// a protected endpoint
 	api := r.PathPrefix("/api/v1").Subrouter()
+	api.Use(middleware.SecurityMiddleware)
 	api.Use(middleware.JWTMiddleware)
-
 	// anyone logged in can hit this
 	api.HandleFunc("/api/profile", func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("userID").(string)
@@ -31,9 +32,12 @@ func RegisterRoutes() http.Handler {
 
 	// only admins:
 	admin := api.PathPrefix("/admin").Subrouter()
+
+	// admin.Use(middleware.SecurityMiddleware) // ⬅️ Enforce API key + IP
 	admin.Use(func(h http.Handler) http.Handler {
-		return middleware.RequireRole("admin", h)
+		return middleware.RequireRole("admin", h) // ⬅️ Enforce admin role
 	})
+
 	admin.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("secret admin stats"))
 	}).Methods("GET")
@@ -146,6 +150,39 @@ func RegisterRoutes() http.Handler {
 	api.HandleFunc("/vehiclelog/batch", handlers.BatchVehicleLogs).Methods("POST")
 
 	api.HandleFunc("/files/upload", handlers.UploadFile).Methods("POST")
+
+	partner := r.PathPrefix("/api/v1/partner").Subrouter()
+	partner.Use(middleware.SecurityMiddleware) // API key + IP
+	partner.HandleFunc("/dprsite", handlers.GetAllSiteEngineerReports).Methods("GET")
+	partner.HandleFunc("/dprsite/{id}", handlers.GetSiteEngineerReport).Methods("GET")
+	partner.HandleFunc("/wrapping", handlers.GetAllWrappingReports).Methods("GET")
+	partner.HandleFunc("/wrapping/{id}", handlers.GetWrappingReport).Methods("GET")
+	partner.HandleFunc("/eway", handlers.GetAllEways).Methods("GET")
+	partner.HandleFunc("/eway/{id}", handlers.GetEway).Methods("GET")
+	partner.HandleFunc("/water", handlers.GetAllWaterTankerReports).Methods("GET")
+	partner.HandleFunc("/water/{id}", handlers.GetWaterTankerReport).Methods("GET")
+	partner.HandleFunc("/stock", handlers.GetAllStockReports).Methods("GET")
+	partner.HandleFunc("/stock/{id}", handlers.GetStockReport).Methods("GET")
+	partner.HandleFunc("/dairysite", handlers.GetAllDairySiteReports).Methods("GET")
+	partner.HandleFunc("/dairysite/{id}", handlers.GetDairySiteReport).Methods("GET")
+	partner.HandleFunc("/payment", handlers.GetAllPayments).Methods("GET")
+	partner.HandleFunc("/payment/{id}", handlers.GetPayment).Methods("GET")
+	partner.HandleFunc("/material", handlers.GetAllMaterials).Methods("GET")
+	partner.HandleFunc("/material/{id}", handlers.GetMaterial).Methods("GET")
+	partner.HandleFunc("/mnr", handlers.GetAllMNRReports).Methods("GET")
+	partner.HandleFunc("/mnr/{id}", handlers.GetMNRReport).Methods("GET")
+	partner.HandleFunc("/nmr_vehicle", handlers.GetAllNmrVehicle).Methods("GET")
+	partner.HandleFunc("/nmr_vehicle/{id}", handlers.GetNmrVehicle).Methods("GET")
+	partner.HandleFunc("/contractor", handlers.GetAllContractorReports).Methods("GET")
+	partner.HandleFunc("/contractor/{id}", handlers.GetContractorReport).Methods("GET")
+	partner.HandleFunc("/painting", handlers.GetAllPaintingReports).Methods("GET")
+	partner.HandleFunc("/painting/{id}", handlers.GetPaintingReport).Methods("GET")
+	partner.HandleFunc("/diesel", handlers.GetAllDieselReports).Methods("GET")
+	partner.HandleFunc("/diesel/{id}", handlers.GetDieselReport).Methods("GET")
+	partner.HandleFunc("/tasks", handlers.GetAllTasks).Methods("GET")
+	partner.HandleFunc("/tasks/{id}", handlers.GetTask).Methods("GET")
+	partner.HandleFunc("/vehiclelog", handlers.GetAllVehicleLogs).Methods("GET")
+	partner.HandleFunc("/vehiclelog/{id}", handlers.GetVehicleLog).Methods("GET")
 
 	return r
 }

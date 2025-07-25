@@ -3,6 +3,8 @@ package middleware
 
 import (
 	"context"
+	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -137,4 +139,126 @@ func GetRole(r *http.Request) string {
 		return c.Role
 	}
 	return ""
+}
+
+type APIClientConfig struct {
+	AppName        string
+	AllowedPaths   []string        // Exact or prefix match (supports "*")
+	AllowedMethods map[string]bool // e.g., "GET": true, "POST": true
+	SkipIPCheck    bool
+}
+
+var apiKeyConfigs = map[string]APIClientConfig{
+	os.Getenv("MOBILE_APP_KEY"): {
+		AppName:      "MobileApp",
+		AllowedPaths: []string{"/api/v1"},
+		AllowedMethods: map[string]bool{
+			http.MethodPost: true,
+		},
+		SkipIPCheck: true,
+	},
+	os.Getenv("PARTNER_PORTAL_KEY"): {
+		AppName:      "PartnerPortal",
+		AllowedPaths: []string{"/api/v1"},
+		AllowedMethods: map[string]bool{
+			http.MethodGet: true,
+		},
+		SkipIPCheck: false,
+	},
+	os.Getenv("INTERNAL_OPS_KEY"): {
+		AppName:      "InternalOps",
+		AllowedPaths: []string{"/api/v1/*"},
+		AllowedMethods: map[string]bool{
+			http.MethodGet:    true,
+			http.MethodPost:   true,
+			http.MethodPut:    true,
+			http.MethodDelete: true,
+		},
+		SkipIPCheck: true,
+	},
+}
+
+// Define fixed IP whitelist for server-to-server apps (skip for mobile)
+var whitelistedIPs = map[string]bool{
+	"203.0.113.5": true,
+	"127.0.0.1":   true,
+	"::1":         true,
+}
+
+// SecurityMiddleware enforces API key, IP filtering, and logging
+func SecurityMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.Header.Get("x-api-key")
+		clientConfig, ok := apiKeyConfigs[apiKey]
+		if !ok {
+			http.Error(w, "Invalid or missing API key", http.StatusUnauthorized)
+			log.Printf("[SECURITY] 🔒 Blocked - Invalid API key. IP=%s Path=%s", getClientIP(r), r.URL.Path)
+			return
+		}
+
+		clientIP := getClientIP(r)
+		if !clientConfig.SkipIPCheck && !whitelistedIPs[clientIP] {
+			http.Error(w, "Access from this IP is not allowed", http.StatusForbidden)
+			log.Printf("[SECURITY] 🚫 Blocked - IP not whitelisted. App=%s IP=%s Path=%s", clientConfig.AppName, clientIP, r.URL.Path)
+			return
+		}
+
+		// ✅ Path-based access check
+		pathAllowed := false
+		for _, path := range clientConfig.AllowedPaths {
+			if strings.HasSuffix(path, "*") {
+				prefix := strings.TrimSuffix(path, "*")
+				if strings.HasPrefix(r.URL.Path, prefix) {
+					pathAllowed = true
+					break
+				}
+			} else if r.URL.Path == path || strings.HasPrefix(r.URL.Path, path+"/") {
+				pathAllowed = true
+				break
+			}
+		}
+		if !pathAllowed {
+			http.Error(w, "Access to this endpoint is not allowed for this app", http.StatusForbidden)
+			log.Printf("[SECURITY] ⛔️ Denied - Path not allowed. App=%s IP=%s Path=%s", clientConfig.AppName, clientIP, r.URL.Path)
+			return
+		}
+
+		// ✅ Method-based access check
+		if !clientConfig.AllowedMethods[r.Method] {
+			http.Error(w, "This HTTP method is not allowed for this app", http.StatusMethodNotAllowed)
+			log.Printf("[SECURITY] ⛔️ Denied - Method not allowed. App=%s Method=%s Path=%s", clientConfig.AppName, r.Method, r.URL.Path)
+			return
+		}
+
+		// User info from JWT if available
+		claims := GetClaims(r)
+		userID, userRole, userName := "-", "-", "-"
+		if claims != nil {
+			userID = claims.UserID
+			userRole = claims.Role
+			userName = claims.Name
+		}
+
+		log.Printf("[SECURITY] ✅ Allowed - App=%s UserID=%s Name=%s Role=%s IP=%s Path=%s Method=%s Time=%s",
+			clientConfig.AppName, userID, userName, userRole,
+			clientIP, r.URL.Path, r.Method, time.Now().Format(time.RFC3339))
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Extracts client IP from headers or remote addr
+func getClientIP(r *http.Request) string {
+	// Priority: X-Forwarded-For → X-Real-IP → RemoteAddr
+	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+		return strings.Split(ip, ",")[0]
+	}
+	if ip := r.Header.Get("X-Real-IP"); ip != "" {
+		return ip
+	}
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return ip
 }
