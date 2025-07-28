@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
@@ -13,41 +12,22 @@ import (
 )
 
 func GetAllVehicleLogs(w http.ResponseWriter, r *http.Request) {
-	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
-
-	page := 1
-	limit := 10
-
-	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-		page = p
-	}
-	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-		limit = l
-	}
-	offset := (page - 1) * limit
-	var items []models.VehicleLog
-	if err := config.DB.
-		Limit(limit).
-		Offset(offset).
-		Find(&items).Error; err != nil {
-		http.Error(w, "DB fetch error: "+err.Error(), http.StatusInternalServerError)
+	params, err := models.ParseReportParams(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var total int64
-	if err := config.DB.
-		Model(&models.VehicleLog{}).
-		Count(&total).Error; err != nil {
-		http.Error(w, "DB count error: "+err.Error(), http.StatusInternalServerError)
+	if err := params.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	response := map[string]interface{}{
-		"total": total,
-		"page":  page,
-		"limit": limit,
-		"data":  items,
+	service := models.NewReportService(config.DB, models.VehicleLog{})
+	response, err := service.GetReport(params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

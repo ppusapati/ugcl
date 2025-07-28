@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -95,11 +96,24 @@ func JWTMiddleware(next http.Handler) http.Handler {
 //			next.ServeHTTP(w, r)
 //		})
 //	}
-func RequireRole(role string, next http.Handler) http.Handler {
+//
+//	func RequireRole(role string, next http.Handler) http.Handler {
+//		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//			userRole := GetRole(r)
+//			// Super Admin can do anything!
+//			if userRole == "Super Admin" || userRole == role {
+//				next.ServeHTTP(w, r)
+//				return
+//			}
+//			http.Error(w, "forbidden", http.StatusForbidden)
+//		})
+//	}
+//
+// In your middleware package:
+func RequireRole(roles []string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userRole := GetRole(r)
-		// Super Admin can do anything!
-		if userRole == "Super Admin" || userRole == role {
+		role := GetRole(r)
+		if slices.Contains(roles, role) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -180,9 +194,9 @@ var apiKeyConfigs = map[string]APIClientConfig{
 
 // Define fixed IP whitelist for server-to-server apps (skip for mobile)
 var whitelistedIPs = map[string]bool{
-	"203.0.113.5": true,
-	"127.0.0.1":   true,
-	"::1":         true,
+	"20.204.19.129": true,
+	"127.0.0.1":     true,
+	"::1":           true,
 }
 
 // SecurityMiddleware enforces API key, IP filtering, and logging

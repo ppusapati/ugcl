@@ -35,7 +35,8 @@ func RegisterRoutes() http.Handler {
 
 	// admin.Use(middleware.SecurityMiddleware) // ⬅️ Enforce API key + IP
 	admin.Use(func(h http.Handler) http.Handler {
-		return middleware.RequireRole("admin", h) // ⬅️ Enforce admin role
+		// List all roles you want to allow here
+		return middleware.RequireRole([]string{"admin", "super_admin", "project_coordinator"}, h)
 	})
 
 	admin.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {

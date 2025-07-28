@@ -44,3 +44,7 @@ type DprSite struct {
 	UpdatedAt                             time.Time      `gorm:"autoUpdateTime" json:"updatedAt"`
 	DeletedAt                             gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+func (d DprSite) TableName() string {
+	return "dpr_sites"
+}
