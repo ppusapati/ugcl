@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "p9e.in/ugcl/docs"
 	"p9e.in/ugcl/handlers"
+	kpi_handlers "p9e.in/ugcl/handlers/kpis"
 	"p9e.in/ugcl/middleware"
 )
 
@@ -23,6 +24,7 @@ func RegisterRoutes() http.Handler {
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.Use(middleware.SecurityMiddleware)
 	api.Use(middleware.JWTMiddleware)
+
 	// anyone logged in can hit this
 	api.HandleFunc("/api/profile", func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("userID").(string)
@@ -185,5 +187,9 @@ func RegisterRoutes() http.Handler {
 	partner.HandleFunc("/vehiclelog", handlers.GetAllVehicleLogs).Methods("GET")
 	partner.HandleFunc("/vehiclelog/{id}", handlers.GetVehicleLog).Methods("GET")
 
+	api.HandleFunc("/kpi/stock", kpi_handlers.GetStockKPIs).Methods("GET")
+	api.HandleFunc("/kpi/contractor", kpi_handlers.GetContractorKPIs).Methods("GET")
+	api.HandleFunc("/kpi/dairysite", kpi_handlers.GetDairyKPIs).Methods("GET")
+	api.HandleFunc("/kpi/diesel", kpi_handlers.GetDieselKPIs).Methods("GET")
 	return r
 }
