@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package packages.api.v1.response;
+option go_package = "p9e.in/ugcl/packages/api/v1/response;response";
+option objc_class_prefix = "P9Errors";
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/wrappers.proto";
+
+message Status {
+  int32 code = 1;
+  string reason = 2;
+  string message = 3;
+  map<string, string> metadata = 4;
+};
+
+extend google.protobuf.EnumOptions {
+  int32 default_code = 1108;
+}
+
+extend google.protobuf.EnumValueOptions {
+  int32 code = 1109;
+}
+
+message EmptyRequest {}
+message EmptyResponse {}
+
+message OperationResponse {
+    Status status = 1;  // Status code, e.g., 200 for success
+    google.protobuf.Int64Value id = 2;            // ID of the newly created record
+    google.protobuf.StringValue uuid = 3;         // UUID of the newly created record
+}
+
+enum ErrorReason {
+  CREATION_FAILED = 0 [(packages.api.v1.response.code) = 400];
+  UPDATE_FAILED = 1 [(packages.api.v1.response.code) = 400];
+  DELETE_FAILED = 2 [(packages.api.v1.response.code) = 400];
+  VALIDATION_FAILED = 3 [(packages.api.v1.response.code) = 400];
+  INVALID_REQUEST = 4 [(packages.api.v1.response.code) = 400];
+  NOT_FOUND = 5 [(packages.api.v1.response.code) = 403];
+  JSON_TRANSACTION_FAIL = 6 [(packages.api.v1.response.code) = 400];
+  UNAUTHORIZED = 7 [(packages.api.v1.response.code) = 403]; // For unauthorized access
+  FORBIDDEN_OPERATION = 8 [(packages.api.v1.response.code) = 403]; // For forbidden operations on MDM data
+  CONFLICT = 9 [(packages.api.v1.response.code) = 409]; // For conflicts, e.g., duplicate entities
+  INTERNAL_SERVER_ERROR = 10 [(packages.api.v1.response.code) = 500]; // For internal server errors
+    // Multi-Tenant Errors
+    TENANT_NOT_FOUND = 11 [(packages.api.v1.response.code) = 404];
+    DUPLICATE_TENANT = 12 [(packages.api.v1.response.code) = 400];
+    TENANT_CREATION_FAILED = 13 [(packages.api.v1.response.code) = 500];
+    TENANT_ACCESS_DENIED = 14 [(packages.api.v1.response.code) = 403]; // For unauthorized access to tenant-specific data
+  
+}
+
+enum SuccessReason {
+  CREATED_SUCCESSFULLY = 0 [(packages.api.v1.response.code) = 200];
+  UPDATED_SUCCESSFULLY =1 [(packages.api.v1.response.code) = 200];
+  DELETED_SUCCESSFULLY =2 [(packages.api.v1.response.code) = 200];
+  FOUND_SUCCESSFULLY =3 [(packages.api.v1.response.code) = 200];
+} 

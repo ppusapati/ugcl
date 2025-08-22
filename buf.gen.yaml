@@ -1,0 +1,26 @@
+version: v2
+managed:
+  enabled: true
+  disable:
+    - file_option: go_package_prefix
+      module: buf.build/bufbuild/protovalidate
+plugins:
+  - local: protoc-gen-go
+    out: ./
+    opt: 
+      - paths=import
+      - module=p9e.in/ugcl
+  - local: protoc-gen-go-errors-i18n
+    out: ./
+  # Generate Connect-Go services
+  - remote: buf.build/connectrpc/go
+    out: ./
+    opt: 
+      - paths=import
+      - module=p9e.in/ugcl
+  - remote: buf.build/connectrpc/dart
+    out: ../mobile/lib/proto
+  - remote: buf.build/bufbuild/es
+    out: ../frontend/es
+  - remote: buf.build/protocolbuffers/dart
+    out: ../mobile/lib/proto

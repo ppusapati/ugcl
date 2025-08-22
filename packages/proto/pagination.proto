@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package packages.api.v1.pagination;
+
+option go_package = "p9e.in/ugcl/packages/api/v1/pagination;pagination";
+
+import "google/protobuf/field_mask.proto";
+
+message Pagination {
+     // Number of items to skip for pagination
+     int32 page_offset = 1;
+     // Maximum number of items to return in response
+     int32 page_size = 2;
+     // Fields to sort by, default is id
+     repeated string sort = 3;
+     // Specific fields to include in the response
+     google.protobuf.FieldMask fields = 4;
+     // Complex filter criteria
+}

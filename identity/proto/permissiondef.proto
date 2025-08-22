@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package user.api.v2.permissiondef;
+option go_package = "p9e.in/ugcl/identity/api/v2/permissiondef;permissiondef";
+
+import "google/protobuf/empty.proto";
+
+service PermissionDefService {
+  rpc Create(PermissionDef) returns (PermissionDef) {
+  }
+
+  rpc Update(PermissionDef) returns (PermissionDef) {
+  }
+
+  rpc Delete(PermissionDefIdentifier) returns (google.protobuf.Empty) {
+  }
+
+  rpc GetByName(PermissionDefIdentifier) returns (PermissionDef) {
+  }
+
+  rpc GetAll(google.protobuf.Empty) returns (ListPermissionDefsResponse) {
+  }
+
+  rpc ListByRole(RoleIdentifier) returns (ListPermissionDefsResponse) {
+  }
+
+  rpc AssignPermissionDefsToRole(AssignPermissionDefsRequest) returns (google.protobuf.Empty) {
+  }
+
+  rpc RevokePermissionDefsFromRole(RevokePermissionDefsRequest) returns (google.protobuf.Empty) {
+  }
+}
+
+// -------------------------
+// Message Definitions
+// -------------------------
+
+message PermissionDef {
+  string name        = 1 ; // primary key
+  string namespace   = 2 ;
+  string resource    = 3 ;
+  string action      = 4 ;
+  string scope       = 5 ; // NEW (“*” or pattern)
+  int32  version     = 6;                                        // NEW
+  string tenant_id   = 7; // NEW
+  string description = 8;
+  PermissionSide side = 9;
+}
+
+message PermissionDefIdentifier {
+  string name = 1 ;
+}
+
+message ListPermissionDefsResponse {
+  repeated PermissionDef items = 1;
+}
+
+message RoleIdentifier {
+  string id = 1 ;
+}
+
+message AssignPermissionDefsRequest {
+  string role_id = 1 ;
+  repeated string names = 2 ;
+}
+
+message RevokePermissionDefsRequest {
+  string role_id = 1 ;
+  repeated string names = 2; // Optional: empty means "remove all"
+}
+
+enum PermissionSide {
+  BOTH = 0;
+  HOST_ONLY = 1;
+  TENANT_ONLY = 2;
+}

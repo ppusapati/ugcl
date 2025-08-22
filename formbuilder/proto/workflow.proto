@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package formbuilder.api.v2.workflow;
+option go_package = "p9e.in/ugcl/formbuilder/api/v2/workflow;workflow";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+// External Workflow Integration (BPMN)
+message WorkflowIntegration {
+  bool enabled = 1;
+  string engine_type = 2; // "camunda", "flowable", "zeebe"
+  string process_definition_key = 3;
+  string endpoint = 4;
+  map<string, string> field_mappings = 5; // form field -> process variable
+  repeated string trigger_events = 6; // Events that trigger workflow
+}
+
+message Workflow {
+  string initial_state = 1;
+  repeated WorkflowState states = 2;
+  repeated WorkflowTransition global_transitions = 3;
+  map<string, string> metadata = 4;
+}
+
+message WorkflowState {
+  string id = 1;
+  string label = 2;
+  string assigned_role = 3;
+  repeated string assigned_users = 4;
+  repeated string actions = 5;
+  repeated WorkflowTransition transitions = 6;
+  StateType type = 7;
+  map<string, string> properties = 8;
+  repeated StateValidation validations = 9;
+}
+
+enum StateType {
+  START = 0;
+  INTERMEDIATE = 1;
+  END = 2;
+  APPROVAL = 3;
+  REVIEW = 4;
+  PARALLEL_SPLIT = 5;
+  PARALLEL_JOIN = 6;
+}
+
+message StateValidation {
+  string expression = 1;
+  string message = 2;
+  bool blocking = 3;
+}
+
+message WorkflowTransition {
+  string event = 1;
+  string condition = 2; // Expression language condition
+  string next_state = 3;
+  repeated TransitionAction actions = 4;
+  map<string, string> metadata = 5;
+}
+
+message TransitionAction {
+  string type = 1; // "email", "webhook", "script", "notification"
+  map<string, string> params = 2;
+}
+
+// SLA Rules
+message SLARule {
+  string id = 1;
+  string name = 2;
+  string state = 3; // Workflow state this SLA applies to
+  Duration duration = 4;
+  repeated EscalationLevel escalation_levels = 5;
+  bool active = 6;
+  repeated string applicable_roles = 7;
+  string condition = 8; // Optional condition expression
+}
+
+message Duration {
+  int32 value = 1;
+  TimeUnit unit = 2;
+}
+
+enum TimeUnit {
+  MINUTES = 0;
+  HOURS = 1;
+  DAYS = 2;
+  WEEKS = 3;
+  MONTHS = 4;
+}
+
+message EscalationLevel {
+  int32 level = 1;
+  Duration after = 2;
+  repeated EscalationAction actions = 3;
+}
+
+message EscalationAction {
+  string type = 1; // "email", "sms", "reassign", "notify"
+  repeated string recipients = 2;
+  string template = 3;
+  map<string, string> params = 4;
+}
+
+// Escalations
+message Escalation {
+  string id = 1;
+  string name = 2;
+  string trigger_condition = 3;
+  repeated string from_states = 4;
+  string to_state = 5;
+  repeated string notify_roles = 6;
+  string escalation_message = 7;
+  bool auto_escalate = 8;
+  Duration after_duration = 9;
+}
+
+message ExternalWorkflowRequest {
+  string instance_id = 1;
+  string action = 2;
+  map<string, google.protobuf.Any> variables = 3;
+}
+
+message ExternalWorkflowResponse {
+  string process_instance_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+
+message GetWorkflowStatesResponse {
+  repeated WorkflowState states = 1;
+  string current_state = 2;
+  repeated string available_actions = 3;
+}
+
+message TransitionRequest {
+  string instance_id = 1;
+  string event = 2;
+  map<string, string> context = 3;
+}
+
+message TransitionResponse {
+  bool success = 1;
+  string new_state = 2;
+  string message = 3;
+  repeated TransitionAction executed_actions = 4;
+}
+
+
+message GetFormRequest {
+  string form_id = 1;
+
+
+  string version = 2; // Optional, defaults to latest
+}
+
+service WorkflowService{
+      rpc GetWorkflowStates(GetFormRequest) returns (GetWorkflowStatesResponse);
+  rpc TransitionWorkflow(TransitionRequest) returns (TransitionResponse);
+  rpc TriggerExternalWorkflow(ExternalWorkflowRequest) returns (ExternalWorkflowResponse);
+}

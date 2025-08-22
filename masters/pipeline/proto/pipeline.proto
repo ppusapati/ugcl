@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package  masters.pipeline.api.v2.pipeline;
+option go_package = "p9e.in/ugcl/masters/pipeline/api/v2/pipeline;pipeline";
+
+import "google/protobuf/timestamp.proto";
+// ========== MESSAGES ==========
+
+message Pipe {
+  string id = 1;
+  string pipe_name = 2;
+  string pipe_type = 3;
+  string pressure_rating = 4;
+  string description = 5;
+}
+
+message Node {
+  string id = 1;
+  string node_name = 2;
+  string site_id = 3;
+  string zone_id = 4;
+  string node_type = 5;
+  double coordinates_x = 6;
+  double coordinates_y = 7;
+  double elevation = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message PipelineSegment {
+  string id = 1;
+  string site_id = 2;
+  string zone_id = 3;
+  string label = 4;
+  string start_node_id = 5;
+  string stop_node_id = 6;
+  string pipe_id = 7;
+  int32 diameter_mm = 8;
+  double length_m = 9;
+  string status = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  
+  // Populated fields
+  Node start_node = 13;
+  Node stop_node = 14;
+  Pipe pipe = 15;
+}
+
+message LabelInfo {
+  string label = 1;
+  int32 segment_count = 2;
+  double total_length = 3;
+  repeated string pipe_used = 4;
+}
+
+// ========== REQUEST/RESPONSE MESSAGES ==========
+
+
+message GetLabelsByZoneRequest {
+  string zone_id = 1;
+}
+
+message GetLabelsByZoneResponse {
+  repeated LabelInfo labels = 1;
+}
+
+message GetNodesByZoneRequest {
+  string zone_id = 1;
+}
+
+message GetNodesByZoneResponse {
+  repeated Node nodes = 1;
+}
+
+message GetNodesByLabelRequest {
+  string label = 1;
+}
+
+message GetNodesByLabelResponse {
+  repeated Node nodes = 1;
+}
+
+message GetPipelineSegmentsRequest {
+  string site_id = 1;
+  string zone_id = 2;
+  string label = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message GetPipelineSegmentsResponse {
+  repeated PipelineSegment segments = 1;
+  int32 total_count = 2;
+}
+
+message CreatePipelineSegmentRequest {
+  string site_id = 2;
+  string zone_id = 3;
+  string label = 4;
+  string start_node_id = 5;
+  string stop_node_id = 6;
+  string pipe_id = 7;
+  int32 diameter_mm = 8;
+  double length_m = 9;
+  string installation_date = 10;
+  string status = 11;
+}
+
+message CreatePipelineSegmentResponse {
+  PipelineSegment segment = 1;
+}
+
+// ========== SERVICES ==========
+
+// Single message for all view responses
+message PipelineSegmentView {
+  string site_name = 1;
+  string zone_name = 2;
+  string label = 3;
+  string start_node = 4;
+  string stop_node = 5;
+  int32 diameter = 6;
+  double length = 7;
+  string pipe_name = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message GetPipelineViewRequest {
+  string site_name = 1;    // optional
+  string zone_name = 2;    // optional  
+  string label = 3;        // optional
+}
+
+message GetPipelineViewResponse {
+  repeated PipelineSegmentView segments = 1;
+}
+
+
+message Site {
+  string id = 1;
+  string site_name = 2;
+  string site_code = 3;
+  string description = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int32 zone_count = 7;
+}
+
+message Zone {
+  string id = 1;
+  string site_id = 2;
+  string zone_name = 3;
+  string zone_code = 4;
+  string description = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  int32 label_count = 8;
+  int32 segment_count = 9;
+}
+
+
+
+message GetSitesRequest {}
+
+message GetSitesResponse {
+repeated Site sites = 1;
+}
+
+
+message GetZonesBySiteRequest {
+  string site_id = 1;
+}
+
+message GetZonesBySiteResponse {
+  repeated Zone zones = 1;
+}
+
+service PipelineService {
+  // Hierarchy endpoints
+  
+  rpc GetLabelsByZone(GetLabelsByZoneRequest) returns (GetLabelsByZoneResponse);
+  rpc GetNodesByZone(GetNodesByZoneRequest) returns (GetNodesByZoneResponse);
+  rpc GetNodesByLabel(GetNodesByLabelRequest) returns (GetNodesByLabelResponse);
+  
+  // Pipeline operations
+  rpc GetPipelineSegments(GetPipelineSegmentsRequest) returns (GetPipelineSegmentsResponse);
+  rpc CreatePipelineSegment(CreatePipelineSegmentRequest) returns (CreatePipelineSegmentResponse);
+
+  //view
+  rpc GetPipelineView(GetPipelineViewRequest) returns (GetPipelineViewResponse);
+
+  rpc GetSites(GetSitesRequest) returns (GetSitesResponse);
+  rpc GetZonesBySite(GetZonesBySiteRequest) returns (GetZonesBySiteResponse);
+}

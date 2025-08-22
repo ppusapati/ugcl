@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package formbuilder.api.v2.form_instance;
+option go_package = "p9e.in/ugcl/formbuilder/api/v2/form_instance;form_instance";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+message FormInstance {
+  string id = 1;
+  string form_id = 2;
+  string current_state = 3;
+  map<string, google.protobuf.Any> field_values = 4;
+  repeated AuditLog audit_logs = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string created_by = 8;
+  string assigned_to = 9;
+  map<string, string> metadata = 10;
+  repeated Attachment attachments = 11;
+  repeated Comment comments = 12;
+}
+
+message AuditLog {
+  string id = 1;
+  string user_id = 2;
+  string action = 3;
+  string from_state = 4;
+  string to_state = 5;
+  map<string, google.protobuf.Any> changes = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string ip_address = 8;
+  string user_agent = 9;
+}
+
+message Attachment {
+  string id = 1;
+  string field_id = 2;
+  string filename = 3;
+  string mime_type = 4;
+  int64 size = 5;
+  string storage_path = 6;
+  google.protobuf.Timestamp uploaded_at = 7;
+  string uploaded_by = 8;
+}
+
+message Comment {
+  string id = 1;
+  string user_id = 2;
+  string text = 3;
+  google.protobuf.Timestamp created_at = 4;
+  bool internal = 5; // Internal comments not visible to all
+}
+
+message GetFormInstanceRequest {
+  string instance_id = 1;
+}
+
+message UpdateFormInstanceRequest {
+  string instance_id = 1;
+  map<string, google.protobuf.Any> field_values = 2;
+  string action = 3;
+}
+
+
+message SubmitFormRequest {
+  string form_id = 1;
+  map<string, google.protobuf.Any> field_values = 2;
+  string action = 3; // "save", "submit", "approve", etc.
+}
+
+
+message ValidationError {
+  string field = 1;
+  string message = 2;
+  string code = 3;
+}
+
+message SubmitFormResponse {
+  string instance_id = 1;
+  string current_state = 2;
+  bool success = 3;
+  repeated ValidationError errors = 4;
+}
+
+service formSubmission{
+      rpc SubmitForm(SubmitFormRequest) returns (SubmitFormResponse);
+  rpc GetFormInstance(GetFormInstanceRequest) returns (FormInstance);
+  rpc UpdateFormInstance(UpdateFormInstanceRequest) returns (SubmitFormResponse);
+  
+}

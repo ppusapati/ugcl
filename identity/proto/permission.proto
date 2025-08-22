@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package user.api.v2.permission;
+option go_package = "p9e.in/ugcl/identity/api/v2/permission;permission";
+
+import "google/protobuf/empty.proto";
+
+service PermissionService {
+  rpc Grant(Permission) returns (google.protobuf.Empty) {
+  }
+
+  rpc Revoke(RevokePermissionRequest) returns (google.protobuf.Empty) {
+  }
+
+  rpc Check(CheckPermissionRequest) returns (CheckPermissionResponse) {
+  }
+
+   rpc GetPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+  }
+
+  rpc ListPermissionsByRole(RoleIdentifier) returns (ListPermissionsResponse) {
+  }
+
+  rpc ListPermissionsByUser(UserIdentifier) returns (ListPermissionsResponse) {
+  }
+}
+
+message AssignPermissionRequest {
+  string subject = 1 ; // e.g. "user:123", "role:admin"
+  string namespace = 2 ;
+  string resource = 3 ;
+  string action = 4 ;
+  Effect effect = 5 ;
+  string tenant_id = 6;
+  string def_name = 7; // optional reference to PermissionDef
+}
+
+message RevokePermissionRequest {
+  string subject = 1 ; // e.g. "user:123", "role:admin"
+  string namespace = 2 ;
+  string resource = 3 ;
+  string action = 4 ;
+  repeated Effect effects = 5; // allow targeted revocation
+  string tenant_id = 6;
+}
+
+message CheckPermissionRequest {
+  string subject = 1 ;
+  string namespace = 2 ;
+  string resource = 3 ;
+  string action = 4 ;
+}
+
+message CheckPermissionResponse {
+  Effect effect = 1;
+}
+
+message ListPermissionsRequest {
+  repeated string subjects = 1; // e.g. ["user:123", "role:admin"]
+}
+
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+}
+
+message Permission {
+  string namespace = 1;
+  string resource = 2;
+  string action = 3;
+  string subject = 4;
+  Effect effect = 5;
+  string tenant_id = 6;
+  string def_name = 7; // linkage to permission definition
+}
+
+enum Effect {
+  UNKNOWN = 0;
+  GRANT = 1;
+  FORBIDDEN = 2;
+}
+
+message RoleIdentifier {
+  string uuid = 1 ;
+}
+
+message UserIdentifier {
+  string uuid = 1 ;
+}

@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package  projects.api.v2.dairy_site;
+option go_package = "p9e.in/ugcl/projects/api/v2/dairy_site;dairy_site";
+
+import "google/protobuf/timestamp.proto";
+// Custom JSONTime can be handled as google.protobuf.Timestamp
+message DairySite {
+  string id = 1;
+  string name_of_site = 2;
+  string todays_work = 3;
+  string employee_id = 4; 
+  double latitude = 6;
+  double longitude = 7;
+  google.protobuf.Timestamp submitted_at = 8;
+}
+
+
+// Response with created DairySite
+message CreateDairySiteResponse {
+  DairySite dairy_site = 1;
+}
+
+message CreateDairySiteRequest {
+ DairySite dairy_site = 1;
+}
+
+message GetDairySiteResponse {
+  string id = 1;
+  string name_of_site = 2;
+  string todays_work = 3;
+  string username = 4;
+  string fullname = 5;
+  double latitude = 6;
+  double longitude = 7;
+  google.protobuf.Timestamp submitted_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message GetDairySiteRequest {
+  string id = 1;
+  string name_of_site = 2;
+  string username = 3;
+  string fullname = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// Dairy service definition
+service DairySiteService {
+  rpc GetAllDairySites (GetDairySiteRequest) returns (GetDairySiteResponse);
+  rpc CreateDairySite (CreateDairySiteRequest) returns (CreateDairySiteResponse);
+}

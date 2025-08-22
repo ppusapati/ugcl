@@ -1,0 +1,13 @@
+go 1.24.6
+
+use (
+	./cmd
+	./core
+	./formbuilder
+	./identity
+	./masters/pipeline
+	./migrations
+	./packages
+	./projects
+	./vendors
+)

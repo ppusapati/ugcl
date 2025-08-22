@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package packages.api.v1.message;
+
+option go_package = "p9e.in/ugcl/packages/api/v1/message;message";
+import "google/protobuf/timestamp.proto";
+message EventMessage {
+  string key = 1;
+  string value = 2;
+  google.protobuf.Timestamp time_stamp =3;
+  string topic =4;
+  int32 partition = 5;
+  int64 offset = 6;
+  string required_acks =7; 
+}
