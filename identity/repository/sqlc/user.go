@@ -81,7 +81,7 @@ func (r *SQLCUserRepo) Exists(ctx context.Context, filter *models.UserSearchCrit
 		Username: *filter.UsernameSearch,
 		Email:    *filter.EmailSearch,
 		Phone:    *filter.PhoneSearch,
-		Fullname: *filter.FullnameSearch,
+		// Fullname: *filter.FullnameSearch,
 	}
 
 	return r.queries.UserExists(ctx, params)

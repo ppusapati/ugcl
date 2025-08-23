@@ -20,7 +20,7 @@ type DatabaseManager struct {
 
 func NewDatabaseManager(cfg *conf.Data) (*DatabaseManager, error) {
 	dsn := fmt.Sprintf(
-		"user=%s password=%s host=%s port=%d dbname=%s sslmode=disable search_path=testing",
+		"user=%s password=%s host=%s port=%d dbname=%s sslmode=disable search_path=testing2",
 		cfg.Postgres.User,
 		cfg.Postgres.Password,
 		cfg.Postgres.Host,
