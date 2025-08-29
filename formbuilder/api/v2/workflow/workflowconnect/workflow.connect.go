@@ -33,6 +33,18 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// WorkflowServiceCreateWorkflowProcedure is the fully-qualified name of the WorkflowService's
+	// CreateWorkflow RPC.
+	WorkflowServiceCreateWorkflowProcedure = "/formbuilder.api.v2.workflow.WorkflowService/CreateWorkflow"
+	// WorkflowServiceGetWorkflowProcedure is the fully-qualified name of the WorkflowService's
+	// GetWorkflow RPC.
+	WorkflowServiceGetWorkflowProcedure = "/formbuilder.api.v2.workflow.WorkflowService/GetWorkflow"
+	// WorkflowServiceUpdateWorkflowProcedure is the fully-qualified name of the WorkflowService's
+	// UpdateWorkflow RPC.
+	WorkflowServiceUpdateWorkflowProcedure = "/formbuilder.api.v2.workflow.WorkflowService/UpdateWorkflow"
+	// WorkflowServiceDeleteWorkflowProcedure is the fully-qualified name of the WorkflowService's
+	// DeleteWorkflow RPC.
+	WorkflowServiceDeleteWorkflowProcedure = "/formbuilder.api.v2.workflow.WorkflowService/DeleteWorkflow"
 	// WorkflowServiceGetWorkflowStatesProcedure is the fully-qualified name of the WorkflowService's
 	// GetWorkflowStates RPC.
 	WorkflowServiceGetWorkflowStatesProcedure = "/formbuilder.api.v2.workflow.WorkflowService/GetWorkflowStates"
@@ -46,6 +58,10 @@ const (
 
 // WorkflowServiceClient is a client for the formbuilder.api.v2.workflow.WorkflowService service.
 type WorkflowServiceClient interface {
+	CreateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
+	GetWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.GetWorkflowResponse], error)
+	UpdateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
+	DeleteWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
 	GetWorkflowStates(context.Context, *connect.Request[workflow.GetFormRequest]) (*connect.Response[workflow.GetWorkflowStatesResponse], error)
 	TransitionWorkflow(context.Context, *connect.Request[workflow.TransitionRequest]) (*connect.Response[workflow.TransitionResponse], error)
 	TriggerExternalWorkflow(context.Context, *connect.Request[workflow.ExternalWorkflowRequest]) (*connect.Response[workflow.ExternalWorkflowResponse], error)
@@ -62,6 +78,30 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 	baseURL = strings.TrimRight(baseURL, "/")
 	workflowServiceMethods := workflow.File_formbuilder_proto_workflow_proto.Services().ByName("WorkflowService").Methods()
 	return &workflowServiceClient{
+		createWorkflow: connect.NewClient[workflow.CreateWorkflowRequest, workflow.CreateWorkflowResponse](
+			httpClient,
+			baseURL+WorkflowServiceCreateWorkflowProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("CreateWorkflow")),
+			connect.WithClientOptions(opts...),
+		),
+		getWorkflow: connect.NewClient[workflow.GetWorkflowRequest, workflow.GetWorkflowResponse](
+			httpClient,
+			baseURL+WorkflowServiceGetWorkflowProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("GetWorkflow")),
+			connect.WithClientOptions(opts...),
+		),
+		updateWorkflow: connect.NewClient[workflow.CreateWorkflowRequest, workflow.CreateWorkflowResponse](
+			httpClient,
+			baseURL+WorkflowServiceUpdateWorkflowProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("UpdateWorkflow")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteWorkflow: connect.NewClient[workflow.GetWorkflowRequest, workflow.CreateWorkflowResponse](
+			httpClient,
+			baseURL+WorkflowServiceDeleteWorkflowProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("DeleteWorkflow")),
+			connect.WithClientOptions(opts...),
+		),
 		getWorkflowStates: connect.NewClient[workflow.GetFormRequest, workflow.GetWorkflowStatesResponse](
 			httpClient,
 			baseURL+WorkflowServiceGetWorkflowStatesProcedure,
@@ -85,9 +125,33 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 
 // workflowServiceClient implements WorkflowServiceClient.
 type workflowServiceClient struct {
+	createWorkflow          *connect.Client[workflow.CreateWorkflowRequest, workflow.CreateWorkflowResponse]
+	getWorkflow             *connect.Client[workflow.GetWorkflowRequest, workflow.GetWorkflowResponse]
+	updateWorkflow          *connect.Client[workflow.CreateWorkflowRequest, workflow.CreateWorkflowResponse]
+	deleteWorkflow          *connect.Client[workflow.GetWorkflowRequest, workflow.CreateWorkflowResponse]
 	getWorkflowStates       *connect.Client[workflow.GetFormRequest, workflow.GetWorkflowStatesResponse]
 	transitionWorkflow      *connect.Client[workflow.TransitionRequest, workflow.TransitionResponse]
 	triggerExternalWorkflow *connect.Client[workflow.ExternalWorkflowRequest, workflow.ExternalWorkflowResponse]
+}
+
+// CreateWorkflow calls formbuilder.api.v2.workflow.WorkflowService.CreateWorkflow.
+func (c *workflowServiceClient) CreateWorkflow(ctx context.Context, req *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return c.createWorkflow.CallUnary(ctx, req)
+}
+
+// GetWorkflow calls formbuilder.api.v2.workflow.WorkflowService.GetWorkflow.
+func (c *workflowServiceClient) GetWorkflow(ctx context.Context, req *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.GetWorkflowResponse], error) {
+	return c.getWorkflow.CallUnary(ctx, req)
+}
+
+// UpdateWorkflow calls formbuilder.api.v2.workflow.WorkflowService.UpdateWorkflow.
+func (c *workflowServiceClient) UpdateWorkflow(ctx context.Context, req *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return c.updateWorkflow.CallUnary(ctx, req)
+}
+
+// DeleteWorkflow calls formbuilder.api.v2.workflow.WorkflowService.DeleteWorkflow.
+func (c *workflowServiceClient) DeleteWorkflow(ctx context.Context, req *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return c.deleteWorkflow.CallUnary(ctx, req)
 }
 
 // GetWorkflowStates calls formbuilder.api.v2.workflow.WorkflowService.GetWorkflowStates.
@@ -109,6 +173,10 @@ func (c *workflowServiceClient) TriggerExternalWorkflow(ctx context.Context, req
 // WorkflowServiceHandler is an implementation of the formbuilder.api.v2.workflow.WorkflowService
 // service.
 type WorkflowServiceHandler interface {
+	CreateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
+	GetWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.GetWorkflowResponse], error)
+	UpdateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
+	DeleteWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error)
 	GetWorkflowStates(context.Context, *connect.Request[workflow.GetFormRequest]) (*connect.Response[workflow.GetWorkflowStatesResponse], error)
 	TransitionWorkflow(context.Context, *connect.Request[workflow.TransitionRequest]) (*connect.Response[workflow.TransitionResponse], error)
 	TriggerExternalWorkflow(context.Context, *connect.Request[workflow.ExternalWorkflowRequest]) (*connect.Response[workflow.ExternalWorkflowResponse], error)
@@ -121,6 +189,30 @@ type WorkflowServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	workflowServiceMethods := workflow.File_formbuilder_proto_workflow_proto.Services().ByName("WorkflowService").Methods()
+	workflowServiceCreateWorkflowHandler := connect.NewUnaryHandler(
+		WorkflowServiceCreateWorkflowProcedure,
+		svc.CreateWorkflow,
+		connect.WithSchema(workflowServiceMethods.ByName("CreateWorkflow")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceGetWorkflowHandler := connect.NewUnaryHandler(
+		WorkflowServiceGetWorkflowProcedure,
+		svc.GetWorkflow,
+		connect.WithSchema(workflowServiceMethods.ByName("GetWorkflow")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceUpdateWorkflowHandler := connect.NewUnaryHandler(
+		WorkflowServiceUpdateWorkflowProcedure,
+		svc.UpdateWorkflow,
+		connect.WithSchema(workflowServiceMethods.ByName("UpdateWorkflow")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceDeleteWorkflowHandler := connect.NewUnaryHandler(
+		WorkflowServiceDeleteWorkflowProcedure,
+		svc.DeleteWorkflow,
+		connect.WithSchema(workflowServiceMethods.ByName("DeleteWorkflow")),
+		connect.WithHandlerOptions(opts...),
+	)
 	workflowServiceGetWorkflowStatesHandler := connect.NewUnaryHandler(
 		WorkflowServiceGetWorkflowStatesProcedure,
 		svc.GetWorkflowStates,
@@ -141,6 +233,14 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 	)
 	return "/formbuilder.api.v2.workflow.WorkflowService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case WorkflowServiceCreateWorkflowProcedure:
+			workflowServiceCreateWorkflowHandler.ServeHTTP(w, r)
+		case WorkflowServiceGetWorkflowProcedure:
+			workflowServiceGetWorkflowHandler.ServeHTTP(w, r)
+		case WorkflowServiceUpdateWorkflowProcedure:
+			workflowServiceUpdateWorkflowHandler.ServeHTTP(w, r)
+		case WorkflowServiceDeleteWorkflowProcedure:
+			workflowServiceDeleteWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowServiceGetWorkflowStatesProcedure:
 			workflowServiceGetWorkflowStatesHandler.ServeHTTP(w, r)
 		case WorkflowServiceTransitionWorkflowProcedure:
@@ -155,6 +255,22 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 
 // UnimplementedWorkflowServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedWorkflowServiceHandler struct{}
+
+func (UnimplementedWorkflowServiceHandler) CreateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.CreateWorkflow is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) GetWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.GetWorkflowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.GetWorkflow is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) UpdateWorkflow(context.Context, *connect.Request[workflow.CreateWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.UpdateWorkflow is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) DeleteWorkflow(context.Context, *connect.Request[workflow.GetWorkflowRequest]) (*connect.Response[workflow.CreateWorkflowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.DeleteWorkflow is not implemented"))
+}
 
 func (UnimplementedWorkflowServiceHandler) GetWorkflowStates(context.Context, *connect.Request[workflow.GetFormRequest]) (*connect.Response[workflow.GetWorkflowStatesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.GetWorkflowStates is not implemented"))

@@ -8,6 +8,9 @@ import (
 	conf "p9e.in/ugcl/packages/api/v1/config"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	formInstanceDb "p9e.in/ugcl/formbuilder/db/generated"
+	formbuilderDb "p9e.in/ugcl/formbuilder/db/generated"
+	workflowDb "p9e.in/ugcl/formbuilder/db/generated"
 	userDB "p9e.in/ugcl/identity/db/sqlc/generated"
 	"p9e.in/ugcl/identity/uow"
 	dairySiteDB "p9e.in/ugcl/projects/db/generated"
@@ -67,4 +70,22 @@ func (m *DatabaseManager) GetUserUOW() *uow.SQLCUnitOfWorkFactory {
 
 func (m *DatabaseManager) GetDairySiteQueries() *dairySiteDB.Queries {
 	return dairySiteDB.New(m.Pool)
+}
+
+func (m *DatabaseManager) GetFormBuilderQueries() *formbuilderDb.Queries {
+	return formbuilderDb.New(m.Pool)
+}
+
+func (m *DatabaseManager) GetFormInstanceQueries() *formInstanceDb.Queries {
+	return formInstanceDb.New(m.Pool)
+}
+
+func (m *DatabaseManager) GetWorkflowQueries() *workflowDb.Queries {
+	return workflowDb.New(m.Pool)
+}
+
+// ExecRaw executes raw SQL queries for dynamic table operations
+// This is a generic method that can be used by any repository that needs raw SQL execution
+func (m *DatabaseManager) ExecRaw(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
+	return m.Pool.Exec(ctx, query, args...)
 }

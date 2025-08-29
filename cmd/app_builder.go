@@ -7,6 +7,7 @@ import (
 	"go.uber.org/fx"
 	"p9e.in/ugcl/core/config"
 	"p9e.in/ugcl/core/middleware"
+	formbuilder "p9e.in/ugcl/formbuilder"
 	user "p9e.in/ugcl/identity"
 	phandlers "p9e.in/ugcl/masters/pipeline/handlers"
 	prepo "p9e.in/ugcl/masters/pipeline/repository"
@@ -90,6 +91,7 @@ func (b *ApplicationBuilder) addAllServices() fx.Option {
 		b.addVendorServices(),
 		// Utility services group
 		b.addUtilityServices(),
+		b.addFormBuilderServices(),
 	)
 }
 
@@ -126,6 +128,13 @@ func (b *ApplicationBuilder) addVendorServices() fx.Option {
 	return fx.Module("vendor-services",
 		// Contractor service
 		vendors.Module,
+	)
+}
+
+func (b *ApplicationBuilder) addFormBuilderServices() fx.Option {
+	return fx.Module("formbuilder-services",
+		// Formbuilder service
+		formbuilder.Module,
 	)
 }
 

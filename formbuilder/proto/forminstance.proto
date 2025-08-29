@@ -22,33 +22,36 @@ message FormInstance {
 
 message AuditLog {
   string id = 1;
-  string user_id = 2;
-  string action = 3;
-  string from_state = 4;
-  string to_state = 5;
-  map<string, google.protobuf.Any> changes = 6;
-  google.protobuf.Timestamp timestamp = 7;
-  string ip_address = 8;
-  string user_agent = 9;
+  string instance_id = 2; 
+  string user_id = 3;
+  string action = 4;
+  string from_state = 5;
+  string to_state = 6;
+  map<string, google.protobuf.Any> changes = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  string ip_address = 9;
+  string user_agent = 10;
 }
 
 message Attachment {
   string id = 1;
-  string field_id = 2;
-  string filename = 3;
-  string mime_type = 4;
-  int64 size = 5;
-  string storage_path = 6;
-  google.protobuf.Timestamp uploaded_at = 7;
-  string uploaded_by = 8;
+  string instance_id = 2; 
+  string field_id = 3;
+  string filename = 4;
+  string mime_type = 5;
+  int64 size = 6;
+  string storage_path = 7;
+  google.protobuf.Timestamp uploaded_at = 8;
+  string uploaded_by = 9;
 }
 
 message Comment {
   string id = 1;
-  string user_id = 2;
-  string text = 3;
-  google.protobuf.Timestamp created_at = 4;
-  bool internal = 5; // Internal comments not visible to all
+  string instance_id = 2; 
+  string user_id = 3;
+  string text = 4;
+  google.protobuf.Timestamp created_at = 5;
+  bool internal = 6; // Internal comments not visible to all
 }
 
 message GetFormInstanceRequest {

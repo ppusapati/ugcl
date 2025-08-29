@@ -29,12 +29,13 @@ message FormMetadata {
   string created_by = 5;
   repeated string allowed_roles = 6;
   bool audit = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
-  string table_name = 10; // Database table name for this form
-  int32 schema_version = 11; // Schema version for versioning support
-  repeated string core_fields = 12; // Fields that are actual columns
-  formbuilder.api.v2.workflow.WorkflowIntegration workflow_integration = 13; // External workflow config
+  string table_name = 8; // Database table name for this form
+  string module = 9; // Module name for this form
+  int32 schema_version = 10; // Schema version for versioning support
+  repeated string core_fields = 11; // Fields that are actual columns
+  formbuilder.api.v2.workflow.WorkflowIntegration workflow_integration = 12; // External workflow config
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
 }
 
 
@@ -278,7 +279,7 @@ message ListFormsRequest {
 
 message ListFormsResponse {
   repeated FormDefinition forms = 1;
-  int32 total = 2;
+  int64 total = 2;
   int32 page = 3;
   int32 page_size = 4;
 }

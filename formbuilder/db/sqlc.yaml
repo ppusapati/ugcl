@@ -1,0 +1,144 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries/"
+    schema: 
+      #  - "../../identity/db/sqlc/schema.sql"
+       - "schema/"
+    gen:
+      go:
+        package: "db"
+        out: "./generated"
+        sql_package: "pgx/v5"
+        
+        # Essential settings
+        emit_interface: true
+        emit_json_tags: true
+        emit_prepared_queries: false
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_exported_queries: true
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: false
+        emit_methods_with_db_argument: false
+        emit_pointers_for_null_types: true
+        emit_enum_valid_method: true
+        emit_all_enum_values: true
+        omit_unused_structs: false
+        
+        output_models_file_name: "models.go"     # Default: models.go
+        output_querier_file_name: "querier.go"   # Default: querier.go
+        output_copyfrom_file_name: "copyfrom.go" # Default: copyfrom.go
+        
+        # Alternative: Use single file output
+        # output_file_name: "sqlc_gen.go"     # Put everything in one file
+        
+        # Control struct/interface naming
+        query_parameter_limit: 0              # Use struct for >5 params
+
+        # Type overrides
+        overrides:
+          - db_type: "text[]"
+            go_type:
+              type: "pq.StringArray"
+              import: "github.com/lib/pq"
+          - column: "*.id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "*.workflow_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "NullUUID"
+          - column: "*.instance_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "*.form_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "*.created_at"
+            go_type: 
+              import: "time"
+              type: "Time"
+          - column: "*.updated_at" 
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.deleted_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.uploaded_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.field_values"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.metadata"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.changes"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.steps"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.dependencies"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.cross_field_validations"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.allowed_roles"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.core_fields"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.states"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.global_transitions"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.duration"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.escalation_levels"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.applicable_roles"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.from_states"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.notify_roles"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.after_duration"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"

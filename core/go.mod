@@ -1,6 +1,6 @@
 module p9e.in/ugcl/core
 
-go 1.24.6
+go 1.25.0
 
 require (
 	connectrpc.com/connect v1.18.1
@@ -8,6 +8,7 @@ require (
 	go.uber.org/fx v1.24.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.7
+	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11
 )
 
@@ -18,7 +19,9 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.5 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -31,7 +34,6 @@ require (
 )
 
 require (
-	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/google/uuid v1.6.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

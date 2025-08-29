@@ -1,114 +1,101 @@
 package services
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
-	forminstancev2 "p9e.in/ugcl/formbuilder/api/v2/form_instance"
-	workflowv2 "p9e.in/ugcl/formbuilder/api/v2/workflow"
+	db "p9e.in/ugcl/formbuilder/db/generated"
+	"p9e.in/ugcl/formbuilder/repository"
 
 	"github.com/google/uuid"
 )
 
-// WorkflowEngine handles workflow state management
-type WorkflowEngine struct {
-	db *sql.DB
+type workflowService struct {
+	workflowRepo repository.IWorkflowRepository
+	formRepo     repository.IFormBuilderRepository
 }
 
-func NewWorkflowEngine(db *sql.DB) *WorkflowEngine {
-	return &WorkflowEngine{db: db}
-}
-
-// ProcessTransition handles workflow state transitions
-func (we *WorkflowEngine) ProcessTransition(
-	instance *forminstancev2.FormInstance,
-	event string,
-	workflow *workflowv2.Workflow,
-) (*forminstancev2.FormInstance, error) {
-
-	currentState := we.findState(workflow, instance.CurrentState)
-	if currentState == nil {
-		return nil, fmt.Errorf("invalid current state: %s", instance.CurrentState)
+// NewWorkflowService creates a new form instance service
+func NewWorkflowService(
+	workflowRepo repository.IWorkflowRepository,
+	formRepo repository.IFormBuilderRepository,
+) IWorkflowService {
+	return &workflowService{
+		workflowRepo: workflowRepo,
+		formRepo:     formRepo,
 	}
-
-	// Find matching transition
-	var transition *workflowv2.WorkflowTransition
-	for _, t := range currentState.Transitions {
-		if t.Event == event && we.evaluateCondition(t.Condition, instance) {
-			transition = t
-			break
-		}
-	}
-
-	if transition == nil {
-		return nil, fmt.Errorf("no valid transition for event %s in state %s", event, instance.CurrentState)
-	}
-
-	// Execute transition actions
-	for _, action := range transition.Actions {
-		if err := we.executeAction(action, instance); err != nil {
-			return nil, fmt.Errorf("failed to execute transition action: %w", err)
-		}
-	}
-
-	// Update state
-	instance.CurrentState = transition.NextState
-
-	// Add audit log
-	instance.AuditLogs = append(instance.AuditLogs, &forminstancev2.AuditLog{
-		Id:        uuid.New().String(),
-		UserId:    instance.AssignedTo,
-		Action:    event,
-		FromState: currentState.Id,
-		ToState:   transition.NextState,
-		Timestamp: timestamppb.Now(),
-	})
-
-	return instance, nil
 }
 
-// findState finds workflow state by ID
-func (we *WorkflowEngine) findState(workflow *workflowv2.Workflow, stateId string) *workflowv2.WorkflowState {
-	for _, state := range workflow.States {
-		if state.Id == stateId {
-			return state
-		}
-	}
-	return nil
+// CreateEscalation implements IWorkflowService.
+func (w *workflowService) CreateEscalation(ctx context.Context, escalation *db.Escalation) (*db.Escalation, error) {
+	panic("unimplemented")
 }
 
-// evaluateCondition evaluates transition condition
-func (we *WorkflowEngine) evaluateCondition(condition string, instance *forminstancev2.FormInstance) bool {
-	// Implementation would use expression evaluation
-	// For now, return true
-	return true
+// CreateSLARule implements IWorkflowService.
+func (w *workflowService) CreateSLARule(ctx context.Context, rule *db.SlaRule) (*db.SlaRule, error) {
+	panic("unimplemented")
 }
 
-// executeAction executes workflow action
-func (we *WorkflowEngine) executeAction(action *workflowv2.TransitionAction, instance *forminstancev2.FormInstance) error {
-	switch action.Type {
-	case "email":
-		return we.sendEmail(action.Params, instance)
-	case "webhook":
-		return we.callWebhook(action.Params, instance)
-	case "notification":
-		return we.sendNotification(action.Params, instance)
-	}
-	return nil
+// CreateWorkflow implements IWorkflowService.
+func (w *workflowService) CreateWorkflow(ctx context.Context, workflow *db.Workflow) (*db.Workflow, error) {
+	panic("unimplemented")
 }
 
-func (we *WorkflowEngine) sendEmail(params map[string]string, instance *forminstancev2.FormInstance) error {
-	// Email sending implementation
-	return nil
+// DeleteEscalation implements IWorkflowService.
+func (w *workflowService) DeleteEscalation(ctx context.Context, escalationID string) error {
+	panic("unimplemented")
 }
 
-func (we *WorkflowEngine) callWebhook(params map[string]string, instance *forminstancev2.FormInstance) error {
-	// Webhook calling implementation
-	return nil
+// DeleteSLARule implements IWorkflowService.
+func (w *workflowService) DeleteSLARule(ctx context.Context, ruleID string) error {
+	panic("unimplemented")
 }
 
-func (we *WorkflowEngine) sendNotification(params map[string]string, instance *forminstancev2.FormInstance) error {
-	// Notification sending implementation
-	return nil
+// DeleteWorkflow implements IWorkflowService.
+func (w *workflowService) DeleteWorkflow(ctx context.Context, workflowID string) error {
+	panic("unimplemented")
+}
+
+// GetEscalations implements IWorkflowService.
+func (w *workflowService) GetEscalations(ctx context.Context, fromState string) ([]*db.Escalation, error) {
+	panic("unimplemented")
+}
+
+// GetSLARules implements IWorkflowService.
+func (w *workflowService) GetSLARules(ctx context.Context, state string) ([]*db.SlaRule, error) {
+	panic("unimplemented")
+}
+
+// GetWorkflow implements IWorkflowService.
+func (w *workflowService) GetWorkflow(ctx context.Context, workflowID string) (*db.Workflow, error) {
+	panic("unimplemented")
+}
+
+// GetWorkflowStates implements IWorkflowService.
+func (w *workflowService) GetWorkflowStates(ctx context.Context, formID string) (*GetWorkflowStatesResult, error) {
+	panic("unimplemented")
+}
+
+// TransitionWorkflow implements IWorkflowService.
+func (w *workflowService) TransitionWorkflow(ctx context.Context, instanceID string, event string, userID uuid.UUID, context map[string]string) (*TransitionResult, error) {
+	panic("unimplemented")
+}
+
+// TriggerExternalWorkflow implements IWorkflowService.
+func (w *workflowService) TriggerExternalWorkflow(ctx context.Context, instanceID string, action string, variables map[string]interface{}) (*ExternalWorkflowResult, error) {
+	panic("unimplemented")
+}
+
+// UpdateEscalation implements IWorkflowService.
+func (w *workflowService) UpdateEscalation(ctx context.Context, escalation *db.Escalation) (*db.Escalation, error) {
+	panic("unimplemented")
+}
+
+// UpdateSLARule implements IWorkflowService.
+func (w *workflowService) UpdateSLARule(ctx context.Context, rule *db.SlaRule) (*db.SlaRule, error) {
+	panic("unimplemented")
+}
+
+// UpdateWorkflow implements IWorkflowService.
+func (w *workflowService) UpdateWorkflow(ctx context.Context, workflow *db.Workflow) (*db.Workflow, error) {
+	panic("unimplemented")
 }
