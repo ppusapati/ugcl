@@ -208,6 +208,7 @@ func ValidateFieldValue(field *FormField, value interface{}) []ValidationError {
 
 	// Convert value to string for common validations
 	strValue := fmt.Sprintf("%v", value)
+	fmt.Printf("DEBUG: Field validation - Raw value: %v, String value: '%s'\n", value, strValue)
 
 	// Validate length constraints
 	if field.Validation.MinLength != nil && len(strValue) < int(*field.Validation.MinLength) {
@@ -259,6 +260,7 @@ func ValidateFieldValue(field *FormField, value interface{}) []ValidationError {
 	// Type-specific validation
 	switch field.Type {
 	case form_builder.FieldType_EMAIL:
+		fmt.Printf("DEBUG: About to validate email field: %s\n", field.ID)
 		if !isValidEmail(strValue) {
 			errors = append(errors, ValidationError{
 				Field:   field.ID,
@@ -313,8 +315,10 @@ func isValidFieldType(fieldType form_builder.FieldType) bool {
 }
 
 func isValidEmail(email string) bool {
+	fmt.Printf("DEBUG: Validating email: '%s'\n", email)
 	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`
 	matched, _ := regexp.MatchString(emailRegex, email)
+	fmt.Printf("DEBUG: Email validation result: %t\n", matched)
 	return matched
 }
 

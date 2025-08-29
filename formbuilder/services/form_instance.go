@@ -12,6 +12,9 @@ import (
 	"p9e.in/ugcl/formbuilder/repository"
 	"p9e.in/ugcl/formbuilder/utils"
 	"p9e.in/ugcl/formbuilder/validators"
+	"p9e.in/ugcl/packages/database/sqlc"
+
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -19,16 +22,19 @@ import (
 type formInstanceService struct {
 	instanceRepo repository.IFormInstanceRepository
 	formRepo     repository.IFormBuilderRepository
+	dbManager    *sqlc.DatabaseManager
 }
 
 // NewFormInstanceService creates a new form instance service
 func NewFormInstanceService(
 	instanceRepo repository.IFormInstanceRepository,
 	formRepo repository.IFormBuilderRepository,
+	dbManager *sqlc.DatabaseManager,
 ) IFormInstanceService {
 	return &formInstanceService{
 		instanceRepo: instanceRepo,
 		formRepo:     formRepo,
+		dbManager:    dbManager,
 	}
 }
 
@@ -241,6 +247,12 @@ func (s *formInstanceService) SubmitForm(ctx context.Context, formID string, fie
 		return nil, fmt.Errorf("failed to create form instance: %w", err)
 	}
 
+	// Insert data into dynamic table if it exists
+	if err := s.insertIntoDynamicTable(ctx, form, createdInstance.ID, fieldValues, userID.String()); err != nil {
+		// Log warning but don't fail the submission
+		fmt.Printf("Warning: Failed to insert into dynamic table: %v\n", err)
+	}
+
 	// Create audit log for submission
 	auditLog := &db.AuditLog{
 		InstanceID: createdInstance.ID,
@@ -340,4 +352,89 @@ func (s *formInstanceService) determineInitialState(action string) string {
 func (s *formInstanceService) extractUserAgent(ctx context.Context) string {
 	userAgent := ctx.Value("user_agent").(string)
 	return userAgent
+}
+
+func (s *formInstanceService) insertIntoDynamicTable(ctx context.Context, form *db.Form, instanceID uuid.UUID, fieldValues map[string]interface{}, userId string) error {
+	fmt.Printf("DEBUG: insertIntoDynamicTable called with instanceID: %s\n", instanceID.String())
+	fmt.Printf("DEBUG: Raw fieldValues received: %+v\n", fieldValues)
+
+	// Skip if no table name specified
+	if form.TableName == nil || *form.TableName == "" {
+		fmt.Printf("DEBUG: No table name specified, skipping dynamic table insertion\n")
+		return nil
+	}
+
+	tableName := *form.TableName
+	fmt.Printf("DEBUG: Table name: %s\n", tableName)
+
+	// Build schema-qualified table name if module is specified
+	var qualifiedTableName string
+	if form.Module != nil && *form.Module != "" {
+		qualifiedTableName = fmt.Sprintf("%s.%s", *form.Module, tableName)
+		fmt.Printf("DEBUG: Module specified: %s, qualified table name: %s\n", *form.Module, qualifiedTableName)
+	} else {
+		qualifiedTableName = tableName
+		fmt.Printf("DEBUG: No module specified, using table name: %s\n", qualifiedTableName)
+	}
+
+	// Prepare clean field values for insertion
+	cleanFieldValues := make(map[string]interface{})
+
+	// Process each field value to ensure clean strings
+	for key, value := range fieldValues {
+		fmt.Printf("DEBUG: Processing field %s with value: %v (type: %T)\n", key, value, value)
+
+		// Convert to string and clean up
+		strValue := fmt.Sprintf("%v", value)
+		fmt.Printf("DEBUG: String representation: '%s'\n", strValue)
+
+		// Only include fields that should exist in the dynamic table
+		switch key {
+		case "first_name", "last_name", "email":
+			cleanFieldValues[key] = strValue
+			fmt.Printf("DEBUG: Added field %s with clean value: '%s'\n", key, strValue)
+		default:
+			fmt.Printf("DEBUG: Skipping field %s (not in dynamic table schema)\n", key)
+		}
+	}
+
+	// Add system fields
+	cleanFieldValues["form_instance_id"] = instanceID.String()
+	cleanFieldValues["created_at"] = "NOW()"
+	cleanFieldValues["created_by"] = userId
+
+	fmt.Printf("DEBUG: Final clean field values to insert: %+v\n", cleanFieldValues)
+
+	// Build column names and values for INSERT
+	var columns []string
+	var placeholders []string
+	var values []interface{}
+	i := 1
+
+	for key, value := range cleanFieldValues {
+		columns = append(columns, key)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i))
+		values = append(values, value)
+		i++
+	}
+
+	// Create INSERT SQL
+	insertSQL := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s)",
+		qualifiedTableName,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ", "),
+	)
+	fmt.Printf("DEBUG: Insert SQL: %s\n", insertSQL)
+	fmt.Printf("DEBUG: Insert values: %+v\n", values)
+
+	// Execute the INSERT statement
+	_, err := s.dbManager.ExecRaw(ctx, insertSQL, values...)
+	if err != nil {
+		fmt.Printf("DEBUG: Insert failed with error: %v\n", err)
+		return fmt.Errorf("failed to insert into dynamic table %s: %w", qualifiedTableName, err)
+	}
+
+	fmt.Printf("DEBUG: Successfully inserted into dynamic table: %s\n", qualifiedTableName)
+	return nil
 }
