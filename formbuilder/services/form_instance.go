@@ -352,7 +352,7 @@ func (s *formInstanceService) getWorkflowInitialState(ctx context.Context, form 
 		if err != nil {
 			return "", fmt.Errorf("failed to get workflow: %w", err)
 		}
-		
+
 		// For submit action, transition from initial state
 		if action == "submit" {
 			// Parse workflow states to find the next state after initial
@@ -370,11 +370,11 @@ func (s *formInstanceService) getWorkflowInitialState(ctx context.Context, form 
 				}
 			}
 		}
-		
+
 		// Default to workflow initial state
 		return workflow.InitialState, nil
 	}
-	
+
 	// Fallback to old logic if no workflow
 	return s.determineInitialState(action), nil
 }
@@ -392,10 +392,10 @@ func (s *formInstanceService) determineInitialState(action string) string {
 	}
 }
 
-func (s *formInstanceService) extractUserAgent(ctx context.Context) string {
-	userAgent := ctx.Value("user_agent").(string)
-	return userAgent
-}
+// func (s *formInstanceService) extractUserAgent(ctx context.Context) string {
+// 	userAgent := ctx.Value("user_agent").(string)
+// 	return userAgent
+// }
 
 func (s *formInstanceService) insertIntoDynamicTable(ctx context.Context, form *db.Form, instanceID uuid.UUID, fieldValues map[string]interface{}, userId string) error {
 	fmt.Printf("DEBUG: insertIntoDynamicTable called with instanceID: %s\n", instanceID.String())

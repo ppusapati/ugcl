@@ -266,7 +266,7 @@ func (s *formBuilderService) GetFieldOptions(ctx context.Context, formID, fieldI
 	}
 
 	// Generate options based on field configuration
-	options, err := s.generateFieldOptions(ctx, field, context)
+	options, err := s.generateFieldOptions(field, context)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate field options: %w", err)
 	}
@@ -302,7 +302,7 @@ func (s *formBuilderService) RefreshFieldCache(ctx context.Context, formID, fiel
 	return nil
 }
 
-func (s *formBuilderService) generateFieldOptions(ctx context.Context, field map[string]interface{}, context map[string]string) ([]*FieldOption, error) {
+func (s *formBuilderService) generateFieldOptions(field map[string]interface{}, context map[string]string) ([]*FieldOption, error) {
 	// Check if field has options source
 	optionsSource, hasSource := field["options_source"].(string)
 	if !hasSource || optionsSource == "" {

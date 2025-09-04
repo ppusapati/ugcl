@@ -87,9 +87,7 @@ func (r *workflowRepository) ListWorkflows(ctx context.Context, limit, offset in
 	}
 
 	result := make([]*db.Workflow, len(workflows))
-	for i, workflow := range workflows {
-		result[i] = workflow
-	}
+	copy(result, workflows)
 	return result, nil
 }
 
@@ -134,9 +132,7 @@ func (r *workflowRepository) GetSLARules(ctx context.Context) ([]*db.SlaRule, er
 	}
 
 	result := make([]*db.SlaRule, len(rules))
-	for i, rule := range rules {
-		result[i] = rule
-	}
+	copy(result, rules)
 	return result, nil
 }
 
@@ -147,9 +143,7 @@ func (r *workflowRepository) GetSLARulesByState(ctx context.Context, state strin
 	}
 
 	result := make([]*db.SlaRule, len(rules))
-	for i, rule := range rules {
-		result[i] = rule
-	}
+	copy(result, rules)
 	return result, nil
 }
 
@@ -160,9 +154,7 @@ func (r *workflowRepository) GetActiveSLARules(ctx context.Context) ([]*db.SlaRu
 	}
 
 	result := make([]*db.SlaRule, len(rules))
-	for i, rule := range rules {
-		result[i] = rule
-	}
+	copy(result, rules)
 	return result, nil
 }
 

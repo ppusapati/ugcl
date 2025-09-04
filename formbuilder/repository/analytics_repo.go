@@ -37,9 +37,7 @@ func (r *analyticsRepository) GetUserWorkload(ctx context.Context) ([]*db.GetUse
 	}
 
 	result := make([]*db.GetUserWorkloadRow, len(workloads))
-	for i, workload := range workloads {
-		result[i] = workload
-	}
+	copy(result, workloads)
 	return result, nil
 }
 
@@ -50,9 +48,7 @@ func (r *analyticsRepository) GetOverdueInstances(ctx context.Context) ([]*db.Ge
 	}
 
 	result := make([]*db.GetOverdueInstancesRow, len(instances))
-	for i, instance := range instances {
-		result[i] = instance
-	}
+	copy(result, instances)
 	return result, nil
 }
 
@@ -63,9 +59,7 @@ func (r *analyticsRepository) GetInstancesRequiringEscalation(ctx context.Contex
 	}
 
 	result := make([]*db.GetInstancesRequiringEscalationRow, len(instances))
-	for i, instance := range instances {
-		result[i] = instance
-	}
+	copy(result, instances)
 	return result, nil
 }
 
@@ -82,8 +76,6 @@ func (r *analyticsRepository) GetRecentActivity(ctx context.Context, since time.
 	}
 
 	result := make([]*db.GetRecentActivityRow, len(activities))
-	for i, activity := range activities {
-		result[i] = activity
-	}
+	copy(result, activities)
 	return result, nil
 }
