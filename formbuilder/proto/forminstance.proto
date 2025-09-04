@@ -85,9 +85,74 @@ message SubmitFormResponse {
   repeated ValidationError errors = 4;
 }
 
+// Attachment requests/responses
+message CreateAttachmentRequest {
+  string instance_id = 1;
+  string field_id = 2;
+  string filename = 3;
+  string mime_type = 4;
+  int64 size = 5;
+  string storage_path = 6;
+}
+
+message CreateAttachmentResponse {
+  string attachment_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message DeleteAttachmentRequest {
+  string attachment_id = 1;
+}
+
+message DeleteAttachmentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Comment requests/responses
+message CreateCommentRequest {
+  string instance_id = 1;
+  string text = 2;
+  bool internal = 3;
+}
+
+message CreateCommentResponse {
+  string comment_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message UpdateCommentRequest {
+  string comment_id = 1;
+  string text = 2;
+}
+
+message UpdateCommentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteCommentRequest {
+  string comment_id = 1;
+}
+
+message DeleteCommentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
 service formSubmission{
-      rpc SubmitForm(SubmitFormRequest) returns (SubmitFormResponse);
+  rpc SubmitForm(SubmitFormRequest) returns (SubmitFormResponse);
   rpc GetFormInstance(GetFormInstanceRequest) returns (FormInstance);
   rpc UpdateFormInstance(UpdateFormInstanceRequest) returns (SubmitFormResponse);
   
+  // Attachment endpoints
+  rpc CreateAttachment(CreateAttachmentRequest) returns (CreateAttachmentResponse);
+  rpc DeleteAttachment(DeleteAttachmentRequest) returns (DeleteAttachmentResponse);
+  
+  // Comment endpoints
+  rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
+  rpc UpdateComment(UpdateCommentRequest) returns (UpdateCommentResponse);
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
 }

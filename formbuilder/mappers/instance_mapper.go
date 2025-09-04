@@ -110,10 +110,9 @@ func AuditLogToProto(log *db.AuditLog) (*pb.AuditLog, error) {
 		return nil, fmt.Errorf("failed to convert changes: %w", err)
 	}
 
-	var ipAddress *string
+	var ipAddress string
 	if log.IpAddress != nil {
-		ip := log.IpAddress.String()
-		ipAddress = &ip
+		ipAddress = log.IpAddress.String()
 	}
 
 	return &pb.AuditLog{
@@ -125,7 +124,7 @@ func AuditLogToProto(log *db.AuditLog) (*pb.AuditLog, error) {
 		ToState:    stringValue(log.ToState),
 		Changes:    protoChanges,
 		Timestamp:  timestamppb.New(log.Timestamp),
-		IpAddress:  *ipAddress,
+		IpAddress:  ipAddress,
 		UserAgent:  stringValue(log.UserAgent),
 	}, nil
 }

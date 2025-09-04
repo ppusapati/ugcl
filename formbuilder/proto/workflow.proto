@@ -173,6 +173,34 @@ message GetWorkflowResponse {
   formbuilder.api.v2.workflow.Workflow workflow = 1;
 }
 
+// SLA Rule Request/Response Messages
+message CreateSLARuleRequest {
+  SLARule sla_rule = 1;
+}
+
+message CreateSLARuleResponse {
+  string sla_rule_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetSLARulesRequest {
+  string state = 1; // Optional: filter by state
+}
+
+message GetSLARulesResponse {
+  repeated SLARule sla_rules = 1;
+}
+
+message UpdateSLARuleRequest {
+  string sla_rule_id = 1;
+  SLARule sla_rule = 2;
+}
+
+message DeleteSLARuleRequest {
+  string sla_rule_id = 1;
+}
+
 service WorkflowService{
   rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
   rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
@@ -182,4 +210,10 @@ service WorkflowService{
   rpc GetWorkflowStates(GetFormRequest) returns (GetWorkflowStatesResponse);
   rpc TransitionWorkflow(TransitionRequest) returns (TransitionResponse);
   rpc TriggerExternalWorkflow(ExternalWorkflowRequest) returns (ExternalWorkflowResponse);
+
+  // SLA Rule Management
+  rpc CreateSLARule(CreateSLARuleRequest) returns (CreateSLARuleResponse);
+  rpc GetSLARules(GetSLARulesRequest) returns (GetSLARulesResponse);
+  rpc UpdateSLARule(UpdateSLARuleRequest) returns (CreateSLARuleResponse);
+  rpc DeleteSLARule(DeleteSLARuleRequest) returns (CreateSLARuleResponse);
 }

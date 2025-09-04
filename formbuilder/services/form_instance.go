@@ -22,6 +22,7 @@ import (
 type formInstanceService struct {
 	instanceRepo repository.IFormInstanceRepository
 	formRepo     repository.IFormBuilderRepository
+	workflowRepo repository.IWorkflowRepository
 	dbManager    *sqlc.DatabaseManager
 }
 
@@ -29,11 +30,13 @@ type formInstanceService struct {
 func NewFormInstanceService(
 	instanceRepo repository.IFormInstanceRepository,
 	formRepo repository.IFormBuilderRepository,
+	workflowRepo repository.IWorkflowRepository,
 	dbManager *sqlc.DatabaseManager,
 ) IFormInstanceService {
 	return &formInstanceService{
 		instanceRepo: instanceRepo,
 		formRepo:     formRepo,
+		workflowRepo: workflowRepo,
 		dbManager:    dbManager,
 	}
 }
@@ -232,10 +235,16 @@ func (s *formInstanceService) SubmitForm(ctx context.Context, formID string, fie
 		return nil, fmt.Errorf("failed to marshal metadata: %w", err)
 	}
 
+	// Determine initial state from workflow or default
+	initialState, err := s.getWorkflowInitialState(ctx, form, action)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine initial state: %w", err)
+	}
+
 	// Create form instance
 	instance := &db.FormInstance{
 		FormID:       id,
-		CurrentState: s.determineInitialState(action),
+		CurrentState: initialState,
 		FieldValues:  fieldValuesJSON,
 		CreatedBy:    userID.String(),
 		Metadata:     metadataJSON,
@@ -334,6 +343,40 @@ func (s *formInstanceService) GetFormInstanceWithRelated(ctx context.Context, in
 func (s *formInstanceService) validateFieldValues(form *db.Form, fieldValues map[string]interface{}) []validators.ValidationError {
 	// Delegate to validators package which parses form.Steps and validates
 	return validators.ValidateFormInstanceFieldValues(form, fieldValues)
+}
+
+func (s *formInstanceService) getWorkflowInitialState(ctx context.Context, form *db.Form, action string) (string, error) {
+	// If form has a workflow, use its initial state
+	if form.WorkflowID.Valid {
+		workflow, err := s.workflowRepo.GetWorkflow(ctx, form.WorkflowID.UUID)
+		if err != nil {
+			return "", fmt.Errorf("failed to get workflow: %w", err)
+		}
+		
+		// For submit action, transition from initial state
+		if action == "submit" {
+			// Parse workflow states to find the next state after initial
+			var states []WorkflowState
+			if err := json.Unmarshal(workflow.States, &states); err == nil {
+				// Find initial state and get its submit transition
+				for _, state := range states {
+					if state.ID == workflow.InitialState {
+						for _, transition := range state.Transitions {
+							if transition.Event == "submit" {
+								return transition.NextState, nil
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		// Default to workflow initial state
+		return workflow.InitialState, nil
+	}
+	
+	// Fallback to old logic if no workflow
+	return s.determineInitialState(action), nil
 }
 
 func (s *formInstanceService) determineInitialState(action string) string {

@@ -4,6 +4,8 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	db "p9e.in/ugcl/formbuilder/db/generated"
@@ -76,28 +78,65 @@ type GetWorkflowStatesResult struct {
 }
 
 type WorkflowState struct {
-	ID            string
-	Label         string
-	AssignedRole  string
-	AssignedUsers []string
-	Actions       []string
-	Transitions   []WorkflowTransition
-	Type          string
-	Properties    map[string]string
-	Validations   []StateValidation
+	ID            string               `json:"id"`
+	Label         string               `json:"label"`
+	AssignedRole  string               `json:"assigned_role"`
+	AssignedUsers []string             `json:"assigned_users"`
+	Actions       []string             `json:"actions"`
+	Transitions   []WorkflowTransition `json:"transitions"`
+	Type          StateType            `json:"type"`
+	Properties    map[string]string    `json:"properties"`
+	Validations   []StateValidation    `json:"validations"`
+}
+
+// StateType handles both numeric and string values during JSON unmarshaling
+type StateType string
+
+const (
+	StateTypeStart    StateType = "START"
+	StateTypeApproval StateType = "APPROVAL"
+	StateTypeEnd      StateType = "END"
+)
+
+// UnmarshalJSON handles both numeric and string values for StateType
+func (st *StateType) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as number first (database enum values)
+	var num int
+	if err := json.Unmarshal(data, &num); err == nil {
+		switch num {
+		case 1:
+			*st = StateTypeStart
+		case 2:
+			*st = StateTypeEnd
+		case 3:
+			*st = StateTypeApproval
+		default:
+			*st = StateTypeStart // Default fallback
+		}
+		return nil
+	}
+	
+	// Try to unmarshal as string
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*st = StateType(str)
+		return nil
+	}
+	
+	return fmt.Errorf("cannot unmarshal StateType from %s", string(data))
 }
 
 type WorkflowTransition struct {
-	Event     string
-	Condition string
-	NextState string
-	Actions   []TransitionAction
-	Metadata  map[string]string
+	Event     string            `json:"event"`
+	Condition string            `json:"condition"`
+	NextState string            `json:"next_state"` // Handle snake_case from database
+	Actions   []TransitionAction `json:"actions"`
+	Metadata  map[string]string  `json:"metadata"`
 }
 
 type TransitionAction struct {
-	Type   string
-	Params map[string]string
+	Type   string            `json:"type"`
+	Params map[string]string `json:"params"`
 }
 
 type StateValidation struct {

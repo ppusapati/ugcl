@@ -16,8 +16,44 @@ func ProtoToWorkflow(proto *pb.Workflow) (*db.Workflow, error) {
 		return nil, fmt.Errorf("invalid workflow")
 	}
 
-	// Marshal JSONB fields
-	statesJSON, err := json.Marshal(proto.States)
+	// Convert protobuf states to Go structs with proper field mapping
+	goStates := make([]map[string]interface{}, len(proto.States))
+	for i, protoState := range proto.States {
+		// Convert transitions
+		transitions := make([]map[string]interface{}, len(protoState.Transitions))
+		for j, protoTransition := range protoState.Transitions {
+			// Convert actions
+			actions := make([]map[string]interface{}, len(protoTransition.Actions))
+			for k, protoAction := range protoTransition.Actions {
+				actions[k] = map[string]interface{}{
+					"type":   protoAction.Type,
+					"params": protoAction.Params,
+				}
+			}
+			
+			transitions[j] = map[string]interface{}{
+				"event":      protoTransition.Event,
+				"condition":  protoTransition.Condition,
+				"next_state": protoTransition.NextState,
+				"actions":    actions,
+				"metadata":   protoTransition.Metadata,
+			}
+		}
+		
+		goStates[i] = map[string]interface{}{
+			"id":             protoState.Id,
+			"label":          protoState.Label,
+			"type":           int(protoState.Type), // Convert enum to int
+			"assigned_role":  protoState.AssignedRole,
+			"assigned_users": protoState.AssignedUsers,
+			"actions":        protoState.Actions,
+			"transitions":    transitions,
+			"properties":     protoState.Properties,
+		}
+	}
+
+	// Marshal the converted states
+	statesJSON, err := json.Marshal(goStates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal states: %w", err)
 	}
@@ -153,5 +189,39 @@ func EscalationToProto(escalation *db.Escalation) (*pb.Escalation, error) {
 		EscalationMessage: stringValue(escalation.EscalationMessage),
 		AutoEscalate:      boolValue(escalation.AutoEscalate),
 		AfterDuration:     &afterDuration,
+	}, nil
+}
+
+// ProtoToSLARule converts protobuf SLARule to SQLC SlaRule struct
+func ProtoToSLARule(proto *pb.SLARule) (*db.SlaRule, error) {
+	if proto == nil {
+		return nil, fmt.Errorf("invalid SLA rule")
+	}
+
+	// Marshal JSONB fields
+	durationJSON, err := json.Marshal(proto.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal duration: %w", err)
+	}
+
+	escalationLevelsJSON, err := json.Marshal(proto.EscalationLevels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal escalation levels: %w", err)
+	}
+
+	applicableRolesJSON, err := json.Marshal(proto.ApplicableRoles)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal applicable roles: %w", err)
+	}
+
+	return &db.SlaRule{
+		ID:               uuid.New(),
+		Name:             proto.Name,
+		State:            proto.State,
+		Duration:         durationJSON,
+		EscalationLevels: escalationLevelsJSON,
+		Active:           &proto.Active,
+		ApplicableRoles:  applicableRolesJSON,
+		Condition:        &proto.Condition,
 	}, nil
 }
