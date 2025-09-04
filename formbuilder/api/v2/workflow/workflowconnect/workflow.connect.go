@@ -54,6 +54,18 @@ const (
 	// WorkflowServiceTriggerExternalWorkflowProcedure is the fully-qualified name of the
 	// WorkflowService's TriggerExternalWorkflow RPC.
 	WorkflowServiceTriggerExternalWorkflowProcedure = "/formbuilder.api.v2.workflow.WorkflowService/TriggerExternalWorkflow"
+	// WorkflowServiceCreateSLARuleProcedure is the fully-qualified name of the WorkflowService's
+	// CreateSLARule RPC.
+	WorkflowServiceCreateSLARuleProcedure = "/formbuilder.api.v2.workflow.WorkflowService/CreateSLARule"
+	// WorkflowServiceGetSLARulesProcedure is the fully-qualified name of the WorkflowService's
+	// GetSLARules RPC.
+	WorkflowServiceGetSLARulesProcedure = "/formbuilder.api.v2.workflow.WorkflowService/GetSLARules"
+	// WorkflowServiceUpdateSLARuleProcedure is the fully-qualified name of the WorkflowService's
+	// UpdateSLARule RPC.
+	WorkflowServiceUpdateSLARuleProcedure = "/formbuilder.api.v2.workflow.WorkflowService/UpdateSLARule"
+	// WorkflowServiceDeleteSLARuleProcedure is the fully-qualified name of the WorkflowService's
+	// DeleteSLARule RPC.
+	WorkflowServiceDeleteSLARuleProcedure = "/formbuilder.api.v2.workflow.WorkflowService/DeleteSLARule"
 )
 
 // WorkflowServiceClient is a client for the formbuilder.api.v2.workflow.WorkflowService service.
@@ -65,6 +77,11 @@ type WorkflowServiceClient interface {
 	GetWorkflowStates(context.Context, *connect.Request[workflow.GetFormRequest]) (*connect.Response[workflow.GetWorkflowStatesResponse], error)
 	TransitionWorkflow(context.Context, *connect.Request[workflow.TransitionRequest]) (*connect.Response[workflow.TransitionResponse], error)
 	TriggerExternalWorkflow(context.Context, *connect.Request[workflow.ExternalWorkflowRequest]) (*connect.Response[workflow.ExternalWorkflowResponse], error)
+	// SLA Rule Management
+	CreateSLARule(context.Context, *connect.Request[workflow.CreateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
+	GetSLARules(context.Context, *connect.Request[workflow.GetSLARulesRequest]) (*connect.Response[workflow.GetSLARulesResponse], error)
+	UpdateSLARule(context.Context, *connect.Request[workflow.UpdateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
+	DeleteSLARule(context.Context, *connect.Request[workflow.DeleteSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
 }
 
 // NewWorkflowServiceClient constructs a client for the formbuilder.api.v2.workflow.WorkflowService
@@ -120,6 +137,30 @@ func NewWorkflowServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(workflowServiceMethods.ByName("TriggerExternalWorkflow")),
 			connect.WithClientOptions(opts...),
 		),
+		createSLARule: connect.NewClient[workflow.CreateSLARuleRequest, workflow.CreateSLARuleResponse](
+			httpClient,
+			baseURL+WorkflowServiceCreateSLARuleProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("CreateSLARule")),
+			connect.WithClientOptions(opts...),
+		),
+		getSLARules: connect.NewClient[workflow.GetSLARulesRequest, workflow.GetSLARulesResponse](
+			httpClient,
+			baseURL+WorkflowServiceGetSLARulesProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("GetSLARules")),
+			connect.WithClientOptions(opts...),
+		),
+		updateSLARule: connect.NewClient[workflow.UpdateSLARuleRequest, workflow.CreateSLARuleResponse](
+			httpClient,
+			baseURL+WorkflowServiceUpdateSLARuleProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("UpdateSLARule")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteSLARule: connect.NewClient[workflow.DeleteSLARuleRequest, workflow.CreateSLARuleResponse](
+			httpClient,
+			baseURL+WorkflowServiceDeleteSLARuleProcedure,
+			connect.WithSchema(workflowServiceMethods.ByName("DeleteSLARule")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -132,6 +173,10 @@ type workflowServiceClient struct {
 	getWorkflowStates       *connect.Client[workflow.GetFormRequest, workflow.GetWorkflowStatesResponse]
 	transitionWorkflow      *connect.Client[workflow.TransitionRequest, workflow.TransitionResponse]
 	triggerExternalWorkflow *connect.Client[workflow.ExternalWorkflowRequest, workflow.ExternalWorkflowResponse]
+	createSLARule           *connect.Client[workflow.CreateSLARuleRequest, workflow.CreateSLARuleResponse]
+	getSLARules             *connect.Client[workflow.GetSLARulesRequest, workflow.GetSLARulesResponse]
+	updateSLARule           *connect.Client[workflow.UpdateSLARuleRequest, workflow.CreateSLARuleResponse]
+	deleteSLARule           *connect.Client[workflow.DeleteSLARuleRequest, workflow.CreateSLARuleResponse]
 }
 
 // CreateWorkflow calls formbuilder.api.v2.workflow.WorkflowService.CreateWorkflow.
@@ -170,6 +215,26 @@ func (c *workflowServiceClient) TriggerExternalWorkflow(ctx context.Context, req
 	return c.triggerExternalWorkflow.CallUnary(ctx, req)
 }
 
+// CreateSLARule calls formbuilder.api.v2.workflow.WorkflowService.CreateSLARule.
+func (c *workflowServiceClient) CreateSLARule(ctx context.Context, req *connect.Request[workflow.CreateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return c.createSLARule.CallUnary(ctx, req)
+}
+
+// GetSLARules calls formbuilder.api.v2.workflow.WorkflowService.GetSLARules.
+func (c *workflowServiceClient) GetSLARules(ctx context.Context, req *connect.Request[workflow.GetSLARulesRequest]) (*connect.Response[workflow.GetSLARulesResponse], error) {
+	return c.getSLARules.CallUnary(ctx, req)
+}
+
+// UpdateSLARule calls formbuilder.api.v2.workflow.WorkflowService.UpdateSLARule.
+func (c *workflowServiceClient) UpdateSLARule(ctx context.Context, req *connect.Request[workflow.UpdateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return c.updateSLARule.CallUnary(ctx, req)
+}
+
+// DeleteSLARule calls formbuilder.api.v2.workflow.WorkflowService.DeleteSLARule.
+func (c *workflowServiceClient) DeleteSLARule(ctx context.Context, req *connect.Request[workflow.DeleteSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return c.deleteSLARule.CallUnary(ctx, req)
+}
+
 // WorkflowServiceHandler is an implementation of the formbuilder.api.v2.workflow.WorkflowService
 // service.
 type WorkflowServiceHandler interface {
@@ -180,6 +245,11 @@ type WorkflowServiceHandler interface {
 	GetWorkflowStates(context.Context, *connect.Request[workflow.GetFormRequest]) (*connect.Response[workflow.GetWorkflowStatesResponse], error)
 	TransitionWorkflow(context.Context, *connect.Request[workflow.TransitionRequest]) (*connect.Response[workflow.TransitionResponse], error)
 	TriggerExternalWorkflow(context.Context, *connect.Request[workflow.ExternalWorkflowRequest]) (*connect.Response[workflow.ExternalWorkflowResponse], error)
+	// SLA Rule Management
+	CreateSLARule(context.Context, *connect.Request[workflow.CreateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
+	GetSLARules(context.Context, *connect.Request[workflow.GetSLARulesRequest]) (*connect.Response[workflow.GetSLARulesResponse], error)
+	UpdateSLARule(context.Context, *connect.Request[workflow.UpdateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
+	DeleteSLARule(context.Context, *connect.Request[workflow.DeleteSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error)
 }
 
 // NewWorkflowServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -231,6 +301,30 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 		connect.WithSchema(workflowServiceMethods.ByName("TriggerExternalWorkflow")),
 		connect.WithHandlerOptions(opts...),
 	)
+	workflowServiceCreateSLARuleHandler := connect.NewUnaryHandler(
+		WorkflowServiceCreateSLARuleProcedure,
+		svc.CreateSLARule,
+		connect.WithSchema(workflowServiceMethods.ByName("CreateSLARule")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceGetSLARulesHandler := connect.NewUnaryHandler(
+		WorkflowServiceGetSLARulesProcedure,
+		svc.GetSLARules,
+		connect.WithSchema(workflowServiceMethods.ByName("GetSLARules")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceUpdateSLARuleHandler := connect.NewUnaryHandler(
+		WorkflowServiceUpdateSLARuleProcedure,
+		svc.UpdateSLARule,
+		connect.WithSchema(workflowServiceMethods.ByName("UpdateSLARule")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowServiceDeleteSLARuleHandler := connect.NewUnaryHandler(
+		WorkflowServiceDeleteSLARuleProcedure,
+		svc.DeleteSLARule,
+		connect.WithSchema(workflowServiceMethods.ByName("DeleteSLARule")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/formbuilder.api.v2.workflow.WorkflowService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case WorkflowServiceCreateWorkflowProcedure:
@@ -247,6 +341,14 @@ func NewWorkflowServiceHandler(svc WorkflowServiceHandler, opts ...connect.Handl
 			workflowServiceTransitionWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowServiceTriggerExternalWorkflowProcedure:
 			workflowServiceTriggerExternalWorkflowHandler.ServeHTTP(w, r)
+		case WorkflowServiceCreateSLARuleProcedure:
+			workflowServiceCreateSLARuleHandler.ServeHTTP(w, r)
+		case WorkflowServiceGetSLARulesProcedure:
+			workflowServiceGetSLARulesHandler.ServeHTTP(w, r)
+		case WorkflowServiceUpdateSLARuleProcedure:
+			workflowServiceUpdateSLARuleHandler.ServeHTTP(w, r)
+		case WorkflowServiceDeleteSLARuleProcedure:
+			workflowServiceDeleteSLARuleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -282,4 +384,20 @@ func (UnimplementedWorkflowServiceHandler) TransitionWorkflow(context.Context, *
 
 func (UnimplementedWorkflowServiceHandler) TriggerExternalWorkflow(context.Context, *connect.Request[workflow.ExternalWorkflowRequest]) (*connect.Response[workflow.ExternalWorkflowResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.TriggerExternalWorkflow is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) CreateSLARule(context.Context, *connect.Request[workflow.CreateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.CreateSLARule is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) GetSLARules(context.Context, *connect.Request[workflow.GetSLARulesRequest]) (*connect.Response[workflow.GetSLARulesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.GetSLARules is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) UpdateSLARule(context.Context, *connect.Request[workflow.UpdateSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.UpdateSLARule is not implemented"))
+}
+
+func (UnimplementedWorkflowServiceHandler) DeleteSLARule(context.Context, *connect.Request[workflow.DeleteSLARuleRequest]) (*connect.Response[workflow.CreateSLARuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.workflow.WorkflowService.DeleteSLARule is not implemented"))
 }

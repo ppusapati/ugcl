@@ -20,6 +20,31 @@ type FormInstanceHandler struct {
 	instanceService services.IFormInstanceService
 }
 
+// CreateAttachment implements form_instanceconnect.FormSubmissionHandler.
+func (h *FormInstanceHandler) CreateAttachment(context.Context, *connect.Request[pb.CreateAttachmentRequest]) (*connect.Response[pb.CreateAttachmentResponse], error) {
+	panic("unimplemented")
+}
+
+// CreateComment implements form_instanceconnect.FormSubmissionHandler.
+func (h *FormInstanceHandler) CreateComment(context.Context, *connect.Request[pb.CreateCommentRequest]) (*connect.Response[pb.CreateCommentResponse], error) {
+	panic("unimplemented")
+}
+
+// DeleteAttachment implements form_instanceconnect.FormSubmissionHandler.
+func (h *FormInstanceHandler) DeleteAttachment(context.Context, *connect.Request[pb.DeleteAttachmentRequest]) (*connect.Response[pb.DeleteAttachmentResponse], error) {
+	panic("unimplemented")
+}
+
+// DeleteComment implements form_instanceconnect.FormSubmissionHandler.
+func (h *FormInstanceHandler) DeleteComment(context.Context, *connect.Request[pb.DeleteCommentRequest]) (*connect.Response[pb.DeleteCommentResponse], error) {
+	panic("unimplemented")
+}
+
+// UpdateComment implements form_instanceconnect.FormSubmissionHandler.
+func (h *FormInstanceHandler) UpdateComment(context.Context, *connect.Request[pb.UpdateCommentRequest]) (*connect.Response[pb.UpdateCommentResponse], error) {
+	panic("unimplemented")
+}
+
 // NewFormInstanceHandler creates a new form instance handler
 func NewFormInstanceHandler(instanceService services.IFormInstanceService) *FormInstanceHandler {
 	return &FormInstanceHandler{

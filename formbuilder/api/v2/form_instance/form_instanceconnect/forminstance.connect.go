@@ -42,6 +42,21 @@ const (
 	// FormSubmissionUpdateFormInstanceProcedure is the fully-qualified name of the formSubmission's
 	// UpdateFormInstance RPC.
 	FormSubmissionUpdateFormInstanceProcedure = "/formbuilder.api.v2.form_instance.formSubmission/UpdateFormInstance"
+	// FormSubmissionCreateAttachmentProcedure is the fully-qualified name of the formSubmission's
+	// CreateAttachment RPC.
+	FormSubmissionCreateAttachmentProcedure = "/formbuilder.api.v2.form_instance.formSubmission/CreateAttachment"
+	// FormSubmissionDeleteAttachmentProcedure is the fully-qualified name of the formSubmission's
+	// DeleteAttachment RPC.
+	FormSubmissionDeleteAttachmentProcedure = "/formbuilder.api.v2.form_instance.formSubmission/DeleteAttachment"
+	// FormSubmissionCreateCommentProcedure is the fully-qualified name of the formSubmission's
+	// CreateComment RPC.
+	FormSubmissionCreateCommentProcedure = "/formbuilder.api.v2.form_instance.formSubmission/CreateComment"
+	// FormSubmissionUpdateCommentProcedure is the fully-qualified name of the formSubmission's
+	// UpdateComment RPC.
+	FormSubmissionUpdateCommentProcedure = "/formbuilder.api.v2.form_instance.formSubmission/UpdateComment"
+	// FormSubmissionDeleteCommentProcedure is the fully-qualified name of the formSubmission's
+	// DeleteComment RPC.
+	FormSubmissionDeleteCommentProcedure = "/formbuilder.api.v2.form_instance.formSubmission/DeleteComment"
 )
 
 // FormSubmissionClient is a client for the formbuilder.api.v2.form_instance.formSubmission service.
@@ -49,6 +64,13 @@ type FormSubmissionClient interface {
 	SubmitForm(context.Context, *connect.Request[form_instance.SubmitFormRequest]) (*connect.Response[form_instance.SubmitFormResponse], error)
 	GetFormInstance(context.Context, *connect.Request[form_instance.GetFormInstanceRequest]) (*connect.Response[form_instance.FormInstance], error)
 	UpdateFormInstance(context.Context, *connect.Request[form_instance.UpdateFormInstanceRequest]) (*connect.Response[form_instance.SubmitFormResponse], error)
+	// Attachment endpoints
+	CreateAttachment(context.Context, *connect.Request[form_instance.CreateAttachmentRequest]) (*connect.Response[form_instance.CreateAttachmentResponse], error)
+	DeleteAttachment(context.Context, *connect.Request[form_instance.DeleteAttachmentRequest]) (*connect.Response[form_instance.DeleteAttachmentResponse], error)
+	// Comment endpoints
+	CreateComment(context.Context, *connect.Request[form_instance.CreateCommentRequest]) (*connect.Response[form_instance.CreateCommentResponse], error)
+	UpdateComment(context.Context, *connect.Request[form_instance.UpdateCommentRequest]) (*connect.Response[form_instance.UpdateCommentResponse], error)
+	DeleteComment(context.Context, *connect.Request[form_instance.DeleteCommentRequest]) (*connect.Response[form_instance.DeleteCommentResponse], error)
 }
 
 // NewFormSubmissionClient constructs a client for the
@@ -81,6 +103,36 @@ func NewFormSubmissionClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(formSubmissionMethods.ByName("UpdateFormInstance")),
 			connect.WithClientOptions(opts...),
 		),
+		createAttachment: connect.NewClient[form_instance.CreateAttachmentRequest, form_instance.CreateAttachmentResponse](
+			httpClient,
+			baseURL+FormSubmissionCreateAttachmentProcedure,
+			connect.WithSchema(formSubmissionMethods.ByName("CreateAttachment")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteAttachment: connect.NewClient[form_instance.DeleteAttachmentRequest, form_instance.DeleteAttachmentResponse](
+			httpClient,
+			baseURL+FormSubmissionDeleteAttachmentProcedure,
+			connect.WithSchema(formSubmissionMethods.ByName("DeleteAttachment")),
+			connect.WithClientOptions(opts...),
+		),
+		createComment: connect.NewClient[form_instance.CreateCommentRequest, form_instance.CreateCommentResponse](
+			httpClient,
+			baseURL+FormSubmissionCreateCommentProcedure,
+			connect.WithSchema(formSubmissionMethods.ByName("CreateComment")),
+			connect.WithClientOptions(opts...),
+		),
+		updateComment: connect.NewClient[form_instance.UpdateCommentRequest, form_instance.UpdateCommentResponse](
+			httpClient,
+			baseURL+FormSubmissionUpdateCommentProcedure,
+			connect.WithSchema(formSubmissionMethods.ByName("UpdateComment")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteComment: connect.NewClient[form_instance.DeleteCommentRequest, form_instance.DeleteCommentResponse](
+			httpClient,
+			baseURL+FormSubmissionDeleteCommentProcedure,
+			connect.WithSchema(formSubmissionMethods.ByName("DeleteComment")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -89,6 +141,11 @@ type formSubmissionClient struct {
 	submitForm         *connect.Client[form_instance.SubmitFormRequest, form_instance.SubmitFormResponse]
 	getFormInstance    *connect.Client[form_instance.GetFormInstanceRequest, form_instance.FormInstance]
 	updateFormInstance *connect.Client[form_instance.UpdateFormInstanceRequest, form_instance.SubmitFormResponse]
+	createAttachment   *connect.Client[form_instance.CreateAttachmentRequest, form_instance.CreateAttachmentResponse]
+	deleteAttachment   *connect.Client[form_instance.DeleteAttachmentRequest, form_instance.DeleteAttachmentResponse]
+	createComment      *connect.Client[form_instance.CreateCommentRequest, form_instance.CreateCommentResponse]
+	updateComment      *connect.Client[form_instance.UpdateCommentRequest, form_instance.UpdateCommentResponse]
+	deleteComment      *connect.Client[form_instance.DeleteCommentRequest, form_instance.DeleteCommentResponse]
 }
 
 // SubmitForm calls formbuilder.api.v2.form_instance.formSubmission.SubmitForm.
@@ -106,12 +163,44 @@ func (c *formSubmissionClient) UpdateFormInstance(ctx context.Context, req *conn
 	return c.updateFormInstance.CallUnary(ctx, req)
 }
 
+// CreateAttachment calls formbuilder.api.v2.form_instance.formSubmission.CreateAttachment.
+func (c *formSubmissionClient) CreateAttachment(ctx context.Context, req *connect.Request[form_instance.CreateAttachmentRequest]) (*connect.Response[form_instance.CreateAttachmentResponse], error) {
+	return c.createAttachment.CallUnary(ctx, req)
+}
+
+// DeleteAttachment calls formbuilder.api.v2.form_instance.formSubmission.DeleteAttachment.
+func (c *formSubmissionClient) DeleteAttachment(ctx context.Context, req *connect.Request[form_instance.DeleteAttachmentRequest]) (*connect.Response[form_instance.DeleteAttachmentResponse], error) {
+	return c.deleteAttachment.CallUnary(ctx, req)
+}
+
+// CreateComment calls formbuilder.api.v2.form_instance.formSubmission.CreateComment.
+func (c *formSubmissionClient) CreateComment(ctx context.Context, req *connect.Request[form_instance.CreateCommentRequest]) (*connect.Response[form_instance.CreateCommentResponse], error) {
+	return c.createComment.CallUnary(ctx, req)
+}
+
+// UpdateComment calls formbuilder.api.v2.form_instance.formSubmission.UpdateComment.
+func (c *formSubmissionClient) UpdateComment(ctx context.Context, req *connect.Request[form_instance.UpdateCommentRequest]) (*connect.Response[form_instance.UpdateCommentResponse], error) {
+	return c.updateComment.CallUnary(ctx, req)
+}
+
+// DeleteComment calls formbuilder.api.v2.form_instance.formSubmission.DeleteComment.
+func (c *formSubmissionClient) DeleteComment(ctx context.Context, req *connect.Request[form_instance.DeleteCommentRequest]) (*connect.Response[form_instance.DeleteCommentResponse], error) {
+	return c.deleteComment.CallUnary(ctx, req)
+}
+
 // FormSubmissionHandler is an implementation of the formbuilder.api.v2.form_instance.formSubmission
 // service.
 type FormSubmissionHandler interface {
 	SubmitForm(context.Context, *connect.Request[form_instance.SubmitFormRequest]) (*connect.Response[form_instance.SubmitFormResponse], error)
 	GetFormInstance(context.Context, *connect.Request[form_instance.GetFormInstanceRequest]) (*connect.Response[form_instance.FormInstance], error)
 	UpdateFormInstance(context.Context, *connect.Request[form_instance.UpdateFormInstanceRequest]) (*connect.Response[form_instance.SubmitFormResponse], error)
+	// Attachment endpoints
+	CreateAttachment(context.Context, *connect.Request[form_instance.CreateAttachmentRequest]) (*connect.Response[form_instance.CreateAttachmentResponse], error)
+	DeleteAttachment(context.Context, *connect.Request[form_instance.DeleteAttachmentRequest]) (*connect.Response[form_instance.DeleteAttachmentResponse], error)
+	// Comment endpoints
+	CreateComment(context.Context, *connect.Request[form_instance.CreateCommentRequest]) (*connect.Response[form_instance.CreateCommentResponse], error)
+	UpdateComment(context.Context, *connect.Request[form_instance.UpdateCommentRequest]) (*connect.Response[form_instance.UpdateCommentResponse], error)
+	DeleteComment(context.Context, *connect.Request[form_instance.DeleteCommentRequest]) (*connect.Response[form_instance.DeleteCommentResponse], error)
 }
 
 // NewFormSubmissionHandler builds an HTTP handler from the service implementation. It returns the
@@ -139,6 +228,36 @@ func NewFormSubmissionHandler(svc FormSubmissionHandler, opts ...connect.Handler
 		connect.WithSchema(formSubmissionMethods.ByName("UpdateFormInstance")),
 		connect.WithHandlerOptions(opts...),
 	)
+	formSubmissionCreateAttachmentHandler := connect.NewUnaryHandler(
+		FormSubmissionCreateAttachmentProcedure,
+		svc.CreateAttachment,
+		connect.WithSchema(formSubmissionMethods.ByName("CreateAttachment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	formSubmissionDeleteAttachmentHandler := connect.NewUnaryHandler(
+		FormSubmissionDeleteAttachmentProcedure,
+		svc.DeleteAttachment,
+		connect.WithSchema(formSubmissionMethods.ByName("DeleteAttachment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	formSubmissionCreateCommentHandler := connect.NewUnaryHandler(
+		FormSubmissionCreateCommentProcedure,
+		svc.CreateComment,
+		connect.WithSchema(formSubmissionMethods.ByName("CreateComment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	formSubmissionUpdateCommentHandler := connect.NewUnaryHandler(
+		FormSubmissionUpdateCommentProcedure,
+		svc.UpdateComment,
+		connect.WithSchema(formSubmissionMethods.ByName("UpdateComment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	formSubmissionDeleteCommentHandler := connect.NewUnaryHandler(
+		FormSubmissionDeleteCommentProcedure,
+		svc.DeleteComment,
+		connect.WithSchema(formSubmissionMethods.ByName("DeleteComment")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/formbuilder.api.v2.form_instance.formSubmission/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FormSubmissionSubmitFormProcedure:
@@ -147,6 +266,16 @@ func NewFormSubmissionHandler(svc FormSubmissionHandler, opts ...connect.Handler
 			formSubmissionGetFormInstanceHandler.ServeHTTP(w, r)
 		case FormSubmissionUpdateFormInstanceProcedure:
 			formSubmissionUpdateFormInstanceHandler.ServeHTTP(w, r)
+		case FormSubmissionCreateAttachmentProcedure:
+			formSubmissionCreateAttachmentHandler.ServeHTTP(w, r)
+		case FormSubmissionDeleteAttachmentProcedure:
+			formSubmissionDeleteAttachmentHandler.ServeHTTP(w, r)
+		case FormSubmissionCreateCommentProcedure:
+			formSubmissionCreateCommentHandler.ServeHTTP(w, r)
+		case FormSubmissionUpdateCommentProcedure:
+			formSubmissionUpdateCommentHandler.ServeHTTP(w, r)
+		case FormSubmissionDeleteCommentProcedure:
+			formSubmissionDeleteCommentHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -166,4 +295,24 @@ func (UnimplementedFormSubmissionHandler) GetFormInstance(context.Context, *conn
 
 func (UnimplementedFormSubmissionHandler) UpdateFormInstance(context.Context, *connect.Request[form_instance.UpdateFormInstanceRequest]) (*connect.Response[form_instance.SubmitFormResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.UpdateFormInstance is not implemented"))
+}
+
+func (UnimplementedFormSubmissionHandler) CreateAttachment(context.Context, *connect.Request[form_instance.CreateAttachmentRequest]) (*connect.Response[form_instance.CreateAttachmentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.CreateAttachment is not implemented"))
+}
+
+func (UnimplementedFormSubmissionHandler) DeleteAttachment(context.Context, *connect.Request[form_instance.DeleteAttachmentRequest]) (*connect.Response[form_instance.DeleteAttachmentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.DeleteAttachment is not implemented"))
+}
+
+func (UnimplementedFormSubmissionHandler) CreateComment(context.Context, *connect.Request[form_instance.CreateCommentRequest]) (*connect.Response[form_instance.CreateCommentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.CreateComment is not implemented"))
+}
+
+func (UnimplementedFormSubmissionHandler) UpdateComment(context.Context, *connect.Request[form_instance.UpdateCommentRequest]) (*connect.Response[form_instance.UpdateCommentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.UpdateComment is not implemented"))
+}
+
+func (UnimplementedFormSubmissionHandler) DeleteComment(context.Context, *connect.Request[form_instance.DeleteCommentRequest]) (*connect.Response[form_instance.DeleteCommentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("formbuilder.api.v2.form_instance.formSubmission.DeleteComment is not implemented"))
 }

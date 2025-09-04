@@ -20,6 +20,26 @@ type WorkflowHandler struct {
 	workflowService services.IWorkflowService
 }
 
+// CreateSLARule implements workflowconnect.WorkflowServiceHandler.
+func (h *WorkflowHandler) CreateSLARule(context.Context, *connect.Request[pb.CreateSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	panic("unimplemented")
+}
+
+// DeleteSLARule implements workflowconnect.WorkflowServiceHandler.
+func (h *WorkflowHandler) DeleteSLARule(context.Context, *connect.Request[pb.DeleteSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	panic("unimplemented")
+}
+
+// GetSLARules implements workflowconnect.WorkflowServiceHandler.
+func (h *WorkflowHandler) GetSLARules(context.Context, *connect.Request[pb.GetSLARulesRequest]) (*connect.Response[pb.GetSLARulesResponse], error) {
+	panic("unimplemented")
+}
+
+// UpdateSLARule implements workflowconnect.WorkflowServiceHandler.
+func (h *WorkflowHandler) UpdateSLARule(context.Context, *connect.Request[pb.UpdateSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	panic("unimplemented")
+}
+
 // NewWorkflowHandler creates a new workflow handler
 func NewWorkflowHandler(workflowService services.IWorkflowService) *WorkflowHandler {
 	return &WorkflowHandler{
