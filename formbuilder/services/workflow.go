@@ -193,6 +193,13 @@ func (w *workflowService) TransitionWorkflow(ctx context.Context, instanceID str
 		return nil, fmt.Errorf("failed to update instance state: %w", err)
 	}
 
+	// Start SLA tracking for the new state
+	err = w.startSLATracking(ctx, id, nextState, userID)
+	if err != nil {
+		// Log error but don't fail the transition
+		fmt.Printf("WARNING: Failed to start SLA tracking: %v\n", err)
+	}
+
 	// Create audit log entry for the transition
 	fromState := currentState
 	toState := nextState
@@ -213,6 +220,29 @@ func (w *workflowService) TransitionWorkflow(ctx context.Context, instanceID str
 	if err != nil {
 		// Log error but don't fail the transition
 		fmt.Printf("WARNING: Failed to create audit log for transition: %v\n", err)
+	}
+
+	// Create comment if provided in context
+	if comment, exists := context["comment"]; exists && comment != "" {
+		isInternal := false
+		if internalStr, exists := context["internal"]; exists && internalStr == "true" {
+			isInternal = true
+		}
+
+		commentObj := &db.Comment{
+			ID:         uuid.New(),
+			InstanceID: id,
+			UserID:     userID.String(),
+			Text:       comment,
+			CreatedAt:  time.Now(),
+			Internal:   &isInternal,
+		}
+
+		_, err = w.instanceRepo.CreateComment(ctx, commentObj)
+		if err != nil {
+			// Log error but don't fail the transition
+			fmt.Printf("WARNING: Failed to create comment for transition: %v\n", err)
+		}
 	}
 
 	return &TransitionResult{
@@ -255,6 +285,62 @@ func (w *workflowService) calculateNextState(states []WorkflowState, currentStat
 		}
 	}
 	return "", nil
+}
+
+// startSLATracking initiates SLA tracking for a form instance in a specific state
+func (w *workflowService) startSLATracking(ctx context.Context, instanceID uuid.UUID, state string, userID uuid.UUID) error {
+	// Get SLA rules for this state
+	slaRules, err := w.GetSLARules(ctx, state)
+	if err != nil {
+		return fmt.Errorf("failed to get SLA rules for state %s: %w", state, err)
+	}
+
+	// No SLA rules for this state
+	if len(slaRules) == 0 {
+		return nil
+	}
+
+	now := time.Now()
+	
+	for _, rule := range slaRules {
+		if rule.Active == nil || !*rule.Active {
+			continue
+		}
+
+		// Parse duration from JSON
+		var duration struct {
+			Value int32  `json:"value"`
+			Unit  string `json:"unit"`
+		}
+		if err := json.Unmarshal(rule.Duration, &duration); err != nil {
+			fmt.Printf("WARNING: Failed to parse duration for SLA rule %s: %v\n", rule.ID, err)
+			continue
+		}
+
+		// Calculate due time based on rule duration
+		var dueTime time.Time
+		switch duration.Unit {
+		case "MINUTES":
+			dueTime = now.Add(time.Duration(duration.Value) * time.Minute)
+		case "HOURS":
+			dueTime = now.Add(time.Duration(duration.Value) * time.Hour)
+		case "DAYS":
+			dueTime = now.Add(time.Duration(duration.Value) * 24 * time.Hour)
+		case "WEEKS":
+			dueTime = now.Add(time.Duration(duration.Value) * 7 * 24 * time.Hour)
+		case "MONTHS":
+			dueTime = now.AddDate(0, int(duration.Value), 0)
+		default:
+			dueTime = now.Add(time.Duration(duration.Value) * time.Hour) // Default to hours
+		}
+
+		// Note: SLA tracking table doesn't exist in generated models yet
+		// This would need to be implemented when the table is created
+		fmt.Printf("SLA tracking would be created: Instance=%s, Rule=%s, Due=%s\n", 
+			instanceID, rule.ID, dueTime.Format(time.RFC3339))
+	}
+
+	return nil
 }
 
 // TriggerExternalWorkflow implements IWorkflowService.

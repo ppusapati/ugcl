@@ -1,6 +1,6 @@
 -- Auto-Generated Schema
 
--- From identity\db\sqlc\schema.sql (identity\db\sqlc\schema.sql)
+-- From identity/db/sqlc/schema.sql (identity)
 /* ===========================================================
    EXTENSIONS
    ===========================================================*/
@@ -200,7 +200,7 @@ $$;
    ===========================================================*/
 
 
--- From vendors\db\schema\contractors.sql (vendors\db\schema\contractors.sql)
+-- From vendors/db/schema/contractors.sql (vendors)
 -- schema.sql
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -256,7 +256,7 @@ DO $$ BEGIN
     END IF;
 END $$;
 
--- From projects\db\schema\dairy_sites.sql (projects\db\schema\dairy_sites.sql)
+-- From projects/db/schema/dairy_sites.sql (projects)
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS dairy_sites (
@@ -300,7 +300,7 @@ WHERE ds.deleted_at IS NULL
   AND u.deleted_at IS NULL;
 
 
--- From formbuilder\db\schema\schema.sql (formbuilder\db\schema\schema.sql)
+-- From formbuilder/db/schema/schema.sql (formbuilder)
 -- =============================================================================
 -- schema.sql - Complete database schema for form builder
 -- =============================================================================

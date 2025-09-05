@@ -13,7 +13,7 @@ import (
 	prepo "p9e.in/ugcl/masters/pipeline/repository"
 	pservices "p9e.in/ugcl/masters/pipeline/services"
 
-	migrations "p9e.in/ugcl/migrations" // commented out for dev
+	// migrations "p9e.in/ugcl/migrations" // commented out for dev
 	conf "p9e.in/ugcl/packages/api/v1/config"
 	pkgconfig "p9e.in/ugcl/packages/config"
 	"p9e.in/ugcl/packages/config/file"
@@ -76,7 +76,7 @@ func (b *ApplicationBuilder) addInfrastructure() fx.Option {
 		fx.Provide(NewSQLCDatabaseManager),
 		fx.Provide(NewHTTPMux),
 		fx.Provide(NewServiceRegistry), // Add service registry
-		migrations.Module,              // Add migrations - commented out for dev (requires Atlas CLI)
+		// migrations.Module,              // Add migrations - commented out for dev (requires Atlas CLI)
 	)
 }
 

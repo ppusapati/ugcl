@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 
 	"p9e.in/ugcl/core/middleware"
 	pb "p9e.in/ugcl/formbuilder/api/v2/workflow"
@@ -21,23 +22,114 @@ type WorkflowHandler struct {
 }
 
 // CreateSLARule implements workflowconnect.WorkflowServiceHandler.
-func (h *WorkflowHandler) CreateSLARule(context.Context, *connect.Request[pb.CreateSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
-	panic("unimplemented")
+func (h *WorkflowHandler) CreateSLARule(
+	ctx context.Context,
+	req *connect.Request[pb.CreateSLARuleRequest],
+) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	if req.Msg.SlaRule == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule is required"))
+	}
+
+	// Convert proto to database model
+	slaRule, err := mappers.ProtoToSLARule(req.Msg.SlaRule)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	result, err := h.workflowService.CreateSLARule(ctx, slaRule)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	resp := &pb.CreateSLARuleResponse{
+		SlaRuleId: result.ID.String(),
+		Success:   true,
+		Message:   "SLA rule created successfully",
+	}
+	return connect.NewResponse(resp), nil
 }
 
 // DeleteSLARule implements workflowconnect.WorkflowServiceHandler.
-func (h *WorkflowHandler) DeleteSLARule(context.Context, *connect.Request[pb.DeleteSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
-	panic("unimplemented")
+func (h *WorkflowHandler) DeleteSLARule(
+	ctx context.Context,
+	req *connect.Request[pb.DeleteSLARuleRequest],
+) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	if req.Msg.SlaRuleId == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule ID is required"))
+	}
+
+	err := h.workflowService.DeleteSLARule(ctx, req.Msg.SlaRuleId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	resp := &pb.CreateSLARuleResponse{
+		SlaRuleId: req.Msg.SlaRuleId,
+		Success:   true,
+		Message:   "SLA rule deleted successfully",
+	}
+	return connect.NewResponse(resp), nil
 }
 
 // GetSLARules implements workflowconnect.WorkflowServiceHandler.
-func (h *WorkflowHandler) GetSLARules(context.Context, *connect.Request[pb.GetSLARulesRequest]) (*connect.Response[pb.GetSLARulesResponse], error) {
-	panic("unimplemented")
+func (h *WorkflowHandler) GetSLARules(
+	ctx context.Context,
+	req *connect.Request[pb.GetSLARulesRequest],
+) (*connect.Response[pb.GetSLARulesResponse], error) {
+	rules, err := h.workflowService.GetSLARules(ctx, req.Msg.State)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	// Convert database models to proto
+	protoRules := make([]*pb.SLARule, len(rules))
+	for i, rule := range rules {
+		protoRule, err := mappers.SLARuleToProto(rule)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+		protoRules[i] = protoRule
+	}
+
+	resp := &pb.GetSLARulesResponse{
+		SlaRules: protoRules,
+	}
+	return connect.NewResponse(resp), nil
 }
 
 // UpdateSLARule implements workflowconnect.WorkflowServiceHandler.
-func (h *WorkflowHandler) UpdateSLARule(context.Context, *connect.Request[pb.UpdateSLARuleRequest]) (*connect.Response[pb.CreateSLARuleResponse], error) {
-	panic("unimplemented")
+func (h *WorkflowHandler) UpdateSLARule(
+	ctx context.Context,
+	req *connect.Request[pb.UpdateSLARuleRequest],
+) (*connect.Response[pb.CreateSLARuleResponse], error) {
+	if req.Msg.SlaRuleId == "" || req.Msg.SlaRule == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule ID and rule data are required"))
+	}
+
+	// Convert proto to database model
+	slaRule, err := mappers.ProtoToSLARule(req.Msg.SlaRule)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	// Parse and set the ID from the request
+	ruleID, err := uuid.Parse(req.Msg.SlaRuleId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid SLA rule ID format: %w", err))
+	}
+	slaRule.ID = ruleID
+
+	_, err = h.workflowService.UpdateSLARule(ctx, slaRule)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	resp := &pb.CreateSLARuleResponse{
+		SlaRuleId: req.Msg.SlaRuleId,
+		Success:   true,
+		Message:   "SLA rule updated successfully",
+	}
+	return connect.NewResponse(resp), nil
 }
 
 // NewWorkflowHandler creates a new workflow handler
@@ -247,107 +339,3 @@ func (h *WorkflowHandler) TriggerExternalWorkflow(
 
 	return connect.NewResponse(response), nil
 }
-
-// // CreateSLARule creates a new SLA rule
-// func (h *WorkflowHandler) CreateSLARule(
-// 	ctx context.Context,
-// 	req *connect.Request[pb.CreateSLARuleRequest],
-// ) (*connect.Response[pb.CreateSLARuleResponse], error) {
-// 	if req.Msg.SlaRule == nil {
-// 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule is required"))
-// 	}
-
-// 	// Convert proto to database model
-// 	slaRule, err := mappers.ProtoToSLARule(req.Msg.SlaRule)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-// 	}
-
-// 	result, err := h.workflowService.CreateSLARule(ctx, slaRule)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInternal, err)
-// 	}
-
-// 	resp := &pb.CreateSLARuleResponse{
-// 		SlaRuleId: result.ID.String(),
-// 		Success:   true,
-// 		Message:   "SLA rule created successfully",
-// 	}
-// 	return connect.NewResponse(resp), nil
-// }
-
-// // GetSLARules retrieves SLA rules
-// func (h *WorkflowHandler) GetSLARules(
-// 	ctx context.Context,
-// 	req *connect.Request[pb.GetSLARulesRequest],
-// ) (*connect.Response[pb.GetSLARulesResponse], error) {
-// 	rules, err := h.workflowService.GetSLARules(ctx, req.Msg.State)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInternal, err)
-// 	}
-
-// 	// Convert to proto
-// 	protoRules := make([]*pb.SLARule, len(rules))
-// 	for i, rule := range rules {
-// 		protoRule, err := mappers.SLARuleToProto(rule)
-// 		if err != nil {
-// 			return nil, connect.NewError(connect.CodeInternal, err)
-// 		}
-// 		protoRules[i] = protoRule
-// 	}
-
-// 	resp := &pb.GetSLARulesResponse{
-// 		SlaRules: protoRules,
-// 	}
-// 	return connect.NewResponse(resp), nil
-// }
-
-// // UpdateSLARule updates an existing SLA rule
-// func (h *WorkflowHandler) UpdateSLARule(
-// 	ctx context.Context,
-// 	req *connect.Request[pb.UpdateSLARuleRequest],
-// ) (*connect.Response[pb.CreateSLARuleResponse], error) {
-// 	if req.Msg.SlaRule == nil {
-// 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule is required"))
-// 	}
-
-// 	// Convert proto to database model
-// 	slaRule, err := mappers.ProtoToSLARule(req.Msg.SlaRule)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-// 	}
-
-// 	result, err := h.workflowService.UpdateSLARule(ctx, slaRule)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInternal, err)
-// 	}
-
-// 	resp := &pb.CreateSLARuleResponse{
-// 		SlaRuleId: result.ID.String(),
-// 		Success:   true,
-// 		Message:   "SLA rule updated successfully",
-// 	}
-// 	return connect.NewResponse(resp), nil
-// }
-
-// // DeleteSLARule deletes an SLA rule
-// func (h *WorkflowHandler) DeleteSLARule(
-// 	ctx context.Context,
-// 	req *connect.Request[pb.DeleteSLARuleRequest],
-// ) (*connect.Response[pb.CreateSLARuleResponse], error) {
-// 	if req.Msg.SlaRuleId == "" {
-// 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("SLA rule ID is required"))
-// 	}
-
-// 	err := h.workflowService.DeleteSLARule(ctx, req.Msg.SlaRuleId)
-// 	if err != nil {
-// 		return nil, connect.NewError(connect.CodeInternal, err)
-// 	}
-
-// 	resp := &pb.CreateSLARuleResponse{
-// 		SlaRuleId: req.Msg.SlaRuleId,
-// 		Success:   true,
-// 		Message:   "SLA rule deleted successfully",
-// 	}
-// 	return connect.NewResponse(resp), nil
-// }
