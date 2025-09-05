@@ -11,7 +11,31 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type ActiveSlaInstance struct {
+	ID                uuid.UUID       `json:"id"`
+	InstanceID        uuid.UUID       `json:"instance_id"`
+	SlaRuleID         uuid.UUID       `json:"sla_rule_id"`
+	State             string          `json:"state"`
+	StartTime         time.Time       `json:"start_time"`
+	DueTime           time.Time       `json:"due_time"`
+	CompletionTime    sql.NullTime    `json:"completion_time"`
+	Status            string          `json:"status"`
+	BreachTime        sql.NullTime    `json:"breach_time"`
+	BreachDuration    pgtype.Interval `json:"breach_duration"`
+	AssignedTo        *string         `json:"assigned_to"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+	FormID            uuid.UUID       `json:"form_id"`
+	InstanceCreatedBy string          `json:"instance_created_by"`
+	SlaRuleName       string          `json:"sla_rule_name"`
+	SlaDuration       []byte          `json:"sla_duration"`
+	HoursRemaining    int32           `json:"hours_remaining"`
+	IsOverdue         bool            `json:"is_overdue"`
+	HoursOverdue      int32           `json:"hours_overdue"`
+}
 
 type Attachment struct {
 	ID          uuid.UUID `json:"id"`
@@ -96,6 +120,117 @@ type FormInstance struct {
 	Metadata     json.RawMessage `json:"metadata"`
 }
 
+type RecentSlaViolation struct {
+	ID                  uuid.UUID       `json:"id"`
+	SlaInstanceID       uuid.UUID       `json:"sla_instance_id"`
+	InstanceID          uuid.UUID       `json:"instance_id"`
+	SlaRuleID           uuid.UUID       `json:"sla_rule_id"`
+	ViolationTime       time.Time       `json:"violation_time"`
+	BreachDuration      pgtype.Interval `json:"breach_duration"`
+	Severity            string          `json:"severity"`
+	Resolved            *bool           `json:"resolved"`
+	ResolvedAt          sql.NullTime    `json:"resolved_at"`
+	ResolvedBy          *string         `json:"resolved_by"`
+	ResolutionNotes     *string         `json:"resolution_notes"`
+	NotificationSent    *bool           `json:"notification_sent"`
+	EscalationTriggered *bool           `json:"escalation_triggered"`
+	CreatedAt           time.Time       `json:"created_at"`
+	InstanceID          uuid.UUID       `json:"instance_id"`
+	State               string          `json:"state"`
+	AssignedTo          *string         `json:"assigned_to"`
+	SlaRuleName         string          `json:"sla_rule_name"`
+	FormID              uuid.UUID       `json:"form_id"`
+	InstanceCreatedBy   string          `json:"instance_created_by"`
+}
+
+type SlaComplianceSummary struct {
+	SlaRuleID            uuid.UUID      `json:"sla_rule_id"`
+	SlaRuleName          string         `json:"sla_rule_name"`
+	State                string         `json:"state"`
+	TotalInstances       int64          `json:"total_instances"`
+	CompletedInstances   int64          `json:"completed_instances"`
+	BreachedInstances    int64          `json:"breached_instances"`
+	OverdueInstances     int64          `json:"overdue_instances"`
+	CompliancePercentage pgtype.Numeric `json:"compliance_percentage"`
+}
+
+type SlaEscalationInstance struct {
+	ID              uuid.UUID       `json:"id"`
+	SlaInstanceID   uuid.UUID       `json:"sla_instance_id"`
+	EscalationLevel int32           `json:"escalation_level"`
+	TriggeredAt     time.Time       `json:"triggered_at"`
+	ActionsExecuted json.RawMessage `json:"actions_executed"`
+	Status          string          `json:"status"`
+	ErrorMessage    *string         `json:"error_message"`
+	RetryCount      *int32          `json:"retry_count"`
+	NextRetryAt     sql.NullTime    `json:"next_retry_at"`
+	CreatedAt       time.Time       `json:"created_at"`
+	UpdatedAt       time.Time       `json:"updated_at"`
+}
+
+type SlaInstance struct {
+	ID             uuid.UUID       `json:"id"`
+	InstanceID     uuid.UUID       `json:"instance_id"`
+	SlaRuleID      uuid.UUID       `json:"sla_rule_id"`
+	State          string          `json:"state"`
+	StartTime      time.Time       `json:"start_time"`
+	DueTime        time.Time       `json:"due_time"`
+	CompletionTime sql.NullTime    `json:"completion_time"`
+	Status         string          `json:"status"`
+	BreachTime     sql.NullTime    `json:"breach_time"`
+	BreachDuration pgtype.Interval `json:"breach_duration"`
+	AssignedTo     *string         `json:"assigned_to"`
+	CreatedAt      time.Time       `json:"created_at"`
+	UpdatedAt      time.Time       `json:"updated_at"`
+}
+
+type SlaMetric struct {
+	ID                   uuid.UUID       `json:"id"`
+	MetricDate           time.Time       `json:"metric_date"`
+	SlaRuleID            uuid.UUID       `json:"sla_rule_id"`
+	State                *string         `json:"state"`
+	AssignedRole         *string         `json:"assigned_role"`
+	TotalInstances       int32           `json:"total_instances"`
+	CompletedOnTime      int32           `json:"completed_on_time"`
+	BreachedInstances    int32           `json:"breached_instances"`
+	AvgCompletionTime    pgtype.Interval `json:"avg_completion_time"`
+	AvgBreachDuration    pgtype.Interval `json:"avg_breach_duration"`
+	CompliancePercentage pgtype.Numeric  `json:"compliance_percentage"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
+}
+
+type SlaNotification struct {
+	ID                   uuid.UUID     `json:"id"`
+	SlaInstanceID        uuid.UUID     `json:"sla_instance_id"`
+	SlaViolationID       uuid.NullUUID `json:"sla_violation_id"`
+	EscalationInstanceID uuid.NullUUID `json:"escalation_instance_id"`
+	NotificationType     string        `json:"notification_type"`
+	Recipient            string        `json:"recipient"`
+	Channel              string        `json:"channel"`
+	Subject              *string       `json:"subject"`
+	Message              string        `json:"message"`
+	TemplateUsed         *string       `json:"template_used"`
+	Status               string        `json:"status"`
+	SentAt               sql.NullTime  `json:"sent_at"`
+	DeliveredAt          sql.NullTime  `json:"delivered_at"`
+	ErrorMessage         *string       `json:"error_message"`
+	RetryCount           *int32        `json:"retry_count"`
+	CreatedAt            time.Time     `json:"created_at"`
+}
+
+type SlaPauseLog struct {
+	ID            uuid.UUID       `json:"id"`
+	SlaInstanceID uuid.UUID       `json:"sla_instance_id"`
+	Action        string          `json:"action"`
+	Reason        *string         `json:"reason"`
+	PausedBy      string          `json:"paused_by"`
+	PausedAt      time.Time       `json:"paused_at"`
+	ResumedAt     sql.NullTime    `json:"resumed_at"`
+	PauseDuration pgtype.Interval `json:"pause_duration"`
+	CreatedAt     time.Time       `json:"created_at"`
+}
+
 type SlaRule struct {
 	ID               uuid.UUID       `json:"id"`
 	Name             string          `json:"name"`
@@ -108,6 +243,23 @@ type SlaRule struct {
 	CreatedAt        time.Time       `json:"created_at"`
 	UpdatedAt        time.Time       `json:"updated_at"`
 	DeletedAt        sql.NullTime    `json:"deleted_at"`
+}
+
+type SlaViolation struct {
+	ID                  uuid.UUID       `json:"id"`
+	SlaInstanceID       uuid.UUID       `json:"sla_instance_id"`
+	InstanceID          uuid.UUID       `json:"instance_id"`
+	SlaRuleID           uuid.UUID       `json:"sla_rule_id"`
+	ViolationTime       time.Time       `json:"violation_time"`
+	BreachDuration      pgtype.Interval `json:"breach_duration"`
+	Severity            string          `json:"severity"`
+	Resolved            *bool           `json:"resolved"`
+	ResolvedAt          sql.NullTime    `json:"resolved_at"`
+	ResolvedBy          *string         `json:"resolved_by"`
+	ResolutionNotes     *string         `json:"resolution_notes"`
+	NotificationSent    *bool           `json:"notification_sent"`
+	EscalationTriggered *bool           `json:"escalation_triggered"`
+	CreatedAt           time.Time       `json:"created_at"`
 }
 
 type Workflow struct {

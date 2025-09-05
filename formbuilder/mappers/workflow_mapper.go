@@ -30,7 +30,7 @@ func ProtoToWorkflow(proto *pb.Workflow) (*db.Workflow, error) {
 					"params": protoAction.Params,
 				}
 			}
-			
+
 			transitions[j] = map[string]interface{}{
 				"event":      protoTransition.Event,
 				"condition":  protoTransition.Condition,
@@ -39,7 +39,7 @@ func ProtoToWorkflow(proto *pb.Workflow) (*db.Workflow, error) {
 				"metadata":   protoTransition.Metadata,
 			}
 		}
-		
+
 		goStates[i] = map[string]interface{}{
 			"id":             protoState.Id,
 			"label":          protoState.Label,

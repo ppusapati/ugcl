@@ -58,6 +58,22 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+          - column: "*.sla_rule_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "*.sla_instance_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "*.sla_violation_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "NullUUID"
+          - column: "*.escalation_instance_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "NullUUID"
           - column: "*.created_at"
             go_type: 
               import: "time"
@@ -75,6 +91,58 @@ sql:
               import: "time"
               type: "Time"
           - column: "*.uploaded_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.start_time"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.due_time"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.completion_time"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.breach_time"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.violation_time"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.resolved_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.triggered_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.sent_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.delivered_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.paused_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.resumed_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.next_retry_at"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.metric_date"
             go_type:
               import: "time"
               type: "Time"
@@ -139,6 +207,10 @@ sql:
               import: "encoding/json"
               type: "RawMessage"
           - column: "*.after_duration"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.actions_executed"
             go_type:
               import: "encoding/json"
               type: "RawMessage"

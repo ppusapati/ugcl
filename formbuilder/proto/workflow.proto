@@ -201,6 +201,134 @@ message DeleteSLARuleRequest {
   string sla_rule_id = 1;
 }
 
+// SLA Tracking Message Types
+message SLAInstanceInfo {
+  string id = 1;
+  string instance_id = 2;
+  string sla_rule_id = 3;
+  string state = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp due_time = 6;
+  string assigned_to = 7;
+  string status = 8;
+  google.protobuf.Timestamp completion_time = 9;
+  google.protobuf.Timestamp breach_time = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message SLAViolationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string instance_id = 3;
+  string sla_rule_id = 4;
+  google.protobuf.Timestamp violation_time = 5;
+  string breach_duration = 6;
+  string severity = 7;
+  string resolution_status = 8;
+  bool resolved = 9;
+  google.protobuf.Timestamp resolved_at = 10;
+  string resolved_by = 11;
+  string resolution_notes = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+message SLAEscalationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  int32 escalation_level = 3;
+  google.protobuf.Timestamp triggered_at = 4;
+  string status = 5;
+  repeated EscalationAction actions_executed = 6;
+  string error_message = 7;
+  int32 retry_count = 8;
+  google.protobuf.Timestamp next_retry_at = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message SLANotificationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string sla_violation_id = 3;
+  string escalation_instance_id = 4;
+  string notification_type = 5;
+  string recipient = 6;
+  string channel = 7;
+  string message = 8;
+  string status = 9;
+  string subject = 10;
+  string template_used = 11;
+  google.protobuf.Timestamp sent_at = 12;
+  google.protobuf.Timestamp delivered_at = 13;
+  string error_message = 14;
+  int32 retry_count = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+}
+
+message SLAMetricInfo {
+  string id = 1;
+  google.protobuf.Timestamp metric_date = 2;
+  string sla_rule_id = 3;
+  string state = 4;
+  string assigned_role = 5;
+  int32 total_instances = 6;
+  int32 completed_on_time = 7;
+  int32 breached_instances = 8;
+  double compliance_percentage = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message SLAPauseLogInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string action = 3;
+  string reason = 4;
+  string paused_by = 5;
+  google.protobuf.Timestamp paused_at = 6;
+  google.protobuf.Timestamp resumed_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message SLADashboardInfo {
+  string sla_rule_id = 1;
+  string sla_rule_name = 2;
+  string state = 3;
+  int32 total_instances = 4;
+  int32 active_instances = 5;
+  int32 completed_instances = 6;
+  int32 on_time = 7;
+  int32 breached_instances = 8;
+  int32 overdue_instances = 9;
+  double compliance_rate = 10;
+}
+
+message SLAInstanceDetailInfo {
+  string id = 1;
+  string instance_id = 2;
+  string sla_rule_id = 3;
+  string sla_rule_name = 4;
+  string state = 5;
+  google.protobuf.Timestamp start_time = 6;
+  google.protobuf.Timestamp due_time = 7;
+  string status = 8;
+  string assigned_to = 9;
+  string form_id = 10;
+  string instance_created_by = 11;
+  float hours_remaining = 12;
+  bool is_overdue = 13;
+  bool is_breached = 14;
+  string breach_duration = 15;
+  google.protobuf.Timestamp completion_time = 16;
+  google.protobuf.Timestamp breach_time = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
 service WorkflowService{
   rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
   rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
