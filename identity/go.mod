@@ -8,12 +8,14 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/lib/pq v1.10.9
+	github.com/nicksnyder/go-i18n/v2 v2.5.1
 	github.com/nyaruka/phonenumbers v1.6.5
 	go.uber.org/fx v1.24.0
 	google.golang.org/protobuf v1.36.7
 )
 
 require (
+	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

@@ -83,6 +83,19 @@ type IWorkflowRepository interface {
 	DeleteSLARule(ctx context.Context, ruleID uuid.UUID) error
 	ToggleSLARule(ctx context.Context, ruleID uuid.UUID) (*db.SlaRule, error)
 
+	// SLA instance tracking methods
+	CreateSLAInstance(ctx context.Context, params db.CreateSLAInstanceParams) (*db.SlaInstance, error)
+	GetSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error)
+	GetActiveSLAInstances(ctx context.Context) ([]*db.SlaInstance, error)
+	GetOverdueSLAInstances(ctx context.Context) ([]*db.SlaInstance, error)
+	CompleteSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error)
+	BreachSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error)
+
+	// SLA escalation methods
+	CreateSLAEscalationInstance(ctx context.Context, params db.CreateSLAEscalationInstanceParams) (*db.SlaEscalationInstance, error)
+	GetPendingEscalations(ctx context.Context) ([]*db.SlaEscalationInstance, error)
+	CompleteEscalation(ctx context.Context, params db.CompleteEscalationParams) (*db.SlaEscalationInstance, error)
+
 	// Escalation methods
 	CreateEscalation(ctx context.Context, escalation *db.Escalation) (*db.Escalation, error)
 	GetEscalation(ctx context.Context, escalationID uuid.UUID) (*db.Escalation, error)

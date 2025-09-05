@@ -12,6 +12,7 @@ import (
 	phandlers "p9e.in/ugcl/masters/pipeline/handlers"
 	prepo "p9e.in/ugcl/masters/pipeline/repository"
 	pservices "p9e.in/ugcl/masters/pipeline/services"
+	"p9e.in/ugcl/monitoring"
 
 	// migrations "p9e.in/ugcl/migrations" // commented out for dev
 	conf "p9e.in/ugcl/packages/api/v1/config"
@@ -141,11 +142,10 @@ func (b *ApplicationBuilder) addFormBuilderServices() fx.Option {
 
 // Add utility services (logging, monitoring, etc.)
 func (b *ApplicationBuilder) addUtilityServices() fx.Option {
-	return fx.Module("utility-services") // Add utility modules here
-	// monitoring.MonitoringModule,
-	// logging.LoggingModule,
-	// metrics.MetricsModule,
-
+	return fx.Module("utility-services",
+		// Add monitoring module
+		fx.Invoke(monitoring.RegisterMonitoringServices),
+	)
 }
 
 // Add HTTP layer

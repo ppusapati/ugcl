@@ -334,9 +334,27 @@ func (w *workflowService) startSLATracking(ctx context.Context, instanceID uuid.
 			dueTime = now.Add(time.Duration(duration.Value) * time.Hour) // Default to hours
 		}
 
-		// Note: SLA tracking table doesn't exist in generated models yet
-		// This would need to be implemented when the table is created
-		fmt.Printf("SLA tracking would be created: Instance=%s, Rule=%s, Due=%s\n", 
+		// Create SLA instance record
+		slaInstanceParams := db.CreateSLAInstanceParams{
+			ID:         uuid.New(),
+			InstanceID: instanceID,
+			SlaRuleID:  rule.ID,
+			State:      state,
+			StartTime:  now,
+			DueTime:    dueTime,
+			Status:     "active",
+			AssignedTo: nil, // Could be set based on workflow state assignment
+			CreatedAt:  now,
+			UpdatedAt:  now,
+		}
+
+		_, err = w.workflowRepo.CreateSLAInstance(ctx, slaInstanceParams)
+		if err != nil {
+			fmt.Printf("WARNING: Failed to create SLA instance: %v\n", err)
+			continue
+		}
+		
+		fmt.Printf("SLA tracking created: Instance=%s, Rule=%s, Due=%s\n", 
 			instanceID, rule.ID, dueTime.Format(time.RFC3339))
 	}
 

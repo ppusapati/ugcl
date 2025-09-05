@@ -273,3 +273,41 @@ func (r *workflowRepository) DeleteEscalation(ctx context.Context, escalationID 
 func (r *workflowRepository) ToggleAutoEscalation(ctx context.Context, escalationID uuid.UUID) (*db.Escalation, error) {
 	return r.queries.ToggleAutoEscalation(ctx, db.ToggleAutoEscalationParams{ID: escalationID})
 }
+
+// SLA Instance tracking methods
+func (r *workflowRepository) CreateSLAInstance(ctx context.Context, params db.CreateSLAInstanceParams) (*db.SlaInstance, error) {
+	return r.queries.CreateSLAInstance(ctx, params)
+}
+
+func (r *workflowRepository) GetSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error) {
+	return r.queries.GetSLAInstance(ctx, db.GetSLAInstanceParams{ID: instanceID})
+}
+
+func (r *workflowRepository) GetActiveSLAInstances(ctx context.Context) ([]*db.SlaInstance, error) {
+	return r.queries.GetActiveSLAInstances(ctx)
+}
+
+func (r *workflowRepository) GetOverdueSLAInstances(ctx context.Context) ([]*db.SlaInstance, error) {
+	return r.queries.GetOverdueSLAInstances(ctx)
+}
+
+func (r *workflowRepository) CompleteSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error) {
+	return r.queries.CompleteSLAInstance(ctx, db.CompleteSLAInstanceParams{ID: instanceID})
+}
+
+func (r *workflowRepository) BreachSLAInstance(ctx context.Context, instanceID uuid.UUID) (*db.SlaInstance, error) {
+	return r.queries.BreachSLAInstance(ctx, db.BreachSLAInstanceParams{ID: instanceID})
+}
+
+// SLA escalation methods
+func (r *workflowRepository) CreateSLAEscalationInstance(ctx context.Context, params db.CreateSLAEscalationInstanceParams) (*db.SlaEscalationInstance, error) {
+	return r.queries.CreateSLAEscalationInstance(ctx, params)
+}
+
+func (r *workflowRepository) GetPendingEscalations(ctx context.Context) ([]*db.SlaEscalationInstance, error) {
+	return r.queries.GetPendingEscalations(ctx)
+}
+
+func (r *workflowRepository) CompleteEscalation(ctx context.Context, params db.CompleteEscalationParams) (*db.SlaEscalationInstance, error) {
+	return r.queries.CompleteEscalation(ctx, params)
+}

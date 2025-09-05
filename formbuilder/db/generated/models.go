@@ -135,7 +135,7 @@ type RecentSlaViolation struct {
 	NotificationSent    *bool           `json:"notification_sent"`
 	EscalationTriggered *bool           `json:"escalation_triggered"`
 	CreatedAt           time.Time       `json:"created_at"`
-	InstanceID          uuid.UUID       `json:"instance_id"`
+	InstaceID           uuid.UUID       `json:"instance_id"`
 	State               string          `json:"state"`
 	AssignedTo          *string         `json:"assigned_to"`
 	SlaRuleName         string          `json:"sla_rule_name"`
