@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(sqlc:*)",
+      "Bash(go mod:*)",
+      "Bash(go work:*)",
+      "Bash(go build:*)",
+      "Bash(find:*)",
+      "Bash(go vet:*)",
+      "Bash(buf generate:*)",
+      "Bash(go get:*)",
+      "Bash(make sqlc-tenant:*)",
+      "Bash(make sqlc-user:*)",
+      "Bash(tree -d -L 2)",
+      "Bash(grep:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

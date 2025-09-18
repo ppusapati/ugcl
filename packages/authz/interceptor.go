@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	pbp "p9e.in/ugcl/identity/api/v2/permission"
+	pbp "p9e.in/ugcl/identity/user/api/v2/permission"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

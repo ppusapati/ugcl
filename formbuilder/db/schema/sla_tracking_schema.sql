@@ -204,7 +204,7 @@ CREATE INDEX idx_sla_pause_logs_paused_at ON sla_pause_logs(paused_at);
 -- =============================================================================
 
 -- Active SLA instances with time remaining
-CREATE VIEW active_sla_instances AS
+CREATE OR REPLACE VIEW active_sla_instances AS
 SELECT 
     si.*,
     fi.form_id,
@@ -223,7 +223,7 @@ JOIN sla_rules sr ON si.sla_rule_id = sr.id
 WHERE si.status = 'active' AND fi.deleted_at IS NULL;
 
 -- SLA compliance summary by rule
-CREATE VIEW sla_compliance_summary AS
+CREATE OR REPLACE VIEW sla_compliance_summary AS
 SELECT 
     sr.id as sla_rule_id,
     sr.name as sla_rule_name,
@@ -242,10 +242,10 @@ WHERE sr.deleted_at IS NULL
 GROUP BY sr.id, sr.name, sr.state;
 
 -- Recent SLA violations
-CREATE VIEW recent_sla_violations AS
+CREATE OR REPLACE VIEW recent_sla_violations AS
 SELECT 
     sv.*,
-    si.instance_id,
+    si.instance_id as si_instance_id,
     si.state,
     si.assigned_to,
     sr.name as sla_rule_name,

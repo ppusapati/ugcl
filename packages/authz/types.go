@@ -1,6 +1,6 @@
 package authz
 
-import pb "p9e.in/ugcl/identity/api/v2/permission"
+import pb "p9e.in/ugcl/identity/user/api/v2/permission"
 
 // InjectedUserInfo holds parsed user claims injected into the gRPC context
 // after token verification.

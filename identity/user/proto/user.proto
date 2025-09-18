@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package identity.user.api.v2.user;
+option go_package = "p9e.in/ugcl/identity/user/api/v2/user;user";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service UserService {
+  // User CRUD Operations
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+  rpc GetUser(UserIdentifier) returns (User) {}
+  rpc CreateUser(CreateUserRequest) returns (UserIdentifier) {}
+  rpc UpdateUser(UpdateUserRequest) returns (UserIdentifier) {}
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+
+  // Role Management
+  rpc AssignRoleToUser(AssignRoleRequest) returns (google.protobuf.Empty) {}
+  rpc RevokeRoleFromUser(AssignRoleRequest) returns (google.protobuf.Empty) {}
+
+  // Password Management
+  rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {}
+  rpc InitiatePasswordReset(InitiatePasswordResetRequest) returns (InitiatePasswordResetResponse) {}
+  rpc ResetPassword(ResetPasswordRequest) returns (google.protobuf.Empty) {}
+  rpc ValidatePasswordStrength(ValidatePasswordStrengthRequest) returns (ValidatePasswordStrengthResponse) {}
+
+  // Email/Phone Verification
+  rpc SendVerificationEmail(SendVerificationRequest) returns (google.protobuf.Empty) {}
+  rpc VerifyEmail(VerifyEmailRequest) returns (google.protobuf.Empty) {}
+  rpc SendVerificationSMS(SendVerificationRequest) returns (google.protobuf.Empty) {}
+  rpc VerifyPhone(VerifyPhoneRequest) returns (google.protobuf.Empty) {}
+
+  // User Profile Management
+  rpc UpdateProfile(UpdateProfileRequest) returns (google.protobuf.Empty) {}
+  rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
+  rpc DeleteAvatar(UserIdentifier) returns (google.protobuf.Empty) {}
+
+  // User Preferences
+  rpc GetUserPreferences(UserIdentifier) returns (UserPreferencesResponse) {}
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (google.protobuf.Empty) {}
+}
+
+message User {
+  google.protobuf.StringValue uuid = 1;
+  int32 id = 2;
+  google.protobuf.StringValue username = 3;
+  google.protobuf.StringValue fullname = 4;
+  google.protobuf.StringValue phone = 5;
+  google.protobuf.StringValue email = 6;
+  string password = 7; // Only used for create/update, never returned
+  string confirm_password = 8; // Only used for create/update, never returned
+  Gender gender = 9;
+  repeated string tenant_ids = 10; // User can belong to multiple tenants
+  repeated UserTenantRole tenant_roles = 11; // Roles per tenant
+  bool two_factor_enabled = 12;
+  google.protobuf.StringValue two_factor_secret = 13; // Never returned in responses
+  bool email_verified = 14;
+  bool phone_verified = 15;
+  bytes avatar = 16;
+  bool is_active = 17;
+  UserStatus status = 18;
+  google.protobuf.Timestamp created_at = 19;
+  google.protobuf.Timestamp updated_at = 20;
+  google.protobuf.Timestamp last_login = 21;
+  UserPreferences preferences = 22;
+}
+
+message UserTenantRole {
+  string tenant_id = 1;
+  repeated string roles = 2;
+  bool is_active = 3;
+  google.protobuf.Timestamp assigned_at = 4;
+}
+
+message UserPreferences {
+  string language = 1;
+  string timezone = 2;
+  string date_format = 3;
+  string time_format = 4;
+  bool email_notifications = 5;
+  bool sms_notifications = 6;
+  bool push_notifications = 7;
+  map<string, string> custom_preferences = 8;
+}
+
+enum Gender {
+  UNKNOWN = 0;
+  MALE = 1;
+  FEMALE = 2;
+  OTHER = 3;
+}
+
+message UserIdentifier {
+  oneof identifier {
+    int32 id = 1;
+    string uuid = 2;
+  }
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message DeleteUserRequest {
+  int32 id = 1;
+  bool force = 2;
+}
+
+message DeleteUserResponse {}
+
+message AssignRoleRequest {
+  string user_id = 1;
+  string role_id = 2;
+}
+
+message ListUsersRequest {
+  int32 page_offset = 1;
+  int32 page_size = 2;
+  repeated string sort = 3;
+  google.protobuf.FieldMask fields = 4;
+  UserFilter filter = 5;
+}
+
+message ListUsersResponse {
+  int32 total_size = 1;
+  int32 filter_size = 2;
+  repeated User users = 3;
+}
+
+message UserFilter {
+  google.protobuf.StringValue username = 1;
+  google.protobuf.StringValue phone = 2;
+  google.protobuf.StringValue email= 3;
+  google.protobuf.StringValue fullname = 4;
+  string search_term = 5;
+  repeated string tenant_ids = 6;
+  repeated string role_ids = 7;
+  bool active_only = 8;
+  repeated UserFilter and = 9;
+  repeated UserFilter or = 10;
+}
+
+// Password Management Messages
+message ChangePasswordRequest {
+  string user_id = 1;
+  string current_password = 2;
+  string new_password = 3;
+  string confirm_password = 4;
+}
+
+message InitiatePasswordResetRequest {
+  oneof identifier {
+    string username = 1;
+    string email = 2;
+    string phone = 3;
+  }
+  optional string tenant_id = 4;
+}
+
+message InitiatePasswordResetResponse {
+  string reset_token = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  PasswordResetMethod method = 3;
+  string masked_contact = 4; // e.g., "j***@example.com" or "+1***1234"
+}
+
+message ResetPasswordRequest {
+  string reset_token = 1;
+  string new_password = 2;
+  string confirm_password = 3;
+}
+
+message ValidatePasswordStrengthRequest {
+  string password = 1;
+  optional string username = 2; // To check against username similarity
+  optional string email = 3; // To check against email similarity
+}
+
+message ValidatePasswordStrengthResponse {
+  bool is_valid = 1;
+  int32 strength_score = 2; // 0-100
+  PasswordStrength strength_level = 3;
+  repeated string requirements_met = 4;
+  repeated string requirements_failed = 5;
+  repeated string suggestions = 6;
+}
+
+// Verification Messages
+message SendVerificationRequest {
+  string user_id = 1;
+  VerificationType type = 2;
+}
+
+message VerifyEmailRequest {
+  string user_id = 1;
+  string verification_code = 2;
+}
+
+message VerifyPhoneRequest {
+  string user_id = 1;
+  string verification_code = 2;
+}
+
+// Profile Management Messages
+message UpdateProfileRequest {
+  string user_id = 1;
+  UserProfile profile = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message UserProfile {
+  google.protobuf.StringValue fullname = 1;
+  google.protobuf.StringValue phone = 2;
+  Gender gender = 3;
+  google.protobuf.StringValue bio = 4;
+  google.protobuf.StringValue location = 5;
+  google.protobuf.StringValue website = 6;
+  google.protobuf.Timestamp date_of_birth = 7;
+}
+
+message UploadAvatarRequest {
+  string user_id = 1;
+  bytes avatar_data = 2;
+  string content_type = 3;
+  string filename = 4;
+}
+
+message UploadAvatarResponse {
+  string avatar_url = 1;
+  string avatar_id = 2;
+}
+
+// User Preferences Messages
+message UserPreferencesResponse {
+  UserPreferences preferences = 1;
+}
+
+message UpdateUserPreferencesRequest {
+  string user_id = 1;
+  UserPreferences preferences = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+// Enums
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_INACTIVE = 2;
+  USER_STATUS_SUSPENDED = 3;
+  USER_STATUS_PENDING_VERIFICATION = 4;
+  USER_STATUS_LOCKED = 5;
+}
+
+enum PasswordResetMethod {
+  PASSWORD_RESET_METHOD_UNSPECIFIED = 0;
+  PASSWORD_RESET_METHOD_EMAIL = 1;
+  PASSWORD_RESET_METHOD_SMS = 2;
+}
+
+enum PasswordStrength {
+  PASSWORD_STRENGTH_UNSPECIFIED = 0;
+  PASSWORD_STRENGTH_VERY_WEAK = 1;
+  PASSWORD_STRENGTH_WEAK = 2;
+  PASSWORD_STRENGTH_FAIR = 3;
+  PASSWORD_STRENGTH_GOOD = 4;
+  PASSWORD_STRENGTH_STRONG = 5;
+}
+
+enum VerificationType {
+  VERIFICATION_TYPE_UNSPECIFIED = 0;
+  VERIFICATION_TYPE_EMAIL = 1;
+  VERIFICATION_TYPE_PHONE = 2;
+}

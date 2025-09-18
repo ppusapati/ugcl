@@ -1,5 +1,3 @@
-// consumer/handler.go
-
 package consumer
 
 import (

@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"p9e.in/ugcl/identity/models"
+	"p9e.in/ugcl/identity/user/models"
 	pmodels "p9e.in/ugcl/packages/models"
 
 	"github.com/google/uuid"

@@ -20,8 +20,12 @@ sqlc-generate-all:
 	@echo "Generating SQLC for all modules..."
 	cd vendors/db && sqlc generate
 	cd identity/user/db/sqlc && sqlc generate
+	cd identity/tenant/db && sqlc generate
+	cd identity/auth/db && sqlc generate
+	cd contractor/db && sqlc generate
 	cd finance/db && sqlc generate
 	cd formbuilder/db && sqlc generate
+	cd notification/db && sqlc generate
 	cd core/database && sqlc generate
 	cd projects/db && sqlc generate
 
@@ -33,6 +37,14 @@ sqlc-vendors:
 .PHONY: sqlc-user
 sqlc-user:
 	cd identity/user/db/sqlc && sqlc generate
+
+.PHONY: sqlc-tenant
+sqlc-tenant:
+	cd identity/tenant/db && sqlc generate
+
+.PHONY: sqlc-auth
+sqlc-auth:
+	cd identity/auth/db && sqlc generate
 
 .PHONY: sqlc-projects
 sqlc-projects:
@@ -46,6 +58,10 @@ sqlc-finance:
 sqlc-formbuilder:
 	cd formbuilder/db && sqlc generate
 
+.PHONY: sqlc-notification
+sqlc-notification:
+	cd notification/db && sqlc generate
+
 .PHONY: sqlc-core
 sqlc-core:
 	cd core/database && sqlc generate
@@ -56,7 +72,12 @@ sqlc-verify-all:
 	cd contractor/db && sqlc verify
 	cd finance/db && sqlc verify
 	cd formbuilder/db && sqlc verify
+	cd notification/db && sqlc verify
 	cd core/database && sqlc verify
+	cd identity/user/db/sqlc && sqlc verify
+	cd identity/tenant/db && sqlc verify
+	cd identity/auth/db && sqlc verify
+	cd projects/db && sqlc verify
 
 # Combined generation
 .PHONY: generate-all

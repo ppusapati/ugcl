@@ -8,13 +8,16 @@ import (
 	"p9e.in/ugcl/core/config"
 	"p9e.in/ugcl/core/middleware"
 	formbuilder "p9e.in/ugcl/formbuilder"
-	user "p9e.in/ugcl/identity"
+	auth "p9e.in/ugcl/identity/auth"
+	tenant "p9e.in/ugcl/identity/tenant"
+	user "p9e.in/ugcl/identity/user"
 	phandlers "p9e.in/ugcl/masters/pipeline/handlers"
 	prepo "p9e.in/ugcl/masters/pipeline/repository"
 	pservices "p9e.in/ugcl/masters/pipeline/services"
 	"p9e.in/ugcl/monitoring"
+	"p9e.in/ugcl/notification"
 
-	// migrations "p9e.in/ugcl/migrations" // commented out for dev
+	migrations "p9e.in/ugcl/migrations" // commented out for dev
 	conf "p9e.in/ugcl/packages/api/v1/config"
 	pkgconfig "p9e.in/ugcl/packages/config"
 	"p9e.in/ugcl/packages/config/file"
@@ -77,7 +80,7 @@ func (b *ApplicationBuilder) addInfrastructure() fx.Option {
 		fx.Provide(NewSQLCDatabaseManager),
 		fx.Provide(NewHTTPMux),
 		fx.Provide(NewServiceRegistry), // Add service registry
-		// migrations.Module,              // Add migrations - commented out for dev (requires Atlas CLI)
+		migrations.Module,              // Add migrations - commented out for dev (requires Atlas CLI)
 	)
 }
 
@@ -92,8 +95,9 @@ func (b *ApplicationBuilder) addAllServices() fx.Option {
 		b.addIdentityServices(),
 		b.addVendorServices(),
 		// Utility services group
-		b.addUtilityServices(),
+		// b.addUtilityServices(),
 		b.addFormBuilderServices(),
+		b.addNotificationServices(),
 	)
 }
 
@@ -123,6 +127,8 @@ func (b *ApplicationBuilder) addMasterServices() fx.Option {
 func (b *ApplicationBuilder) addIdentityServices() fx.Option {
 	return fx.Module("identity-services",
 		user.UserModule,
+		tenant.TenantModule,
+		auth.AuthModule,
 	)
 }
 
@@ -145,6 +151,13 @@ func (b *ApplicationBuilder) addUtilityServices() fx.Option {
 	return fx.Module("utility-services",
 		// Add monitoring module
 		fx.Invoke(monitoring.RegisterMonitoringServices),
+	)
+}
+
+func (b *ApplicationBuilder) addNotificationServices() fx.Option {
+	return fx.Module("notification-services",
+		// Notification service
+		notification.Module,
 	)
 }
 

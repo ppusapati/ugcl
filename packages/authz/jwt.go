@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	pb "p9e.in/ugcl/identity/api/v2/permission"
+	pb "p9e.in/ugcl/identity/user/api/v2/permission"
 
 	"github.com/golang-jwt/jwt/v5"
 )

@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"p9e.in/ugcl/identity/models"
+	"p9e.in/ugcl/identity/user/models"
 )
 
 type grpcCtxKey string
@@ -18,10 +18,10 @@ func ClaimsFromContext(ctx context.Context) (*Claims, bool) {
 func UserFromContext(ctx context.Context) models.User {
 	if c, ok := ClaimsFromContext(ctx); ok {
 		return models.User{
-			Uuid:     c.UserID.String(),
-			Username: &c.Name,
-			Phone:    &c.Phone,
-			Roles:    []string{c.Role},
+			Uuid:        c.UserID,
+			Username:    &c.Name,
+			Phone:       &c.Phone,
+			TenantRoles: []string{c.Role},
 		}
 	}
 	return models.User{}

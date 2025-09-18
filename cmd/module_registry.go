@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -9,8 +8,14 @@ import (
 
 	// Project imports
 	"p9e.in/ugcl/core/middleware"
-	"p9e.in/ugcl/identity/api/v2/user/userconnect"
-	uhandler "p9e.in/ugcl/identity/handler"
+	"p9e.in/ugcl/identity/auth/api/v2/auth/authconnect"
+	authhandler "p9e.in/ugcl/identity/auth/handlers"
+	"p9e.in/ugcl/identity/tenant/api/v1/tenant/tenantconnect"
+	thandler "p9e.in/ugcl/identity/tenant/handler"
+	"p9e.in/ugcl/identity/user/api/v2/user/userconnect"
+	uhandler "p9e.in/ugcl/identity/user/handler"
+	"p9e.in/ugcl/notification/api/v2/notification/notificationconnect"
+	nhandlers "p9e.in/ugcl/notification/handlers"
 	"p9e.in/ugcl/projects/api/v2/dairy_site/dairy_siteconnect"
 	"p9e.in/ugcl/projects/handlers"
 
@@ -43,10 +48,13 @@ type RegisterAllServicesParams struct {
 	DairySiteHandler    *handlers.DairySiteHandler      `optional:"true"`
 	ContractorHandler   *vhandlers.ContractorHandler    `optional:"true"`
 	UserHandler         *uhandler.UserHandler           `optional:"true"`
+	TenantHandler       *thandler.TenantHandler         `optional:"true"`
+	AuthHandler         *authhandler.AuthHandler        `optional:"true"`
 	PipelineHandler     *phandlers.PipelineHandler      `optional:"true"`
 	FormBuilderHandler  *fbhandlers.FormBuilderHandler  `optional:"true"`
 	FormInstanceHandler *fbhandlers.FormInstanceHandler `optional:"true"`
 	WorkflowHandler     *fbhandlers.WorkflowHandler     `optional:"true"`
+	NotificationHandler *nhandlers.NotificationHandler  `optional:"true"`
 }
 
 // RegisterAllServices registers all services with the HTTP mux using Fx DI
@@ -72,8 +80,14 @@ func RegisterAllServices(params RegisterAllServicesParams) {
 		registry.registerIdentityServices(params.UserHandler)
 	}
 
-	fmt.Println(params.FormBuilderHandler)
-	// Register FormBuilder services individually to avoid nil pointer issues
+	if params.TenantHandler != nil {
+		registry.registerTenantServices(params.TenantHandler)
+	}
+
+	if params.AuthHandler != nil {
+		registry.registryAuthServices(params.AuthHandler)
+	}
+
 	if params.FormBuilderHandler != nil {
 		registry.registerFormBuilderService(params.FormBuilderHandler)
 	}
@@ -84,6 +98,10 @@ func RegisterAllServices(params RegisterAllServicesParams) {
 
 	if params.WorkflowHandler != nil {
 		registry.registerWorkflowService(params.WorkflowHandler)
+	}
+
+	if params.NotificationHandler != nil {
+		registry.registerNotificationService(params.NotificationHandler)
 	}
 
 	// Always register health checks and reflection (no auth required)
@@ -183,32 +201,21 @@ func (r *ServiceRegistry) registerWorkflowService(workflowHandler *fbhandlers.Wo
 	r.services = append(r.services, "Workflow: "+workflowPath+" (Admin role OR InternalOps app)")
 }
 
-// // Register formbuilder services
-// func (r *ServiceRegistry) registerFormBuilderServices(formBuilderHandler *fbhandlers.FormBuilderHandler, formInstanceHandler *fbhandlers.FormInstanceHandler, workflowHandler *fbhandlers.WorkflowHandler) {
-// 	// Formbuilder Service - requires admin role for JWT, or InternalOps for API key
-// 	formBuilderOptions := append(r.getCommonConnectOptions(),
-// 		connect.WithInterceptors(
-// 			r.authService.RequireRole([]string{"admin", "Super Admin", "super_admin"}),
-// 			r.authService.RequireApp([]string{"InternalOps"}),
-// 		),
-// 	)
+// Register individual Notification service
+func (r *ServiceRegistry) registerNotificationService(notificationHandler *nhandlers.NotificationHandler) {
+	notificationOptions := append(r.getCommonConnectOptions(),
+		connect.WithInterceptors(
+			r.authService.RequireRole([]string{"admin", "Super Admin", "super_admin"}),
+			r.authService.RequireApp([]string{"InternalOps"}),
+		),
+	)
 
-// 	formBuilderPath, formBuilderServiceHandler := form_builderconnect.NewFormBuilderHandler(
-// 		formBuilderHandler, formBuilderOptions...,
-// 	)
-// 	formBuilderInstancePath, formBuilderInstanceServiceHandler := form_instanceconnect.NewFormSubmissionHandler(
-// 		formInstanceHandler, formBuilderOptions...,
-// 	)
-// 	formBuilderWorkflowPath, formBuilderWorkflowServiceHandler := workflowconnect.NewWorkflowServiceHandler(
-// 		workflowHandler, formBuilderOptions...,
-// 	)
-// 	r.mux.Handle(formBuilderPath, formBuilderServiceHandler)
-// 	r.mux.Handle(formBuilderInstancePath, formBuilderInstanceServiceHandler)
-// 	r.mux.Handle(formBuilderWorkflowPath, formBuilderWorkflowServiceHandler)
-// 	r.services = append(r.services, "Formbuilder: "+formBuilderPath+" (Admin role OR InternalOps app)")
-// 	r.services = append(r.services, "FormInstance: "+formBuilderInstancePath+" (Admin role OR InternalOps app)")
-// 	r.services = append(r.services, "Workflow: "+formBuilderWorkflowPath+" (Admin role OR InternalOps app)")
-// }
+	notificationPath, notificationServiceHandler := notificationconnect.NewNotificationServiceHandler(
+		notificationHandler, notificationOptions...,
+	)
+	r.mux.Handle(notificationPath, notificationServiceHandler)
+	r.services = append(r.services, "Notification: "+notificationPath+" (Admin role OR InternalOps app)")
+}
 
 // Register vendor services
 func (r *ServiceRegistry) registerVendorServices(contractorHandler *vhandlers.ContractorHandler) {
@@ -243,6 +250,39 @@ func (r *ServiceRegistry) registerIdentityServices(userHandler *uhandler.UserHan
 	r.services = append(r.services, "User: "+userPath+" (Any JWT role OR MobileApp/InternalOps app)")
 }
 
+// Register tenant services
+func (r *ServiceRegistry) registerTenantServices(tenantHandler *thandler.TenantHandler) {
+	// Tenant Service - requires super_admin role for JWT, or InternalOps for API key
+	tenantOptions := append(r.getCommonConnectOptions(),
+
+		connect.WithInterceptors(
+			r.authService.RequireRole([]string{"Super Admin", "super_admin"}),
+			r.authService.RequireApp([]string{"InternalOps"}),
+		),
+	)
+
+	tenantPath, tenantServiceHandler := tenantconnect.NewTenantServiceHandler(
+		tenantHandler, tenantOptions...,
+	)
+	r.mux.Handle(tenantPath, tenantServiceHandler)
+	r.services = append(r.services, "Tenant: "+tenantPath+" (Super Admin role OR InternalOps app)")
+}
+
+// Register auth services
+func (r *ServiceRegistry) registryAuthServices(authHandler *authhandler.AuthHandler) {
+	// Auth Service - open to all (no auth required)
+	authOptions := []connect.HandlerOption{
+		connect.WithCompressMinBytes(0),
+		// No auth interceptor for auth service
+	}
+
+	authPath, authServiceHandler := authconnect.NewAuthServiceHandler(
+		authHandler, authOptions...,
+	)
+	r.mux.Handle(authPath, authServiceHandler)
+	r.services = append(r.services, "Auth: "+authPath+" (No Auth)")
+}
+
 // Register health checks and reflection (no auth required)
 func (r *ServiceRegistry) registerHealthAndReflection() {
 	// Create options without auth interceptor for health/reflection
@@ -260,6 +300,7 @@ func (r *ServiceRegistry) registerHealthAndReflection() {
 		"p9e.ugcl.formbuilder.api.v2.form_builder.FormBuilder",
 		"p9e.ugcl.formbuilder.api.v2.form_instance.FormInstance",
 		"p9e.ugcl.formbuilder.api.v2.workflow.Workflow",
+		"p9e.ugcl.notification.api.v2.notification.NotificationService",
 	)
 	r.mux.Handle(grpchealth.NewHandler(checker, noAuthOptions...))
 
@@ -272,6 +313,7 @@ func (r *ServiceRegistry) registerHealthAndReflection() {
 		"p9e.ugcl.formbuilder.api.v2.form_builder.FormBuilder",
 		"p9e.ugcl.formbuilder.api.v2.form_instance.FormInstance",
 		"p9e.ugcl.formbuilder.api.v2.workflow.Workflow",
+		"p9e.ugcl.notification.api.v2.notification.NotificationService",
 	)
 	r.mux.Handle(grpcreflect.NewHandlerV1(reflector, noAuthOptions...))
 	r.mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, noAuthOptions...))

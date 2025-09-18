@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package identity.user.api.v2.role;
+option go_package = "p9e.in/ugcl/identity/user/api/v2/role;role";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
+
+import "identity/user/proto/permission.proto";
+
+service RoleService {
+  rpc Create(Role) returns (Role) {
+    
+  }
+
+  rpc Update(UpdateRoleRequest) returns (Role) {
+    
+  }
+
+  rpc Delete(RoleIdentifier) returns (google.protobuf.Empty) {
+    
+  }
+
+  rpc GetByID(RoleIdentifier) returns (Role) {
+    
+  }
+
+  rpc GetAll(ListRolesRequest) returns (ListRolesResponse) {
+    
+  }
+
+  rpc GetWithPermissions(RoleIdentifier) returns (RoleWithPermissions) {
+    
+  }
+  }
+
+message Role {
+  string id = 1 ;
+  string name = 2 ;
+  string parent_id =3; 
+  bool is_preserved = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message CreateRoleRequest {
+  string name = 1 ;
+  string parent_id = 2;
+}
+
+message UpdateRoleRequest {
+  Role role = 1 ;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message RoleIdentifier {
+  string id = 1 ;
+}
+
+message ListRolesRequest {
+  int32 page_size = 1;
+  int32 page_offset = 2;
+}
+
+message ListRolesResponse {
+  repeated Role roles = 1;
+  int32 total_size = 2;
+}
+
+message RoleWithPermissions {
+  Role role = 1;
+  repeated identity.user.api.v2.permission.Permission permissions = 2;
+}

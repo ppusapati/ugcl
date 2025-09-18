@@ -11,8 +11,10 @@ import (
 	formInstanceDb "p9e.in/ugcl/formbuilder/db/generated"
 	formbuilderDb "p9e.in/ugcl/formbuilder/db/generated"
 	workflowDb "p9e.in/ugcl/formbuilder/db/generated"
-	userDB "p9e.in/ugcl/identity/db/sqlc/generated"
-	"p9e.in/ugcl/identity/uow"
+	tenantDB "p9e.in/ugcl/identity/tenant/db/generated"
+	userDB "p9e.in/ugcl/identity/user/db/sqlc/generated"
+	"p9e.in/ugcl/identity/user/uow"
+	notificationDB "p9e.in/ugcl/notification/db/generated"
 	dairySiteDB "p9e.in/ugcl/projects/db/generated"
 	contractorDB "p9e.in/ugcl/vendors/db/generated"
 )
@@ -64,6 +66,10 @@ func (m *DatabaseManager) GetUserQueries() *userDB.Queries {
 	return userDB.New(m.Pool)
 }
 
+func (m *DatabaseManager) GetTenantQueries() *tenantDB.Queries {
+	return tenantDB.New(m.Pool)
+}
+
 func (m *DatabaseManager) GetUserUOW() *uow.SQLCUnitOfWorkFactory {
 	return uow.NewSQLCUnitOfWorkFactory(m.Pool)
 }
@@ -88,4 +94,8 @@ func (m *DatabaseManager) GetWorkflowQueries() *workflowDb.Queries {
 // This is a generic method that can be used by any repository that needs raw SQL execution
 func (m *DatabaseManager) ExecRaw(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
 	return m.Pool.Exec(ctx, query, args...)
+}
+
+func (m *DatabaseManager) GetNotificationQueries() *notificationDB.Queries {
+	return notificationDB.New(m.Pool)
 }

@@ -7,7 +7,7 @@ import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/field_mask.proto";
-import "identity/proto/user.proto";
+import "identity/user/proto/user.proto";
 
 service ContractorService {
   rpc CreateContractor(CreateContractorRequest) returns (Contractor) {}
@@ -44,7 +44,7 @@ message Contractor {
 
 message CreateContractorRequest {
   Contractor contractor =1;
-  user.api.v2.user.User user =2;
+  identity.user.api.v2.user.User user =2;
 }
 
 message UpdateContractorRequest {

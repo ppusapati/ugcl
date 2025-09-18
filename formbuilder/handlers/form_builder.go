@@ -33,6 +33,7 @@ func (h *FormBuilderHandler) CreateForm(
 	if req.Msg.FormDefinition == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("form definition is required"))
 	}
+
 	fmt.Println("FormDefinition: ", req.Msg.FormDefinition.Metadata)
 	fmt.Printf("Module field specifically: '%s'\n", req.Msg.FormDefinition.Metadata.Module)
 	fmt.Printf("Module field length: %d\n", len(req.Msg.FormDefinition.Metadata.Module))

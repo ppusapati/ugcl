@@ -21,8 +21,8 @@ import (
 	"p9e.in/ugcl/packages/api/v1/config"
 )
 
-// ProfessionalMigrator - Enterprise-grade database migration system
-type ProfessionalMigrator struct {
+// Migrator - Enterprise-grade database migration system
+type Migrator struct {
 	cfg            *config.Data
 	dsn            string
 	devDsn         string
@@ -59,8 +59,8 @@ type MigrationConfig struct {
 	CommandTimeout  time.Duration // Add command timeout
 }
 
-// NewProfessionalMigrator creates an enterprise-grade migrator
-func NewProfessionalMigrator(cfg *config.Data) (*ProfessionalMigrator, error) {
+// NewMigrator creates an enterprise-grade migrator
+func NewMigrator(cfg *config.Data) (*Migrator, error) {
 	// Production DSN with proper connection pooling and timeout
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?search_path=testing2",
@@ -113,7 +113,7 @@ func NewProfessionalMigrator(cfg *config.Data) (*ProfessionalMigrator, error) {
 	// Configuration from environment
 	config := getMigrationConfig()
 
-	return &ProfessionalMigrator{
+	return &Migrator{
 		cfg:            cfg,
 		dsn:            dsn,
 		devDsn:         devDsn,
@@ -130,11 +130,11 @@ func NewProfessionalMigrator(cfg *config.Data) (*ProfessionalMigrator, error) {
 }
 
 // AutoMigrate - Production-ready auto-migration with all enterprise features
-func (m *ProfessionalMigrator) AutoMigrate(ctx context.Context) error {
+func (m *Migrator) AutoMigrate(ctx context.Context) error {
 	log.Println("🏢 Starting professional database migration system...")
 
 	// Create a timeout context for the entire migration process
-	migrationCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	migrationCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	// Step 1: Pre-flight checks
@@ -180,7 +180,7 @@ func (m *ProfessionalMigrator) AutoMigrate(ctx context.Context) error {
 }
 
 // checkAndReleaseStaleLocks checks for and releases any stale migration locks
-func (m *ProfessionalMigrator) checkAndReleaseStaleLocks(ctx context.Context) error {
+func (m *Migrator) checkAndReleaseStaleLocks(ctx context.Context) error {
 	log.Println("🔓 Checking for stale migration locks...")
 
 	db, err := sql.Open("postgres", m.dsn)
@@ -218,7 +218,7 @@ func (m *ProfessionalMigrator) checkAndReleaseStaleLocks(ctx context.Context) er
 }
 
 // executeMigrationsWithAtlas runs migrations with proper timeout and error handling
-func (m *ProfessionalMigrator) executeMigrationsWithAtlas(ctx context.Context) error {
+func (m *Migrator) executeMigrationsWithAtlas(ctx context.Context) error {
 	log.Println("🚀 Executing migrations with Atlas...")
 
 	// Create Atlas config for migration execution
@@ -280,7 +280,7 @@ func (m *ProfessionalMigrator) executeMigrationsWithAtlas(ctx context.Context) e
 }
 
 // generateMigrationWithAtlas generates migrations with proper timeout
-func (m *ProfessionalMigrator) generateMigrationWithAtlas(ctx context.Context, name string) error {
+func (m *Migrator) generateMigrationWithAtlas(ctx context.Context, name string) error {
 	log.Printf("🔧 Generating migration: %s", name)
 
 	// Ensure the migration and versions directories exist
@@ -369,7 +369,7 @@ func (m *ProfessionalMigrator) generateMigrationWithAtlas(ctx context.Context, n
 }
 
 // preflightChecks performs comprehensive pre-migration validation with timeout
-func (m *ProfessionalMigrator) preflightChecks(ctx context.Context) error {
+func (m *Migrator) preflightChecks(ctx context.Context) error {
 	log.Println("🔍 Running pre-flight checks...")
 
 	// Check database connectivity with timeout
@@ -404,7 +404,7 @@ func getMigrationConfig() MigrationConfig {
 		EnableRollback: getEnvBool("ENABLE_MIGRATION_ROLLBACK", true),
 		DryRun:         getEnvBool("MIGRATION_DRY_RUN", false),
 		ChecksumVerify: getEnvBool("MIGRATION_CHECKSUM_VERIFY", true),
-		CommandTimeout: getDurationEnv("MIGRATION_COMMAND_TIMEOUT", 2*time.Minute), // Default 2 minutes
+		CommandTimeout: getDurationEnv("MIGRATION_COMMAND_TIMEOUT", 15*time.Minute), // Default 2 minutes
 	}
 }
 
@@ -419,16 +419,19 @@ func getDurationEnv(key string, defaultValue time.Duration) time.Duration {
 }
 
 // Rest of the methods remain the same...
-func (m *ProfessionalMigrator) aggregateAndValidateSchemas() error {
+func (m *Migrator) aggregateAndValidateSchemas() error {
 	log.Println("📋 Aggregating and validating schemas...")
 
 	if len(m.schemaFiles) == 0 {
 		log.Println("⚠️  No schema files found, using fallback discovery...")
 		fallbackFiles := []string{
-			"identity/db/sqlc/schema.sql",
+			"identity/user/db/sqlc/schema.sql",
+			"identity/auth/db/schema/schema.sql",
+			"identity/tenant/db/schema/schema.sql",
 			"vendors/db/schema/contractors.sql",
 			"projects/db/schema/dairy_sites.sql",
 			"formbuilder/db/schema.sql",
+			"formbuilder/db/schema/sla_tracking_schema.sql",
 		}
 
 		for _, file := range fallbackFiles {
@@ -458,7 +461,7 @@ func (m *ProfessionalMigrator) aggregateAndValidateSchemas() error {
 	return nil
 }
 
-func (m *ProfessionalMigrator) planAndGenerateMigrations(ctx context.Context) (bool, error) {
+func (m *Migrator) planAndGenerateMigrations(ctx context.Context) (bool, error) {
 	log.Println("🔧 Planning and generating migrations...")
 
 	// Add debugging
@@ -490,7 +493,7 @@ func (m *ProfessionalMigrator) planAndGenerateMigrations(ctx context.Context) (b
 	return true, nil
 }
 
-func (m *ProfessionalMigrator) executeMigrations(ctx context.Context) error {
+func (m *Migrator) executeMigrations(ctx context.Context) error {
 	log.Println("🚀 Executing migrations...")
 
 	if m.dryRun {
@@ -515,7 +518,7 @@ func (m *ProfessionalMigrator) executeMigrations(ctx context.Context) error {
 }
 
 // Helper methods
-func (m *ProfessionalMigrator) checkDatabaseConnectivity(ctx context.Context) error {
+func (m *Migrator) checkDatabaseConnectivity(ctx context.Context) error {
 	db, err := sql.Open("postgres", m.dsn)
 	if err != nil {
 		return err
@@ -526,7 +529,7 @@ func (m *ProfessionalMigrator) checkDatabaseConnectivity(ctx context.Context) er
 	return db.PingContext(ctx)
 }
 
-func (m *ProfessionalMigrator) checkAtlasAvailability() error {
+func (m *Migrator) checkAtlasAvailability() error {
 	cmd := exec.Command("atlas", "version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -536,7 +539,7 @@ func (m *ProfessionalMigrator) checkAtlasAvailability() error {
 	return nil
 }
 
-func (m *ProfessionalMigrator) checkMigrationIntegrity() error {
+func (m *Migrator) checkMigrationIntegrity() error {
 	// Check atlas.sum file integrity (in versions dir)
 	sumFile := filepath.Join(m.versionsDir, "atlas.sum")
 	if _, err := os.Stat(sumFile); os.IsNotExist(err) {
@@ -578,7 +581,7 @@ func (m *ProfessionalMigrator) checkMigrationIntegrity() error {
 }
 
 // FIXED: Updated createAtlasConfig to handle Windows paths properly with connection timeout
-func (m *ProfessionalMigrator) createAtlasConfig() string {
+func (m *Migrator) createAtlasConfig() string {
 	// Convert Windows path to proper file URL
 	schemaURL := "file:///" + strings.ReplaceAll(m.aggregatedPath, "\\", "/")
 
@@ -597,7 +600,7 @@ env "local" {
 }
 
 // Alternative config that uses local schema file
-func (m *ProfessionalMigrator) createAtlasConfigWithLocalSchema() string {
+func (m *Migrator) createAtlasConfigWithLocalSchema() string {
 	return fmt.Sprintf(`
 env "local" {
   src = "file://schema.sql"
@@ -620,7 +623,7 @@ env "local" {
 }
 
 // Add this helper method to debug path issues
-func (m *ProfessionalMigrator) debugPaths() {
+func (m *Migrator) debugPaths() {
 	log.Printf("🔍 Debug paths:")
 	log.Printf("   OS: %s", runtime.GOOS)
 	log.Printf("   Migration dir: %s", m.migrationDir)
@@ -649,7 +652,7 @@ func (m *ProfessionalMigrator) debugPaths() {
 }
 
 // Helper function to copy schema to migration directory
-func (m *ProfessionalMigrator) copySchemaToMigrationDir(destPath string) error {
+func (m *Migrator) copySchemaToMigrationDir(destPath string) error {
 	content, err := os.ReadFile(m.aggregatedPath)
 	if err != nil {
 		return fmt.Errorf("failed to read aggregated schema: %w", err)
@@ -659,12 +662,12 @@ func (m *ProfessionalMigrator) copySchemaToMigrationDir(destPath string) error {
 }
 
 // Additional professional methods
-func (m *ProfessionalMigrator) lintMigrations(ctx context.Context) error {
+func (m *Migrator) lintMigrations(ctx context.Context) error {
 	log.Println("🔍 Linting migrations...")
 	return nil
 }
 
-func (m *ProfessionalMigrator) postMigrationVerification(ctx context.Context) error {
+func (m *Migrator) postMigrationVerification(ctx context.Context) error {
 	log.Println("✅ Running post-migration verification...")
 	return nil
 }
@@ -674,7 +677,8 @@ func discoverSchemaFilesAdvanced() ([]SchemaFile, error) {
 	var files []SchemaFile
 
 	patterns := []string{
-		"identity/db/sqlc/*.sql", "vendors/db/schema/*.sql", "projects/db/schema/*.sql",
+		"identity/user/db/sqlc/*.sql", "identity/auth/db/schema/*.sql",
+		"identity/tenant/db/schema/*.sql", "vendors/db/schema/*.sql", "projects/db/schema/*.sql",
 		"formbuilder/db/schema/*.sql",
 	}
 
@@ -724,9 +728,9 @@ func ensureMigrationDir(dir string) error {
 }
 
 // Remaining method implementations
-func (m *ProfessionalMigrator) checkMigrationConflicts() error { return nil }
+func (m *Migrator) checkMigrationConflicts() error { return nil }
 
-func (m *ProfessionalMigrator) createAggregatedSchema(path string) error {
+func (m *Migrator) createAggregatedSchema(path string) error {
 	// Create aggregated schema from discovered files
 	content := "-- Auto-Generated Schema\n\n"
 	for _, file := range m.schemaFiles {
@@ -736,9 +740,9 @@ func (m *ProfessionalMigrator) createAggregatedSchema(path string) error {
 	return os.WriteFile(path, []byte(content), 0644)
 }
 
-func (m *ProfessionalMigrator) validateSchemaSQL(path string) error { return nil }
+func (m *Migrator) validateSchemaSQL(path string) error { return nil }
 
-func (m *ProfessionalMigrator) checkIfMigrationNeeded() (bool, error) {
+func (m *Migrator) checkIfMigrationNeeded() (bool, error) {
 	// Check if schema has changed since last migration
 	hashFile := filepath.Join(m.migrationDir, ".schema_state")
 	if _, err := os.Stat(hashFile); os.IsNotExist(err) {
@@ -752,13 +756,13 @@ func (m *ProfessionalMigrator) checkIfMigrationNeeded() (bool, error) {
 	return string(savedHash) != currentHash, nil
 }
 
-func (m *ProfessionalMigrator) saveSchemaState() error {
+func (m *Migrator) saveSchemaState() error {
 	hash := m.calculateCurrentSchemaHash()
 	hashFile := filepath.Join(m.migrationDir, ".schema_state")
 	return os.WriteFile(hashFile, []byte(hash), 0644)
 }
 
-func (m *ProfessionalMigrator) calculateCurrentSchemaHash() string {
+func (m *Migrator) calculateCurrentSchemaHash() string {
 	var allContent strings.Builder
 	for _, file := range m.schemaFiles {
 		allContent.WriteString(file.Content)
@@ -766,23 +770,23 @@ func (m *ProfessionalMigrator) calculateCurrentSchemaHash() string {
 	return calculateHash(allContent.String())
 }
 
-func (m *ProfessionalMigrator) simulateMigrations(ctx context.Context) error {
+func (m *Migrator) simulateMigrations(ctx context.Context) error {
 	log.Println("Simulating migration execution...")
 	return nil
 }
 
-func (m *ProfessionalMigrator) rollbackLastMigration(ctx context.Context) error {
+func (m *Migrator) rollbackLastMigration(ctx context.Context) error {
 	log.Println("Rolling back last migration...")
 	return nil
 }
 
 // Module
 var Module = fx.Module("professional-migrations",
-	fx.Provide(NewProfessionalMigrator),
-	fx.Invoke(registerProfessionalHooks),
+	fx.Provide(NewMigrator),
+	fx.Invoke(registerHooks),
 )
 
-func registerProfessionalHooks(lc fx.Lifecycle, migrator *ProfessionalMigrator) {
+func registerHooks(lc fx.Lifecycle, migrator *Migrator) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if os.Getenv("AUTO_MIGRATE") == "false" {

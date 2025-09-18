@@ -1,0 +1,360 @@
+syntax = "proto3";
+
+package notification.api.v2.notification;
+option go_package = "p9e.in/ugcl/notification/api/v2/notification;notification";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+// Core Notification Message
+message Notification {
+  string id = 1;
+  NotificationType type = 2;
+  NotificationChannel channel = 3;
+  NotificationPriority priority = 4;
+  string recipient_id = 5;
+  string recipient_type = 6; // "user", "role", "email"
+  string subject = 7;
+  string message = 8;
+  string template_id = 9;
+  map<string, google.protobuf.Any> template_data = 10;
+  NotificationStatus status = 11;
+  string source_id = 12; // form_instance_id, sla_instance_id, etc.
+  string source_type = 13; // "workflow", "sla", "form"
+  google.protobuf.Timestamp scheduled_at = 14;
+  google.protobuf.Timestamp sent_at = 15;
+  google.protobuf.Timestamp delivered_at = 16;
+  google.protobuf.Timestamp read_at = 17;
+  string error_message = 18;
+  int32 retry_count = 19;
+  google.protobuf.Timestamp next_retry_at = 20;
+  map<string, string> metadata = 21;
+  google.protobuf.Timestamp created_at = 22;
+  google.protobuf.Timestamp updated_at = 23;
+}
+
+// Notification Types
+enum NotificationType {
+  WORKFLOW_STATE_CHANGE = 0;
+  WORKFLOW_ASSIGNMENT = 1;
+  WORKFLOW_APPROVAL_REQUEST = 2;
+  WORKFLOW_APPROVAL_RESPONSE = 3;
+  SLA_WARNING = 4;
+  SLA_BREACH = 5;
+  SLA_ESCALATION = 6;
+  SLA_COMPLETION = 7;
+  FORM_SUBMISSION = 8;
+  FORM_UPDATE = 9;
+  SYSTEM_ALERT = 10;
+  CUSTOM = 11;
+}
+
+// Notification Channels
+enum NotificationChannel {
+  EMAIL = 0;
+  SMS = 1;
+  IN_APP = 2;
+  PUSH = 3;
+  WEBHOOK = 4;
+  SLACK = 5;
+  TEAMS = 6;
+  WHATSAPP = 7;
+}
+
+// Notification Priority
+enum NotificationPriority {
+  LOW = 0;
+  NORMAL = 1;
+  HIGH = 2;
+  URGENT = 3;
+  CRITICAL = 4;
+}
+
+// Notification Status
+enum NotificationStatus {
+  PENDING = 0;
+  SCHEDULED = 1;
+  SENT = 2;
+  DELIVERED = 3;
+  READ = 4;
+  FAILED = 5;
+  CANCELLED = 6;
+}
+
+// Workflow State Change Notification
+message WorkflowStateChangeNotification {
+  string instance_id = 1;
+  string form_id = 2;
+  string previous_state = 3;
+  string current_state = 4;
+  string changed_by = 5;
+  string assigned_to = 6;
+  string assigned_role = 7;
+  map<string, google.protobuf.Any> form_data = 8;
+  string transition_event = 9;
+  string comment = 10;
+  google.protobuf.Timestamp changed_at = 11;
+}
+
+// SLA Event Notification
+message SLAEventNotification {
+  string sla_instance_id = 1;
+  string instance_id = 2;
+  string sla_rule_id = 3;
+  string sla_rule_name = 4;
+  SLAEventType event_type = 5;
+  string state = 6;
+  google.protobuf.Timestamp due_time = 7;
+  google.protobuf.Timestamp breach_time = 8;
+  string assigned_to = 9;
+  string severity = 10;
+  int32 escalation_level = 11;
+  string breach_duration = 12;
+  map<string, string> context = 13;
+}
+
+enum SLAEventType {
+  SLA_STARTED = 0;
+  SLA_WARNING_THRESHOLD = 1;
+  SLA_BREACH_IMMINENT = 2;
+  SLA_BREACHED = 3;
+  SLA_ESCALATED = 4;
+  SLA_RESOLVED = 5;
+  SLA_PAUSED = 6;
+  SLA_RESUMED = 7;
+}
+
+// Notification Template
+message NotificationTemplate {
+  string id = 1;
+  string name = 2;
+  NotificationType type = 3;
+  NotificationChannel channel = 4;
+  string subject_template = 5;
+  string body_template = 6;
+  string language = 7;
+  map<string, string> variables = 8;
+  bool active = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Notification Preference
+message NotificationPreference {
+  string user_id = 1;
+  NotificationType type = 2;
+  repeated NotificationChannel enabled_channels = 3;
+  bool enabled = 4;
+  map<string, string> settings = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// Bulk Notification Request
+message BulkNotificationRequest {
+  repeated string recipient_ids = 1;
+  string recipient_type = 2;
+  NotificationType type = 3;
+  NotificationChannel channel = 4;
+  NotificationPriority priority = 5;
+  string subject = 6;
+  string message = 7;
+  string template_id = 8;
+  map<string, google.protobuf.Any> template_data = 9;
+  google.protobuf.Timestamp scheduled_at = 10;
+  map<string, string> metadata = 11;
+}
+
+// Request/Response Messages
+message SendNotificationRequest {
+  Notification notification = 1;
+}
+
+message SendNotificationResponse {
+  string notification_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message SendBulkNotificationRequest {
+  BulkNotificationRequest bulk_request = 1;
+}
+
+message SendBulkNotificationResponse {
+  repeated string notification_ids = 1;
+  int32 total_sent = 2;
+  int32 total_failed = 3;
+  repeated string error_messages = 4;
+}
+
+message GetNotificationRequest {
+  string notification_id = 1;
+}
+
+message GetNotificationResponse {
+  Notification notification = 1;
+}
+
+message ListNotificationsRequest {
+  string recipient_id = 1;
+  repeated NotificationStatus status_filter = 2;
+  repeated NotificationType type_filter = 3;
+  google.protobuf.Timestamp from_date = 4;
+  google.protobuf.Timestamp to_date = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string sort_by = 8;
+  bool sort_desc = 9;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  int64 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 unread_count = 5;
+}
+
+message MarkNotificationReadRequest {
+  string notification_id = 1;
+  string user_id = 2;
+}
+
+message MarkNotificationReadResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message MarkAllNotificationsReadRequest {
+  string user_id = 1;
+  repeated NotificationType type_filter = 2;
+}
+
+message MarkAllNotificationsReadResponse {
+  int32 marked_count = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message CreateTemplateRequest {
+  NotificationTemplate template = 1;
+}
+
+message CreateTemplateResponse {
+  string template_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetTemplateRequest {
+  string template_id = 1;
+}
+
+message GetTemplateResponse {
+  NotificationTemplate template = 1;
+}
+
+message ListTemplatesRequest {
+  NotificationType type_filter = 1;
+  NotificationChannel channel_filter = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListTemplatesResponse {
+  repeated NotificationTemplate templates = 1;
+  int64 total_count = 2;
+}
+
+message UpdateTemplateRequest {
+  string template_id = 1;
+  NotificationTemplate template = 2;
+}
+
+message DeleteTemplateRequest {
+  string template_id = 1;
+}
+
+message GetUserPreferencesRequest {
+  string user_id = 1;
+}
+
+message GetUserPreferencesResponse {
+  repeated NotificationPreference preferences = 1;
+}
+
+message UpdateUserPreferencesRequest {
+  string user_id = 1;
+  repeated NotificationPreference preferences = 2;
+}
+
+message UpdateUserPreferencesResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message SendWorkflowNotificationRequest {
+  WorkflowStateChangeNotification workflow_notification = 1;
+  repeated string recipient_ids = 2;
+  string recipient_type = 3;
+  NotificationChannel channel = 4;
+  NotificationPriority priority = 5;
+  string template_id = 6;
+}
+
+message SendSLANotificationRequest {
+  SLAEventNotification sla_notification = 1;
+  repeated string recipient_ids = 2;
+  string recipient_type = 3;
+  NotificationChannel channel = 4;
+  NotificationPriority priority = 5;
+  string template_id = 6;
+}
+
+message GetNotificationStatsRequest {
+  string user_id = 1;
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message GetNotificationStatsResponse {
+  int32 total_notifications = 1;
+  int32 unread_notifications = 2;
+  int32 workflow_notifications = 3;
+  int32 sla_notifications = 4;
+  map<string, int32> notifications_by_type = 5;
+  map<string, int32> notifications_by_channel = 6;
+}
+
+// Service Definition
+service NotificationService {
+  // Core notification operations
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  rpc SendBulkNotification(SendBulkNotificationRequest) returns (SendBulkNotificationResponse);
+  rpc GetNotification(GetNotificationRequest) returns (GetNotificationResponse);
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  
+  // Notification management
+  rpc MarkNotificationRead(MarkNotificationReadRequest) returns (MarkNotificationReadResponse);
+  rpc MarkAllNotificationsRead(MarkAllNotificationsReadRequest) returns (MarkAllNotificationsReadResponse);
+  
+  // Template management
+  rpc CreateTemplate(CreateTemplateRequest) returns (CreateTemplateResponse);
+  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse);
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
+  rpc UpdateTemplate(UpdateTemplateRequest) returns (CreateTemplateResponse);
+  rpc DeleteTemplate(DeleteTemplateRequest) returns (google.protobuf.Empty);
+  
+  // User preferences
+  rpc GetUserPreferences(GetUserPreferencesRequest) returns (GetUserPreferencesResponse);
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UpdateUserPreferencesResponse);
+  
+  // Specialized workflow and SLA notifications
+  rpc SendWorkflowNotification(SendWorkflowNotificationRequest) returns (SendNotificationResponse);
+  rpc SendSLANotification(SendSLANotificationRequest) returns (SendNotificationResponse);
+  
+  // Statistics and reporting
+  rpc GetNotificationStats(GetNotificationStatsRequest) returns (GetNotificationStatsResponse);
+}

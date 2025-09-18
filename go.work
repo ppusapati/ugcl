@@ -4,10 +4,13 @@ use (
 	./cmd
 	./core
 	./formbuilder
-	./identity
+	./identity/auth
+	./identity/tenant
+	./identity/user
 	./masters/pipeline
 	./migrations
 	./monitoring
+	./notification
 	./packages
 	./projects
 	./vendors

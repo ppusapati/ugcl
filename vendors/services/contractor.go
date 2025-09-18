@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	userpb "p9e.in/ugcl/identity/api/v2/user"
-	usermapper "p9e.in/ugcl/identity/mappers"
-	userservices "p9e.in/ugcl/identity/services"
+	userpb "p9e.in/ugcl/identity/user/api/v2/user"
+	usermapper "p9e.in/ugcl/identity/user/mappers"
+	userservices "p9e.in/ugcl/identity/user/services"
 	pb "p9e.in/ugcl/vendors/api/v2/contractor"
 	db "p9e.in/ugcl/vendors/db/generated"
 	"p9e.in/ugcl/vendors/repository"
@@ -47,8 +47,8 @@ func (c *ContractorService) Create(ctx context.Context, contractor *db.Contracto
 	}
 	var userID string
 	// Extract user ID from response
-	if userResp.Uuid != "" {
-		userID = userResp.Uuid
+	if userResp.Uuid != uuid.Nil {
+		userID = userResp.Uuid.String()
 	} else {
 		return nil, fmt.Errorf("user created but has no valid UUID")
 	}
