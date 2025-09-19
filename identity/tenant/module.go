@@ -4,7 +4,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 
-	sqlcgen "p9e.in/ugcl/identity/tenant/db/generated"
+	db "p9e.in/ugcl/identity/tenant/db/generated"
 	"p9e.in/ugcl/identity/tenant/handler"
 	"p9e.in/ugcl/identity/tenant/mappers"
 	"p9e.in/ugcl/identity/tenant/repository"
@@ -17,14 +17,14 @@ import (
 var TenantModule = fx.Module("tenant",
 	fx.Provide(
 		// Mappers
-		mappers.NewTenantMapper,
-		mappers.NewProtobufMapper,
-
-		// Database queries
-		NewTenantQueries,
-
-		// Database pool
-		NewPgxPool,
+		fx.Annotate(
+			func(dbManager *sqlc.DatabaseManager) *db.Queries {
+				return dbManager.GetTenantQueries()
+			},
+			fx.ResultTags(`name:"Tenant Querires"`),
+		),
+		// // Database pool
+		// NewPgxPool,
 
 		// Repository container
 		repository.ProvideRepositoryContainer,
@@ -46,13 +46,8 @@ var TenantModule = fx.Module("tenant",
 	),
 )
 
-// NewPgxPool creates a new pgx pool from the database manager
-func NewPgxPool(dm *sqlc.DatabaseManager) *pgxpool.Pool {
-	return dm.Pool
-}
-
 // NewTenantQueries creates tenant queries using the database manager
-func NewTenantQueries(dbManager *sqlc.DatabaseManager) *sqlcgen.Queries {
+func NewTenantQueries(dbManager *sqlc.DatabaseManager) *db.Queries {
 	return dbManager.GetTenantQueries()
 }
 

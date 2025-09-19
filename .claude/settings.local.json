@@ -14,9 +14,15 @@
       "Bash(make sqlc-user:*)",
       "Bash(tree -d -L 2)",
       "Bash(grep:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(npm run build.types:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "d:\\maheshwari\\UGCL\\web\\ugcl\\"
+    ]
   }
 }
