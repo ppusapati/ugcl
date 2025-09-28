@@ -1,0 +1,451 @@
+syntax = "proto3";
+
+package searchservice.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "p9e.in/ugcl/searchservice/api/proto";
+
+// SearchService provides comprehensive search capabilities
+service SearchService {
+  // Query operations
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc MultiSearch(MultiSearchRequest) returns (MultiSearchResponse);
+  rpc ScrollSearch(ScrollSearchRequest) returns (SearchResponse);
+  rpc Count(CountRequest) returns (CountResponse);
+
+  // Suggestion operations
+  rpc GetSuggestions(SuggestionRequest) returns (SuggestionResponse);
+  rpc GetPopularQueries(PopularQueriesRequest) returns (PopularQueriesResponse);
+  rpc GetQueryHistory(QueryHistoryRequest) returns (QueryHistoryResponse);
+
+  // Indexing operations
+  rpc IndexDocument(IndexDocumentRequest) returns (IndexDocumentResponse);
+  rpc IndexDocuments(IndexDocumentsRequest) returns (IndexDocumentsResponse);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse);
+  rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse);
+  rpc BulkIndex(BulkIndexRequest) returns (BulkIndexResponse);
+  rpc RefreshIndex(RefreshIndexRequest) returns (RefreshIndexResponse);
+
+  // Admin operations
+  rpc CreateIndex(CreateIndexRequest) returns (CreateIndexResponse);
+  rpc DeleteIndex(DeleteIndexRequest) returns (DeleteIndexResponse);
+  rpc GetIndexStats(GetIndexStatsRequest) returns (GetIndexStatsResponse);
+  rpc GetAllIndices(GetAllIndicesRequest) returns (GetAllIndicesResponse);
+  rpc ReindexData(ReindexDataRequest) returns (ReindexDataResponse);
+  rpc GetIndexingJobs(GetIndexingJobsRequest) returns (GetIndexingJobsResponse);
+
+  // Analytics operations
+  rpc RecordSearch(RecordSearchRequest) returns (RecordSearchResponse);
+  rpc GetSearchAnalytics(GetSearchAnalyticsRequest) returns (GetSearchAnalyticsResponse);
+  rpc GetSearchTrends(GetSearchTrendsRequest) returns (GetSearchTrendsResponse);
+}
+
+// Search request message
+message SearchRequest {
+  string query = 1;
+  map<string, string> filters = 2;
+  repeated string facets = 3;
+  repeated SortField sort = 4;
+  int32 from = 5;
+  int32 size = 6;
+  bool highlight = 7;
+  bool suggest = 8;
+  repeated string indices = 9;
+  TimeRange time_range = 10;
+}
+
+// Sort field message
+message SortField {
+  string field = 1;
+  string order = 2; // "asc" or "desc"
+}
+
+// Time range message
+message TimeRange {
+  google.protobuf.Timestamp from = 1;
+  google.protobuf.Timestamp to = 2;
+}
+
+// Search response message
+message SearchResponse {
+  repeated SearchHit hits = 1;
+  int64 total = 2;
+  double max_score = 3;
+  int64 took = 4;
+  bool timed_out = 5;
+  map<string, Facet> facets = 6;
+  repeated Suggestion suggestions = 7;
+  string scroll_id = 8;
+}
+
+// Search hit message
+message SearchHit {
+  string id = 1;
+  string index = 2;
+  string type = 3;
+  double score = 4;
+  google.protobuf.Struct source = 5;
+  map<string, HighlightField> highlight = 6;
+  repeated google.protobuf.Value sort = 7;
+}
+
+// Highlight field message
+message HighlightField {
+  repeated string fragments = 1;
+}
+
+// Facet message
+message Facet {
+  string field = 1;
+  repeated FacetBucket buckets = 2;
+}
+
+// Facet bucket message
+message FacetBucket {
+  string key = 1;
+  int64 doc_count = 2;
+}
+
+// Suggestion message
+message Suggestion {
+  string text = 1;
+  repeated SuggestionOption options = 2;
+}
+
+// Suggestion option message
+message SuggestionOption {
+  string text = 1;
+  double score = 2;
+  google.protobuf.Struct source = 3;
+}
+
+// Multi-search request
+message MultiSearchRequest {
+  repeated SearchRequest requests = 1;
+}
+
+// Multi-search response
+message MultiSearchResponse {
+  repeated SearchResponse responses = 1;
+}
+
+// Scroll search request
+message ScrollSearchRequest {
+  SearchRequest request = 1;
+  string scroll_id = 2;
+  string scroll_timeout = 3;
+}
+
+// Count request
+message CountRequest {
+  string query = 1;
+  map<string, string> filters = 2;
+  repeated string indices = 3;
+  TimeRange time_range = 4;
+}
+
+// Count response
+message CountResponse {
+  int64 count = 1;
+}
+
+// Suggestion request
+message SuggestionRequest {
+  string query = 1;
+  repeated string indices = 2;
+  int32 size = 3;
+}
+
+// Suggestion response
+message SuggestionResponse {
+  repeated Suggestion suggestions = 1;
+}
+
+// Popular queries request
+message PopularQueriesRequest {
+  int32 limit = 1;
+  TimeRange time_range = 2;
+}
+
+// Popular queries response
+message PopularQueriesResponse {
+  repeated QueryFrequency queries = 1;
+}
+
+// Query frequency message
+message QueryFrequency {
+  string query = 1;
+  int64 frequency = 2;
+  string index = 3;
+}
+
+// Query history request
+message QueryHistoryRequest {
+  string user_id = 1;
+  int32 limit = 2;
+}
+
+// Query history response
+message QueryHistoryResponse {
+  repeated string queries = 1;
+}
+
+// Index document request
+message IndexDocumentRequest {
+  string index_name = 1;
+  string doc_id = 2;
+  google.protobuf.Struct document = 3;
+}
+
+// Index document response
+message IndexDocumentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Index documents request
+message IndexDocumentsRequest {
+  string index_name = 1;
+  repeated google.protobuf.Struct documents = 2;
+}
+
+// Index documents response
+message IndexDocumentsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 processed_count = 3;
+  int32 failed_count = 4;
+}
+
+// Update document request
+message UpdateDocumentRequest {
+  string index_name = 1;
+  string doc_id = 2;
+  google.protobuf.Struct updates = 3;
+}
+
+// Update document response
+message UpdateDocumentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Delete document request
+message DeleteDocumentRequest {
+  string index_name = 1;
+  string doc_id = 2;
+}
+
+// Delete document response
+message DeleteDocumentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Bulk operation message
+message BulkOperation {
+  string action = 1; // "index", "update", "delete"
+  string index = 2;
+  string id = 3;
+  google.protobuf.Struct document = 4;
+  google.protobuf.Struct updates = 5;
+}
+
+// Bulk index request
+message BulkIndexRequest {
+  repeated BulkOperation operations = 1;
+}
+
+// Bulk index response
+message BulkIndexResponse {
+  bool success = 1;
+  string message = 2;
+  int32 processed_count = 3;
+  int32 failed_count = 4;
+  repeated string errors = 5;
+}
+
+// Refresh index request
+message RefreshIndexRequest {
+  string index_name = 1;
+}
+
+// Refresh index response
+message RefreshIndexResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Create index request
+message CreateIndexRequest {
+  IndexConfig config = 1;
+}
+
+// Index config message
+message IndexConfig {
+  string name = 1;
+  IndexSettings settings = 2;
+  IndexMappings mappings = 3;
+  repeated string aliases = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int32 version = 7;
+  bool is_active = 8;
+}
+
+// Index settings message
+message IndexSettings {
+  int32 number_of_shards = 1;
+  int32 number_of_replicas = 2;
+  string refresh_interval = 3;
+  int32 max_result_window = 4;
+  google.protobuf.Struct analysis = 5;
+}
+
+// Index mappings message
+message IndexMappings {
+  map<string, FieldMapping> properties = 1;
+}
+
+// Field mapping message
+message FieldMapping {
+  string type = 1;
+  string analyzer = 2;
+  bool index = 3;
+  bool store = 4;
+  map<string, FieldMapping> fields = 5;
+  map<string, FieldMapping> properties = 6;
+}
+
+// Create index response
+message CreateIndexResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Delete index request
+message DeleteIndexRequest {
+  string index_name = 1;
+}
+
+// Delete index response
+message DeleteIndexResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Get index stats request
+message GetIndexStatsRequest {
+  string index_name = 1;
+}
+
+// Index stats message
+message IndexStats {
+  string index_name = 1;
+  int64 doc_count = 2;
+  string store_size = 3;
+  google.protobuf.Timestamp last_updated = 4;
+  string health = 5;
+}
+
+// Get index stats response
+message GetIndexStatsResponse {
+  IndexStats stats = 1;
+}
+
+// Get all indices request
+message GetAllIndicesRequest {}
+
+// Get all indices response
+message GetAllIndicesResponse {
+  repeated IndexStats indices = 1;
+}
+
+// Reindex data request
+message ReindexDataRequest {
+  string source_index = 1;
+  string target_index = 2;
+}
+
+// Indexing job message
+message IndexingJob {
+  string id = 1;
+  string type = 2; // "full", "incremental", "document"
+  string status = 3; // "pending", "running", "completed", "failed"
+  string index_name = 4;
+  IndexingProgress progress = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  string error = 8;
+  google.protobuf.Struct config = 9;
+}
+
+// Indexing progress message
+message IndexingProgress {
+  int64 total_records = 1;
+  int64 processed_records = 2;
+  int64 failed_records = 3;
+  double percentage = 4;
+}
+
+// Reindex data response
+message ReindexDataResponse {
+  IndexingJob job = 1;
+}
+
+// Get indexing jobs request
+message GetIndexingJobsRequest {
+  string status = 1;
+}
+
+// Get indexing jobs response
+message GetIndexingJobsResponse {
+  repeated IndexingJob jobs = 1;
+}
+
+// Record search request
+message RecordSearchRequest {
+  string query = 1;
+  string index_name = 2;
+  int64 result_count = 3;
+  int64 response_time = 4;
+  string user_id = 5;
+}
+
+// Record search response
+message RecordSearchResponse {
+  bool success = 1;
+}
+
+// Get search analytics request
+message GetSearchAnalyticsRequest {
+  TimeRange time_range = 1;
+}
+
+// Search analytics message
+message SearchAnalytics {
+  int64 total_searches = 1;
+  repeated QueryFrequency popular_queries = 2;
+  map<string, int64> searches_by_index = 3;
+  double average_response = 4;
+  repeated string no_result_queries = 5;
+  TimeRange time_range = 6;
+}
+
+// Get search analytics response
+message GetSearchAnalyticsResponse {
+  SearchAnalytics analytics = 1;
+}
+
+// Get search trends request
+message GetSearchTrendsRequest {
+  TimeRange time_range = 1;
+  string granularity = 2; // "hour", "day", "week", "month"
+}
+
+// Get search trends response
+message GetSearchTrendsResponse {
+  map<string, int64> trends = 1;
+}

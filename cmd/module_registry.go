@@ -31,6 +31,12 @@ import (
 	phandlers "p9e.in/ugcl/masters/pipeline/handlers"
 	"p9e.in/ugcl/vendors/api/v2/contractor/contractorconnect"
 	vhandlers "p9e.in/ugcl/vendors/handlers"
+
+	// Search and Document services
+	"p9e.in/ugcl/searchservice/api/proto/searchserviceconnect"
+	searchhandlers "p9e.in/ugcl/searchservice/handlers"
+	"p9e.in/ugcl/documentviewer/api/proto/documentviewerconnect"
+	dochandlers "p9e.in/ugcl/documentviewer/handlers"
 )
 
 // ServiceRegistry manages all service registrations with DI
@@ -55,6 +61,8 @@ type RegisterAllServicesParams struct {
 	FormInstanceHandler *fbhandlers.FormInstanceHandler `optional:"true"`
 	WorkflowHandler     *fbhandlers.WorkflowHandler     `optional:"true"`
 	NotificationHandler *nhandlers.NotificationHandler  `optional:"true"`
+	SearchHandler       *searchhandlers.SearchHandler   `optional:"true"`
+	DocumentHandler     *dochandlers.DocumentHandler    `optional:"true"`
 }
 
 // RegisterAllServices registers all services with the HTTP mux using Fx DI
@@ -102,6 +110,14 @@ func RegisterAllServices(params RegisterAllServicesParams) {
 
 	if params.NotificationHandler != nil {
 		registry.registerNotificationService(params.NotificationHandler)
+	}
+
+	if params.SearchHandler != nil {
+		registry.registerSearchService(params.SearchHandler)
+	}
+
+	if params.DocumentHandler != nil {
+		registry.registerDocumentService(params.DocumentHandler)
 	}
 
 	// Always register health checks and reflection (no auth required)
@@ -215,6 +231,40 @@ func (r *ServiceRegistry) registerNotificationService(notificationHandler *nhand
 	)
 	r.mux.Handle(notificationPath, notificationServiceHandler)
 	r.services = append(r.services, "Notification: "+notificationPath+" (Admin role OR InternalOps app)")
+}
+
+// Register search service
+func (r *ServiceRegistry) registerSearchService(searchHandler *searchhandlers.SearchHandler) {
+	// Search Service - accessible to all authenticated users
+	searchOptions := append(r.getCommonConnectOptions(),
+		connect.WithInterceptors(
+			// Allow any authenticated user to search
+			r.authService.RequireApp([]string{"WebApp", "MobileApp", "InternalOps"}),
+		),
+	)
+
+	searchPath, searchServiceHandler := searchserviceconnect.NewSearchServiceHandler(
+		searchHandler, searchOptions...,
+	)
+	r.mux.Handle(searchPath, searchServiceHandler)
+	r.services = append(r.services, "Search: "+searchPath+" (Any authenticated user)")
+}
+
+// Register document viewer service
+func (r *ServiceRegistry) registerDocumentService(documentHandler *dochandlers.DocumentHandler) {
+	// Document Service - accessible to all authenticated users with document permissions
+	documentOptions := append(r.getCommonConnectOptions(),
+		connect.WithInterceptors(
+			// Allow authenticated users to access documents based on permissions
+			r.authService.RequireApp([]string{"WebApp", "MobileApp", "InternalOps"}),
+		),
+	)
+
+	documentPath, documentServiceHandler := documentviewerconnect.NewDocumentViewerServiceHandler(
+		documentHandler, documentOptions...,
+	)
+	r.mux.Handle(documentPath, documentServiceHandler)
+	r.services = append(r.services, "Document: "+documentPath+" (Any authenticated user with document permissions)")
 }
 
 // Register vendor services

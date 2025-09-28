@@ -1,0 +1,478 @@
+syntax = "proto3";
+
+package insighthub.v1;
+
+option go_package = "p9e.in/ugcl/insighthub/api/proto;insighthubv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// =============================================================================
+// Report Management Service
+// =============================================================================
+service ReportService {
+  // Report CRUD operations
+  rpc CreateReport(CreateReportRequest) returns (CreateReportResponse);
+  rpc GetReport(GetReportRequest) returns (GetReportResponse);
+  rpc UpdateReport(UpdateReportRequest) returns (UpdateReportResponse);
+  rpc DeleteReport(DeleteReportRequest) returns (DeleteReportResponse);
+  rpc SearchReports(SearchReportsRequest) returns (SearchReportsResponse);
+  rpc CloneReport(CloneReportRequest) returns (CloneReportResponse);
+
+  // Report content management
+  rpc AddReportField(AddReportFieldRequest) returns (AddReportFieldResponse);
+  rpc UpdateReportField(UpdateReportFieldRequest) returns (UpdateReportFieldResponse);
+  rpc RemoveReportField(RemoveReportFieldRequest) returns (RemoveReportFieldResponse);
+  rpc ReorderReportFields(ReorderReportFieldsRequest) returns (ReorderReportFieldsResponse);
+
+  rpc AddReportFilter(AddReportFilterRequest) returns (AddReportFilterResponse);
+  rpc UpdateReportFilter(UpdateReportFilterRequest) returns (UpdateReportFilterResponse);
+  rpc RemoveReportFilter(RemoveReportFilterRequest) returns (RemoveReportFilterResponse);
+
+  rpc AddReportGroup(AddReportGroupRequest) returns (AddReportGroupResponse);
+  rpc UpdateReportGroup(UpdateReportGroupRequest) returns (UpdateReportGroupResponse);
+  rpc RemoveReportGroup(RemoveReportGroupRequest) returns (RemoveReportGroupResponse);
+
+  rpc AddReportSort(AddReportSortRequest) returns (AddReportSortResponse);
+  rpc UpdateReportSort(UpdateReportSortRequest) returns (UpdateReportSortResponse);
+  rpc RemoveReportSort(RemoveReportSortRequest) returns (RemoveReportSortResponse);
+
+  rpc SetReportChart(SetReportChartRequest) returns (SetReportChartResponse);
+  rpc RemoveReportChart(RemoveReportChartRequest) returns (RemoveReportChartResponse);
+
+  // Report validation and preview
+  rpc ValidateReport(ValidateReportRequest) returns (ValidateReportResponse);
+  rpc PreviewReportQuery(PreviewReportQueryRequest) returns (PreviewReportQueryResponse);
+
+  // Permission management
+  rpc GrantReportPermission(GrantReportPermissionRequest) returns (GrantReportPermissionResponse);
+  rpc RevokeReportPermission(RevokeReportPermissionRequest) returns (RevokeReportPermissionResponse);
+  rpc GetReportPermissions(GetReportPermissionsRequest) returns (GetReportPermissionsResponse);
+}
+
+// =============================================================================
+// Data Types
+// =============================================================================
+message Report {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category = 4;
+  repeated string tags = 5;
+  bool is_template = 6;
+  bool is_active = 7;
+  string created_by = 8;
+  google.protobuf.Timestamp created_at = 9;
+  string updated_by = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  int32 version = 12;
+  google.protobuf.Struct metadata = 13;
+
+  // Report content
+  repeated ReportField fields = 14;
+  repeated ReportFilter filters = 15;
+  repeated ReportGroup groups = 16;
+  repeated ReportSort sorts = 17;
+  repeated ReportJoin joins = 18;
+  ReportChart chart = 19;
+  repeated ReportParameter parameters = 20;
+}
+
+message ReportField {
+  string id = 1;
+  string report_id = 2;
+  string field_id = 3; // References masters.data_fields.id
+  string alias = 4;
+  string aggregate_function = 5; // SUM, COUNT, AVG, MAX, MIN, etc.
+  int32 order_index = 6;
+  bool is_visible = 7;
+  google.protobuf.Struct formatting_rules = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ReportFilter {
+  string id = 1;
+  string report_id = 2;
+  string field_id = 3; // References masters.data_fields.id
+  string operator = 4; // =, !=, >, <, >=, <=, IN, LIKE, BETWEEN
+  string value = 5;
+  string value_type = 6; // string, number, date, boolean
+  string logical_operator = 7; // AND, OR
+  int32 group_index = 8;
+  int32 order_index = 9;
+  bool is_active = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message ReportGroup {
+  string id = 1;
+  string report_id = 2;
+  string field_id = 3; // References masters.data_fields.id
+  int32 order_index = 4;
+  string date_granularity = 5; // year, month, day, hour for date fields
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ReportSort {
+  string id = 1;
+  string report_id = 2;
+  string field_id = 3; // References masters.data_fields.id
+  string direction = 4; // ASC, DESC
+  int32 order_index = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ReportJoin {
+  string id = 1;
+  string report_id = 2;
+  string left_table_id = 3; // References masters.data_tables.id
+  string right_table_id = 4; // References masters.data_tables.id
+  string join_type = 5; // INNER, LEFT, RIGHT, FULL
+  string left_field_id = 6; // References masters.data_fields.id
+  string right_field_id = 7; // References masters.data_fields.id
+  string alias = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ReportChart {
+  string id = 1;
+  string report_id = 2;
+  string chart_type = 3; // line, bar, pie, scatter, area, etc.
+  string x_axis_field_id = 4; // References masters.data_fields.id
+  string y_axis_field_id = 5; // References masters.data_fields.id
+  string series_field_id = 6; // References masters.data_fields.id (optional)
+  google.protobuf.Struct chart_options = 7; // ECharts configuration
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ReportParameter {
+  string id = 1;
+  string report_id = 2;
+  string name = 3;
+  string display_name = 4;
+  string parameter_type = 5; // string, number, date, boolean, select
+  string default_value = 6;
+  bool is_required = 7;
+  google.protobuf.Struct options = 8; // For select type parameters
+  int32 order_index = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message ReportPermission {
+  string id = 1;
+  string report_id = 2;
+  string principal_type = 3; // user, role
+  string principal_id = 4;
+  string permission_level = 5; // read, write, admin
+  bool is_active = 6;
+  string granted_by = 7;
+  google.protobuf.Timestamp granted_at = 8;
+}
+
+// =============================================================================
+// Request/Response Messages
+// =============================================================================
+
+// Report CRUD
+message CreateReportRequest {
+  string name = 1;
+  string description = 2;
+  string category = 3;
+  repeated string tags = 4;
+  bool is_template = 5;
+  string created_by = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message CreateReportResponse {
+  Report report = 1;
+}
+
+message GetReportRequest {
+  string id = 1;
+  string user_id = 2; // For permission checking
+  repeated string user_roles = 3; // For permission checking
+}
+
+message GetReportResponse {
+  Report report = 1;
+}
+
+message UpdateReportRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category = 4;
+  repeated string tags = 5;
+  google.protobuf.Struct metadata = 6;
+  string updated_by = 7;
+}
+
+message UpdateReportResponse {
+  Report report = 1;
+}
+
+message DeleteReportRequest {
+  string id = 1;
+  string deleted_by = 2;
+}
+
+message DeleteReportResponse {
+  bool success = 1;
+}
+
+message SearchReportsRequest {
+  string query = 1;
+  string user_id = 2; // For permission checking
+  repeated string user_roles = 3; // For permission checking
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message SearchReportsResponse {
+  repeated Report reports = 1;
+  int32 total_count = 2;
+}
+
+message CloneReportRequest {
+  string source_report_id = 1;
+  string new_name = 2;
+  string created_by = 3;
+}
+
+message CloneReportResponse {
+  Report report = 1;
+}
+
+// Field Management
+message AddReportFieldRequest {
+  string report_id = 1;
+  string field_id = 2;
+  string alias = 3;
+  string aggregate_function = 4;
+  bool is_visible = 5;
+  google.protobuf.Struct formatting_rules = 6;
+}
+
+message AddReportFieldResponse {
+  ReportField field = 1;
+}
+
+message UpdateReportFieldRequest {
+  string id = 1;
+  string alias = 2;
+  string aggregate_function = 3;
+  bool is_visible = 4;
+  google.protobuf.Struct formatting_rules = 5;
+}
+
+message UpdateReportFieldResponse {
+  ReportField field = 1;
+}
+
+message RemoveReportFieldRequest {
+  string id = 1;
+}
+
+message RemoveReportFieldResponse {
+  bool success = 1;
+}
+
+message ReorderReportFieldsRequest {
+  string report_id = 1;
+  repeated FieldOrder field_orders = 2;
+}
+
+message FieldOrder {
+  string field_id = 1;
+  int32 order_index = 2;
+}
+
+message ReorderReportFieldsResponse {
+  bool success = 1;
+}
+
+// Filter Management
+message AddReportFilterRequest {
+  string report_id = 1;
+  string field_id = 2;
+  string operator = 3;
+  string value = 4;
+  string value_type = 5;
+  string logical_operator = 6;
+  int32 group_index = 7;
+}
+
+message AddReportFilterResponse {
+  ReportFilter filter = 1;
+}
+
+message UpdateReportFilterRequest {
+  string id = 1;
+  string operator = 2;
+  string value = 3;
+  string value_type = 4;
+  string logical_operator = 5;
+  int32 group_index = 6;
+}
+
+message UpdateReportFilterResponse {
+  ReportFilter filter = 1;
+}
+
+message RemoveReportFilterRequest {
+  string id = 1;
+}
+
+message RemoveReportFilterResponse {
+  bool success = 1;
+}
+
+// Group Management
+message AddReportGroupRequest {
+  string report_id = 1;
+  string field_id = 2;
+  string date_granularity = 3;
+}
+
+message AddReportGroupResponse {
+  ReportGroup group = 1;
+}
+
+message UpdateReportGroupRequest {
+  string id = 1;
+  string date_granularity = 2;
+}
+
+message UpdateReportGroupResponse {
+  ReportGroup group = 1;
+}
+
+message RemoveReportGroupRequest {
+  string id = 1;
+}
+
+message RemoveReportGroupResponse {
+  bool success = 1;
+}
+
+// Sort Management
+message AddReportSortRequest {
+  string report_id = 1;
+  string field_id = 2;
+  string direction = 3;
+}
+
+message AddReportSortResponse {
+  ReportSort sort = 1;
+}
+
+message UpdateReportSortRequest {
+  string id = 1;
+  string direction = 2;
+}
+
+message UpdateReportSortResponse {
+  ReportSort sort = 1;
+}
+
+message RemoveReportSortRequest {
+  string id = 1;
+}
+
+message RemoveReportSortResponse {
+  bool success = 1;
+}
+
+// Chart Management
+message SetReportChartRequest {
+  string report_id = 1;
+  string chart_type = 2;
+  string x_axis_field_id = 3;
+  string y_axis_field_id = 4;
+  string series_field_id = 5;
+  google.protobuf.Struct chart_options = 6;
+}
+
+message SetReportChartResponse {
+  ReportChart chart = 1;
+}
+
+message RemoveReportChartRequest {
+  string report_id = 1;
+}
+
+message RemoveReportChartResponse {
+  bool success = 1;
+}
+
+// Validation and Preview
+message ValidateReportRequest {
+  string report_id = 1;
+}
+
+message ValidateReportResponse {
+  bool is_valid = 1;
+  repeated ValidationError errors = 2;
+  repeated ValidationWarning warnings = 3;
+}
+
+message ValidationError {
+  string field = 1;
+  string message = 2;
+  string code = 3;
+}
+
+message ValidationWarning {
+  string field = 1;
+  string message = 2;
+  string code = 3;
+}
+
+message PreviewReportQueryRequest {
+  string report_id = 1;
+  google.protobuf.Struct parameters = 2;
+  int32 limit = 3; // Preview row limit
+}
+
+message PreviewReportQueryResponse {
+  string generated_sql = 1;
+  repeated ColumnInfo columns = 2;
+  repeated google.protobuf.Struct sample_rows = 3;
+  int32 estimated_row_count = 4;
+}
+
+message ColumnInfo {
+  string name = 1;
+  string data_type = 2;
+  string display_name = 3;
+}
+
+// Permission Management
+message GrantReportPermissionRequest {
+  string report_id = 1;
+  string principal_type = 2; // user, role
+  string principal_id = 3;
+  string permission_level = 4; // read, write, admin
+  string granted_by = 5;
+}
+
+message GrantReportPermissionResponse {
+  ReportPermission permission = 1;
+}
+
+message RevokeReportPermissionRequest {
+  string permission_id = 1;
+}
+
+message RevokeReportPermissionResponse {
+  bool success = 1;
+}
+
+message GetReportPermissionsRequest {
+  string report_id = 1;
+}
+
+message GetReportPermissionsResponse {
+  repeated ReportPermission permissions = 1;
+}

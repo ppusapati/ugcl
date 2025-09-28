@@ -1,0 +1,668 @@
+syntax = "proto3";
+
+package dataarchive.api.v1;
+option go_package = "p9e.in/ugcl/dataarchive/api/proto;dataarchivepb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/duration.proto";
+
+// =============================================================================
+// DATA ARCHIVE SERVICE
+// =============================================================================
+
+service DataArchiveService {
+  // Retention Policy Management
+  rpc CreateRetentionPolicy(CreateRetentionPolicyRequest) returns (CreateRetentionPolicyResponse);
+  rpc GetRetentionPolicy(GetRetentionPolicyRequest) returns (GetRetentionPolicyResponse);
+  rpc UpdateRetentionPolicy(UpdateRetentionPolicyRequest) returns (UpdateRetentionPolicyResponse);
+  rpc DeleteRetentionPolicy(DeleteRetentionPolicyRequest) returns (google.protobuf.Empty);
+  rpc ListRetentionPolicies(ListRetentionPoliciesRequest) returns (ListRetentionPoliciesResponse);
+  rpc ExecuteRetentionPolicy(ExecuteRetentionPolicyRequest) returns (ExecuteRetentionPolicyResponse);
+
+  // Archival Job Management
+  rpc GetArchivalJob(GetArchivalJobRequest) returns (GetArchivalJobResponse);
+  rpc ListArchivalJobs(ListArchivalJobsRequest) returns (ListArchivalJobsResponse);
+  rpc CancelArchivalJob(CancelArchivalJobRequest) returns (google.protobuf.Empty);
+  rpc RetryArchivalJob(RetryArchivalJobRequest) returns (RetryArchivalJobResponse);
+
+  // Legal Hold Management
+  rpc CreateLegalHold(CreateLegalHoldRequest) returns (CreateLegalHoldResponse);
+  rpc GetLegalHold(GetLegalHoldRequest) returns (GetLegalHoldResponse);
+  rpc UpdateLegalHold(UpdateLegalHoldRequest) returns (UpdateLegalHoldResponse);
+  rpc DeleteLegalHold(DeleteLegalHoldRequest) returns (google.protobuf.Empty);
+  rpc ListLegalHolds(ListLegalHoldsRequest) returns (ListLegalHoldsResponse);
+
+  // Data Inventory Management
+  rpc CreateDataInventory(CreateDataInventoryRequest) returns (CreateDataInventoryResponse);
+  rpc GetDataInventory(GetDataInventoryRequest) returns (GetDataInventoryResponse);
+  rpc UpdateDataInventory(UpdateDataInventoryRequest) returns (UpdateDataInventoryResponse);
+  rpc ListDataInventories(ListDataInventoriesRequest) returns (ListDataInventoriesResponse);
+  rpc ScanDataSources(ScanDataSourcesRequest) returns (ScanDataSourcesResponse);
+
+  // Archived Data Management
+  rpc SearchArchivedData(SearchArchivedDataRequest) returns (SearchArchivedDataResponse);
+  rpc RestoreArchivedData(RestoreArchivedDataRequest) returns (RestoreArchivedDataResponse);
+  rpc GetArchivedDataInfo(GetArchivedDataInfoRequest) returns (GetArchivedDataInfoResponse);
+  rpc DeleteArchivedData(DeleteArchivedDataRequest) returns (google.protobuf.Empty);
+
+  // Compliance and Auditing
+  rpc CreateComplianceAudit(CreateComplianceAuditRequest) returns (CreateComplianceAuditResponse);
+  rpc GetComplianceAudit(GetComplianceAuditRequest) returns (GetComplianceAuditResponse);
+  rpc ListComplianceAudits(ListComplianceAuditsRequest) returns (ListComplianceAuditsResponse);
+  rpc GenerateComplianceReport(GenerateComplianceReportRequest) returns (GenerateComplianceReportResponse);
+
+  // Analytics and Reporting
+  rpc GetArchiveMetrics(GetArchiveMetricsRequest) returns (GetArchiveMetricsResponse);
+  rpc GetStorageSavings(GetStorageSavingsRequest) returns (GetStorageSavingsResponse);
+  rpc GetRetentionDashboard(GetRetentionDashboardRequest) returns (GetRetentionDashboardResponse);
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum PolicyType {
+  POLICY_TYPE_UNSPECIFIED = 0;
+  POLICY_TYPE_TIME_BASED_RETENTION = 1;
+  POLICY_TYPE_SIZE_BASED_RETENTION = 2;
+  POLICY_TYPE_EVENT_BASED_RETENTION = 3;
+  POLICY_TYPE_COMPLIANCE_RETENTION = 4;
+  POLICY_TYPE_CUSTOM_RETENTION = 5;
+}
+
+enum ArchivalMethod {
+  ARCHIVAL_METHOD_UNSPECIFIED = 0;
+  ARCHIVAL_METHOD_COLD_STORAGE = 1;
+  ARCHIVAL_METHOD_COMPRESSION = 2;
+  ARCHIVAL_METHOD_PARTITION = 3;
+  ARCHIVAL_METHOD_EXPORT = 4;
+  ARCHIVAL_METHOD_DELETE = 5;
+}
+
+enum CompressionType {
+  COMPRESSION_TYPE_UNSPECIFIED = 0;
+  COMPRESSION_TYPE_NONE = 1;
+  COMPRESSION_TYPE_GZIP = 2;
+  COMPRESSION_TYPE_ZSTD = 3;
+  COMPRESSION_TYPE_LZ4 = 4;
+  COMPRESSION_TYPE_BROTLI = 5;
+}
+
+enum ComplianceLevel {
+  COMPLIANCE_LEVEL_UNSPECIFIED = 0;
+  COMPLIANCE_LEVEL_NONE = 1;
+  COMPLIANCE_LEVEL_STANDARD = 2;
+  COMPLIANCE_LEVEL_HIGH = 3;
+  COMPLIANCE_LEVEL_CRITICAL = 4;
+}
+
+enum JobType {
+  JOB_TYPE_UNSPECIFIED = 0;
+  JOB_TYPE_ARCHIVE = 1;
+  JOB_TYPE_RESTORE = 2;
+  JOB_TYPE_DELETE = 3;
+  JOB_TYPE_AUDIT = 4;
+  JOB_TYPE_PURGE = 5;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_PENDING = 1;
+  JOB_STATUS_RUNNING = 2;
+  JOB_STATUS_COMPLETED = 3;
+  JOB_STATUS_FAILED = 4;
+  JOB_STATUS_CANCELLED = 5;
+  JOB_STATUS_PARTIAL = 6;
+}
+
+enum StorageTier {
+  STORAGE_TIER_UNSPECIFIED = 0;
+  STORAGE_TIER_HOT = 1;
+  STORAGE_TIER_WARM = 2;
+  STORAGE_TIER_COLD = 3;
+  STORAGE_TIER_FROZEN = 4;
+}
+
+enum DataClassification {
+  DATA_CLASSIFICATION_UNSPECIFIED = 0;
+  DATA_CLASSIFICATION_PUBLIC = 1;
+  DATA_CLASSIFICATION_INTERNAL = 2;
+  DATA_CLASSIFICATION_CONFIDENTIAL = 3;
+  DATA_CLASSIFICATION_RESTRICTED = 4;
+}
+
+enum AuditType {
+  AUDIT_TYPE_UNSPECIFIED = 0;
+  AUDIT_TYPE_COMPLIANCE = 1;
+  AUDIT_TYPE_INTEGRITY = 2;
+  AUDIT_TYPE_ACCESS = 3;
+  AUDIT_TYPE_RETENTION = 4;
+}
+
+enum AuditStatus {
+  AUDIT_STATUS_UNSPECIFIED = 0;
+  AUDIT_STATUS_SCHEDULED = 1;
+  AUDIT_STATUS_RUNNING = 2;
+  AUDIT_STATUS_COMPLETED = 3;
+  AUDIT_STATUS_FAILED = 4;
+}
+
+// =============================================================================
+// MESSAGES
+// =============================================================================
+
+message RetentionPolicy {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string entity_type = 4;
+  string schema_name = 5;
+  string database_name = 6;
+  google.protobuf.Duration retention_period = 7;
+  google.protobuf.Duration archival_period = 8;
+  google.protobuf.Duration grace_period = 9;
+  PolicyType policy_type = 10;
+  ArchivalMethod archival_method = 11;
+  CompressionType compression_type = 12;
+  bool encrypt_archive = 13;
+  google.protobuf.Struct selection_criteria = 14;
+  google.protobuf.Struct exclusion_rules = 15;
+  bool legal_hold_enabled = 16;
+  ComplianceLevel compliance_level = 17;
+  repeated string regulatory_basis = 18;
+  bool schedule_enabled = 19;
+  string schedule_cron = 20;
+  int32 batch_size = 21;
+  int32 parallel_jobs = 22;
+  bool notify_on_start = 23;
+  bool notify_on_complete = 24;
+  bool notify_on_error = 25;
+  repeated string notification_channels = 26;
+  bool is_active = 27;
+  google.protobuf.Timestamp last_executed = 28;
+  google.protobuf.Timestamp next_execution = 29;
+  string created_by = 30;
+  string updated_by = 31;
+  google.protobuf.Timestamp created_at = 32;
+  google.protobuf.Timestamp updated_at = 33;
+  google.protobuf.Struct metadata = 34;
+}
+
+message ArchivalJob {
+  string id = 1;
+  string policy_id = 2;
+  JobType job_type = 3;
+  JobStatus status = 4;
+  string target_table = 5;
+  DateRange date_range = 6;
+  int32 batch_size = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp completed_at = 9;
+  google.protobuf.Timestamp estimated_end = 10;
+  int64 total_records = 11;
+  int64 processed_records = 12;
+  int64 archived_records = 13;
+  int64 deleted_records = 14;
+  int64 error_count = 15;
+  int64 original_size = 16;
+  int64 compressed_size = 17;
+  double compression_ratio = 18;
+  string archive_location = 19;
+  string archive_format = 20;
+  string encryption_key = 21;
+  string error_message = 22;
+  int32 retry_count = 23;
+  int32 max_retries = 24;
+  string executed_by = 25;
+  google.protobuf.Struct job_metadata = 26;
+}
+
+message DateRange {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+}
+
+message LegalHold {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string entity_types = 4;
+  repeated string entity_ids = 5;
+  DateRange date_range = 6;
+  string case_number = 7;
+  string legal_basis = 8;
+  string issuing_authority = 9;
+  string contact_info = 10;
+  bool is_active = 11;
+  google.protobuf.Timestamp start_date = 12;
+  google.protobuf.Timestamp end_date = 13;
+  repeated string affected_policies = 14;
+  string created_by = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  google.protobuf.Struct metadata = 18;
+}
+
+message DataInventory {
+  string id = 1;
+  string database_name = 2;
+  string schema_name = 3;
+  string table_name = 4;
+  int64 record_count = 5;
+  int64 data_size = 6;
+  google.protobuf.Timestamp oldest_record = 7;
+  google.protobuf.Timestamp newest_record = 8;
+  DataClassification data_classification = 9;
+  bool contains_pii = 10;
+  bool contains_phi = 11;
+  bool contains_pci = 12;
+  google.protobuf.Duration min_retention_period = 13;
+  google.protobuf.Duration max_retention_period = 14;
+  repeated string regulatory_requirements = 15;
+  google.protobuf.Timestamp last_scanned = 16;
+  string scan_method = 17;
+  double confidence = 18;
+  google.protobuf.Struct metadata = 19;
+}
+
+message ArchivedData {
+  string id = 1;
+  string policy_id = 2;
+  string job_id = 3;
+  string source_table = 4;
+  string source_schema = 5;
+  string source_database = 6;
+  string original_id = 7;
+  string archive_format = 8;
+  string storage_location = 9;
+  StorageTier storage_tier = 10;
+  int64 data_size = 11;
+  int64 compressed_size = 12;
+  bool is_encrypted = 13;
+  string encryption_algo = 14;
+  string original_checksum = 15;
+  string archive_checksum = 16;
+  google.protobuf.Timestamp original_date = 17;
+  google.protobuf.Timestamp archived_at = 18;
+  google.protobuf.Timestamp expires_at = 19;
+  repeated string legal_hold_ids = 20;
+  bool is_on_legal_hold = 21;
+  google.protobuf.Timestamp last_accessed_at = 22;
+  int32 access_count = 23;
+  google.protobuf.Struct metadata = 24;
+}
+
+message ComplianceAudit {
+  string id = 1;
+  AuditType audit_type = 2;
+  repeated string policy_ids = 3;
+  repeated string entity_types = 4;
+  DateRange date_range = 5;
+  AuditStatus status = 6;
+  double compliance_score = 7;
+  google.protobuf.Struct violations = 8;
+  google.protobuf.Struct recommendations = 9;
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp completed_at = 11;
+  string executed_by = 12;
+  string report_location = 13;
+  string report_format = 14;
+  google.protobuf.Struct metadata = 15;
+}
+
+// =============================================================================
+// REQUEST/RESPONSE MESSAGES
+// =============================================================================
+
+// Retention Policy Management
+message CreateRetentionPolicyRequest {
+  RetentionPolicy policy = 1;
+}
+
+message CreateRetentionPolicyResponse {
+  RetentionPolicy policy = 1;
+}
+
+message GetRetentionPolicyRequest {
+  string id = 1;
+}
+
+message GetRetentionPolicyResponse {
+  RetentionPolicy policy = 1;
+}
+
+message UpdateRetentionPolicyRequest {
+  RetentionPolicy policy = 1;
+}
+
+message UpdateRetentionPolicyResponse {
+  RetentionPolicy policy = 1;
+}
+
+message DeleteRetentionPolicyRequest {
+  string id = 1;
+}
+
+message ListRetentionPoliciesRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string entity_type = 3;
+  bool active_only = 4;
+}
+
+message ListRetentionPoliciesResponse {
+  repeated RetentionPolicy policies = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message ExecuteRetentionPolicyRequest {
+  string policy_id = 1;
+  bool dry_run = 2;
+  DateRange date_range = 3;
+}
+
+message ExecuteRetentionPolicyResponse {
+  ArchivalJob job = 1;
+}
+
+// Archival Job Management
+message GetArchivalJobRequest {
+  string id = 1;
+}
+
+message GetArchivalJobResponse {
+  ArchivalJob job = 1;
+}
+
+message ListArchivalJobsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string policy_id = 3;
+  repeated JobStatus status_filter = 4;
+  google.protobuf.Timestamp created_after = 5;
+  google.protobuf.Timestamp created_before = 6;
+}
+
+message ListArchivalJobsResponse {
+  repeated ArchivalJob jobs = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message CancelArchivalJobRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message RetryArchivalJobRequest {
+  string id = 1;
+}
+
+message RetryArchivalJobResponse {
+  ArchivalJob job = 1;
+}
+
+// Legal Hold Management
+message CreateLegalHoldRequest {
+  LegalHold legal_hold = 1;
+}
+
+message CreateLegalHoldResponse {
+  LegalHold legal_hold = 1;
+}
+
+message GetLegalHoldRequest {
+  string id = 1;
+}
+
+message GetLegalHoldResponse {
+  LegalHold legal_hold = 1;
+}
+
+message UpdateLegalHoldRequest {
+  LegalHold legal_hold = 1;
+}
+
+message UpdateLegalHoldResponse {
+  LegalHold legal_hold = 1;
+}
+
+message DeleteLegalHoldRequest {
+  string id = 1;
+}
+
+message ListLegalHoldsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  bool active_only = 3;
+  string case_number = 4;
+}
+
+message ListLegalHoldsResponse {
+  repeated LegalHold legal_holds = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+// Data Inventory Management
+message CreateDataInventoryRequest {
+  DataInventory inventory = 1;
+}
+
+message CreateDataInventoryResponse {
+  DataInventory inventory = 1;
+}
+
+message GetDataInventoryRequest {
+  string id = 1;
+}
+
+message GetDataInventoryResponse {
+  DataInventory inventory = 1;
+}
+
+message UpdateDataInventoryRequest {
+  DataInventory inventory = 1;
+}
+
+message UpdateDataInventoryResponse {
+  DataInventory inventory = 1;
+}
+
+message ListDataInventoriesRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string database_name = 3;
+  string schema_name = 4;
+  DataClassification classification_filter = 5;
+  bool contains_pii = 6;
+}
+
+message ListDataInventoriesResponse {
+  repeated DataInventory inventories = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message ScanDataSourcesRequest {
+  repeated string database_names = 1;
+  repeated string schema_names = 2;
+  bool deep_scan = 3;
+}
+
+message ScanDataSourcesResponse {
+  int32 discovered_tables = 1;
+  repeated DataInventory inventories = 2;
+  repeated string errors = 3;
+}
+
+// Archived Data Management
+message SearchArchivedDataRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string source_table = 3;
+  string source_schema = 4;
+  DateRange archived_date_range = 5;
+  StorageTier storage_tier = 6;
+  bool on_legal_hold_only = 7;
+}
+
+message SearchArchivedDataResponse {
+  repeated ArchivedData archived_data = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message RestoreArchivedDataRequest {
+  string archived_data_id = 1;
+  string target_location = 2;
+  string requested_by = 3;
+  string justification = 4;
+}
+
+message RestoreArchivedDataResponse {
+  string restore_job_id = 1;
+  string estimated_completion = 2;
+}
+
+message GetArchivedDataInfoRequest {
+  string id = 1;
+}
+
+message GetArchivedDataInfoResponse {
+  ArchivedData archived_data = 1;
+  repeated AccessLog access_logs = 2;
+}
+
+message AccessLog {
+  string id = 1;
+  string user_id = 2;
+  string access_type = 3;
+  google.protobuf.Timestamp accessed_at = 4;
+  string purpose = 5;
+  string ip_address = 6;
+}
+
+message DeleteArchivedDataRequest {
+  string id = 1;
+  string reason = 2;
+  string deleted_by = 3;
+}
+
+// Compliance and Auditing
+message CreateComplianceAuditRequest {
+  ComplianceAudit audit = 1;
+}
+
+message CreateComplianceAuditResponse {
+  ComplianceAudit audit = 1;
+}
+
+message GetComplianceAuditRequest {
+  string id = 1;
+}
+
+message GetComplianceAuditResponse {
+  ComplianceAudit audit = 1;
+}
+
+message ListComplianceAuditsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  AuditType audit_type = 3;
+  AuditStatus status = 4;
+  google.protobuf.Timestamp created_after = 5;
+}
+
+message ListComplianceAuditsResponse {
+  repeated ComplianceAudit audits = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GenerateComplianceReportRequest {
+  repeated string policy_ids = 1;
+  DateRange date_range = 2;
+  string report_format = 3;
+  repeated string regulations = 4;
+}
+
+message GenerateComplianceReportResponse {
+  string report_id = 1;
+  string download_url = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// Analytics and Reporting
+message GetArchiveMetricsRequest {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  string entity_type = 3;
+}
+
+message GetArchiveMetricsResponse {
+  int64 total_archived_records = 1;
+  int64 total_archived_size = 2;
+  int64 total_compressed_size = 3;
+  double avg_compression_ratio = 4;
+  int64 total_policies = 5;
+  int64 active_policies = 6;
+  int64 successful_jobs = 7;
+  int64 failed_jobs = 8;
+  repeated DailyMetric daily_metrics = 9;
+}
+
+message DailyMetric {
+  google.protobuf.Timestamp date = 1;
+  int64 archived_records = 2;
+  int64 archived_size = 3;
+  int32 jobs_completed = 4;
+}
+
+message GetStorageSavingsRequest {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+}
+
+message GetStorageSavingsResponse {
+  int64 total_original_size = 1;
+  int64 total_compressed_size = 2;
+  int64 total_savings = 3;
+  double savings_percentage = 4;
+  double cost_savings_estimate = 5;
+}
+
+message GetRetentionDashboardRequest {
+  string entity_type = 1;
+}
+
+message GetRetentionDashboardResponse {
+  repeated PolicySummary policy_summaries = 1;
+  int32 overdue_policies = 2;
+  int32 active_legal_holds = 3;
+  int64 data_at_risk = 4;
+  repeated ComplianceStatus compliance_status = 5;
+}
+
+message PolicySummary {
+  string id = 1;
+  string name = 2;
+  string entity_type = 3;
+  bool is_active = 4;
+  google.protobuf.Timestamp last_executed = 5;
+  google.protobuf.Timestamp next_execution = 6;
+  bool is_overdue = 7;
+  int32 total_jobs = 8;
+  int32 successful_jobs = 9;
+  int32 failed_jobs = 10;
+}
+
+message ComplianceStatus {
+  string regulation = 1;
+  double compliance_score = 2;
+  int32 violations = 3;
+  string status = 4;
+}

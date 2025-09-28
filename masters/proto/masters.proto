@@ -1,0 +1,403 @@
+syntax = "proto3";
+package masters;
+
+option go_package = "p9e.in/ugcl/masters/api/proto;mastersv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Data types supported by the system
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_TEXT = 1;
+  DATA_TYPE_VARCHAR = 2;
+  DATA_TYPE_INTEGER = 3;
+  DATA_TYPE_DECIMAL = 4;
+  DATA_TYPE_BOOLEAN = 5;
+  DATA_TYPE_DATE = 6;
+  DATA_TYPE_TIMESTAMP = 7;
+  DATA_TYPE_UUID = 8;
+  DATA_TYPE_JSON = 9;
+}
+
+// Schema metadata
+message Schema {
+  string id = 1;
+  string schema_name = 2;
+  string display_name = 3;
+  string description = 4;
+  bool is_active = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string created_by = 8;
+  string updated_by = 9;
+}
+
+// Table metadata
+message Table {
+  string id = 1;
+  string schema_id = 2;
+  string table_name = 3;
+  string display_name = 4;
+  string description = 5;
+  bool is_active = 6;
+  bool supports_import = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  string created_by = 10;
+  string updated_by = 11;
+  string schema_name = 12;
+  string schema_display_name = 13;
+}
+
+// Column metadata
+message Column {
+  string id = 1;
+  string table_id = 2;
+  string column_name = 3;
+  string display_name = 4;
+  string description = 5;
+  DataType data_type = 6;
+  int32 max_length = 7;
+  bool is_required = 8;
+  bool is_primary_key = 9;
+  bool is_unique = 10;
+  string default_value = 11;
+  string validation_rules = 12;
+  repeated string example_values = 13;
+  bool is_active = 14;
+  bool supports_import = 15;
+  int32 column_order = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+  string created_by = 19;
+  string updated_by = 20;
+}
+
+// Table relationship types
+enum RelationshipType {
+  RELATIONSHIP_TYPE_UNSPECIFIED = 0;
+  RELATIONSHIP_TYPE_ONE_TO_ONE = 1;
+  RELATIONSHIP_TYPE_ONE_TO_MANY = 2;
+  RELATIONSHIP_TYPE_MANY_TO_ONE = 3;
+  RELATIONSHIP_TYPE_MANY_TO_MANY = 4;
+}
+
+// Table relationship metadata
+message TableRelationship {
+  string id = 1;
+  string name = 2;
+  string source_table_id = 3;
+  string source_column_id = 4;
+  string target_table_id = 5;
+  string target_column_id = 6;
+  RelationshipType relationship_type = 7;
+  bool is_active = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  string created_by = 11;
+  string updated_by = 12;
+  // Extended fields for display
+  string source_table_name = 13;
+  string source_table_display_name = 14;
+  string source_column_name = 15;
+  string source_column_display_name = 16;
+  string target_table_name = 17;
+  string target_table_display_name = 18;
+  string target_column_name = 19;
+  string target_column_display_name = 20;
+}
+
+// Business term for data glossary
+message BusinessTerm {
+  string id = 1;
+  string term = 2;
+  string definition = 3;
+  string business_context = 4;
+  string domain = 5;
+  string owner_user_id = 6;
+  bool is_active = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  string created_by = 10;
+  string updated_by = 11;
+}
+
+// Link between column and business term
+message ColumnBusinessTerm {
+  string id = 1;
+  string column_id = 2;
+  string business_term_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+  string created_by = 5;
+}
+
+// Request/Response messages
+message GetSchemasRequest {}
+
+message GetSchemasResponse {
+  repeated Schema schemas = 1;
+}
+
+message GetSchemaByIDRequest {
+  string schema_id = 1;
+}
+
+message CreateSchemaRequest {
+  string schema_name = 1;
+  string display_name = 2;
+  string description = 3;
+  string created_by = 4;
+}
+
+message UpdateSchemaRequest {
+  string id = 1;
+  string display_name = 2;
+  string description = 3;
+  string updated_by = 4;
+}
+
+message DeleteSchemaRequest {
+  string schema_id = 1;
+  string user_id = 2;
+}
+
+message GetTablesRequest {
+  string schema_id = 1;
+  bool importable_only = 2;
+}
+
+message GetTablesResponse {
+  repeated Table tables = 1;
+}
+
+message GetTableByIDRequest {
+  string table_id = 1;
+}
+
+message CreateTableRequest {
+  string schema_id = 1;
+  string table_name = 2;
+  string display_name = 3;
+  string description = 4;
+  bool supports_import = 5;
+  string created_by = 6;
+}
+
+message UpdateTableRequest {
+  string id = 1;
+  string display_name = 2;
+  string description = 3;
+  bool supports_import = 4;
+  string updated_by = 5;
+}
+
+message DeleteTableRequest {
+  string table_id = 1;
+  string user_id = 2;
+}
+
+message GetColumnsRequest {
+  string table_id = 1;
+  bool importable_only = 2;
+}
+
+message GetColumnsResponse {
+  repeated Column columns = 1;
+}
+
+message GetColumnByIDRequest {
+  string column_id = 1;
+}
+
+message CreateColumnRequest {
+  string table_id = 1;
+  string column_name = 2;
+  string display_name = 3;
+  string description = 4;
+  DataType data_type = 5;
+  int32 max_length = 6;
+  bool is_required = 7;
+  bool is_primary_key = 8;
+  bool is_unique = 9;
+  string default_value = 10;
+  string validation_rules = 11;
+  repeated string example_values = 12;
+  bool supports_import = 13;
+  int32 column_order = 14;
+  string created_by = 15;
+}
+
+message UpdateColumnRequest {
+  string id = 1;
+  string display_name = 2;
+  string description = 3;
+  DataType data_type = 4;
+  int32 max_length = 5;
+  bool is_required = 6;
+  bool is_unique = 7;
+  string default_value = 8;
+  string validation_rules = 9;
+  repeated string example_values = 10;
+  bool supports_import = 11;
+  int32 column_order = 12;
+  string updated_by = 13;
+}
+
+message DeleteColumnRequest {
+  string column_id = 1;
+  string user_id = 2;
+}
+
+// Relationship request/response messages
+message CreateRelationshipRequest {
+  string name = 1;
+  string source_table_id = 2;
+  string source_column_id = 3;
+  string target_table_id = 4;
+  string target_column_id = 5;
+  RelationshipType relationship_type = 6;
+  string created_by = 7;
+}
+
+message UpdateRelationshipRequest {
+  string id = 1;
+  string name = 2;
+  RelationshipType relationship_type = 3;
+  string updated_by = 4;
+}
+
+message DeleteRelationshipRequest {
+  string relationship_id = 1;
+  string user_id = 2;
+}
+
+message GetRelationshipsByTableRequest {
+  string table_id = 1;
+}
+
+message GetRelationshipsByTableResponse {
+  repeated TableRelationship relationships = 1;
+}
+
+message GetAllRelationshipsRequest {}
+
+message GetAllRelationshipsResponse {
+  repeated TableRelationship relationships = 1;
+}
+
+// Business term request/response messages
+message CreateBusinessTermRequest {
+  string term = 1;
+  string definition = 2;
+  string business_context = 3;
+  string domain = 4;
+  string owner_user_id = 5;
+  string created_by = 6;
+}
+
+message UpdateBusinessTermRequest {
+  string id = 1;
+  string definition = 2;
+  string business_context = 3;
+  string domain = 4;
+  string owner_user_id = 5;
+  string updated_by = 6;
+}
+
+message DeleteBusinessTermRequest {
+  string business_term_id = 1;
+  string user_id = 2;
+}
+
+message GetBusinessTermsRequest {}
+
+message GetBusinessTermsResponse {
+  repeated BusinessTerm business_terms = 1;
+}
+
+message GetBusinessTermsByDomainRequest {
+  string domain = 1;
+}
+
+message GetBusinessTermsByDomainResponse {
+  repeated BusinessTerm business_terms = 1;
+}
+
+message SearchBusinessTermsRequest {
+  string query = 1;
+}
+
+message SearchBusinessTermsResponse {
+  repeated BusinessTerm business_terms = 1;
+}
+
+message LinkColumnToBusinessTermRequest {
+  string column_id = 1;
+  string business_term_id = 2;
+  string created_by = 3;
+}
+
+message UnlinkColumnFromBusinessTermRequest {
+  string column_id = 1;
+  string business_term_id = 2;
+}
+
+message GetBusinessTermsForColumnRequest {
+  string column_id = 1;
+}
+
+message GetBusinessTermsForColumnResponse {
+  repeated BusinessTerm business_terms = 1;
+}
+
+message GetColumnsForBusinessTermRequest {
+  string business_term_id = 1;
+}
+
+message GetColumnsForBusinessTermResponse {
+  repeated Column columns = 1;
+}
+
+// Masters service definition
+service MastersService {
+  // Schema operations
+  rpc GetSchemas(GetSchemasRequest) returns (GetSchemasResponse);
+  rpc GetSchemaByID(GetSchemaByIDRequest) returns (Schema);
+  rpc CreateSchema(CreateSchemaRequest) returns (Schema);
+  rpc UpdateSchema(UpdateSchemaRequest) returns (Schema);
+  rpc DeleteSchema(DeleteSchemaRequest) returns (google.protobuf.Empty);
+
+  // Table operations
+  rpc GetTables(GetTablesRequest) returns (GetTablesResponse);
+  rpc GetTableByID(GetTableByIDRequest) returns (Table);
+  rpc CreateTable(CreateTableRequest) returns (Table);
+  rpc UpdateTable(UpdateTableRequest) returns (Table);
+  rpc DeleteTable(DeleteTableRequest) returns (google.protobuf.Empty);
+
+  // Column operations
+  rpc GetColumns(GetColumnsRequest) returns (GetColumnsResponse);
+  rpc GetColumnByID(GetColumnByIDRequest) returns (Column);
+  rpc CreateColumn(CreateColumnRequest) returns (Column);
+  rpc UpdateColumn(UpdateColumnRequest) returns (Column);
+  rpc DeleteColumn(DeleteColumnRequest) returns (google.protobuf.Empty);
+
+  // Relationship operations
+  rpc CreateRelationship(CreateRelationshipRequest) returns (TableRelationship);
+  rpc UpdateRelationship(UpdateRelationshipRequest) returns (TableRelationship);
+  rpc DeleteRelationship(DeleteRelationshipRequest) returns (google.protobuf.Empty);
+  rpc GetRelationshipsByTable(GetRelationshipsByTableRequest) returns (GetRelationshipsByTableResponse);
+  rpc GetAllRelationships(GetAllRelationshipsRequest) returns (GetAllRelationshipsResponse);
+
+  // Business term operations
+  rpc CreateBusinessTerm(CreateBusinessTermRequest) returns (BusinessTerm);
+  rpc UpdateBusinessTerm(UpdateBusinessTermRequest) returns (BusinessTerm);
+  rpc DeleteBusinessTerm(DeleteBusinessTermRequest) returns (google.protobuf.Empty);
+  rpc GetBusinessTerms(GetBusinessTermsRequest) returns (GetBusinessTermsResponse);
+  rpc GetBusinessTermsByDomain(GetBusinessTermsByDomainRequest) returns (GetBusinessTermsByDomainResponse);
+  rpc SearchBusinessTerms(SearchBusinessTermsRequest) returns (SearchBusinessTermsResponse);
+  rpc LinkColumnToBusinessTerm(LinkColumnToBusinessTermRequest) returns (ColumnBusinessTerm);
+  rpc UnlinkColumnFromBusinessTerm(UnlinkColumnFromBusinessTermRequest) returns (google.protobuf.Empty);
+  rpc GetBusinessTermsForColumn(GetBusinessTermsForColumnRequest) returns (GetBusinessTermsForColumnResponse);
+  rpc GetColumnsForBusinessTerm(GetColumnsForBusinessTermRequest) returns (GetColumnsForBusinessTermResponse);
+}

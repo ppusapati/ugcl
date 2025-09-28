@@ -58,6 +58,24 @@ const (
 	EventTypeTenantUserAdded   EventType = "identity.tenant.user.added"
 	EventTypeTenantUserRemoved EventType = "identity.tenant.user.removed"
 
+	// Masters Module Events
+	EventTypeSchemaCreated EventType = "masters.schema.created"
+	EventTypeSchemaUpdated EventType = "masters.schema.updated"
+	EventTypeSchemaDeleted EventType = "masters.schema.deleted"
+	EventTypeTableCreated  EventType = "masters.table.created"
+	EventTypeTableUpdated  EventType = "masters.table.updated"
+	EventTypeTableDeleted  EventType = "masters.table.deleted"
+	EventTypeColumnCreated EventType = "masters.column.created"
+	EventTypeColumnUpdated EventType = "masters.column.updated"
+	EventTypeColumnDeleted EventType = "masters.column.deleted"
+
+	// DataBridge Module Events
+	EventTypeMappingCreated   EventType = "databridge.mapping.created"
+	EventTypeMappingUpdated   EventType = "databridge.mapping.updated"
+	EventTypeDataImported     EventType = "databridge.data.imported"
+	EventTypeImportFailed     EventType = "databridge.import.failed"
+	EventTypeImportJobStarted EventType = "databridge.import.started"
+
 	// System Events
 	EventTypeSystemStartup        EventType = "system.startup"
 	EventTypeSystemShutdown       EventType = "system.shutdown"
@@ -161,6 +179,10 @@ func (e *DomainEvent) GetTopic() string {
 		return "ugcl.identity.events"
 	case EventTypeTenantCreated, EventTypeTenantUpdated, EventTypeTenantDeactivated, EventTypeTenantUserAdded, EventTypeTenantUserRemoved:
 		return "ugcl.tenant.events"
+	case EventTypeSchemaCreated, EventTypeSchemaUpdated, EventTypeSchemaDeleted, EventTypeTableCreated, EventTypeTableUpdated, EventTypeTableDeleted, EventTypeColumnCreated, EventTypeColumnUpdated, EventTypeColumnDeleted:
+		return "ugcl.masters.events"
+	case EventTypeMappingCreated, EventTypeMappingUpdated, EventTypeDataImported, EventTypeImportFailed, EventTypeImportJobStarted:
+		return "ugcl.databridge.events"
 	case EventTypeSystemStartup, EventTypeSystemShutdown, EventTypeConfigurationChanged:
 		return "ugcl.system.events"
 	default:

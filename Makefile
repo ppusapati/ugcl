@@ -28,6 +28,13 @@ sqlc-generate-all:
 	cd notification/db && sqlc generate
 	cd core/database && sqlc generate
 	cd projects/db && sqlc generate
+	cd databridge/db && sqlc generate
+	cd masters/db && sqlc generate
+	cd searchservice/db && sqlc generate
+	cd documentviewer/db && sqlc generate
+	cd approvalworkflow/db && sqlc generate
+	cd dataarchive/db && sqlc generate
+	cd backupdr/db && sqlc generate
 
 # Generate specific modules
 .PHONY: sqlc-vendors
@@ -66,6 +73,34 @@ sqlc-notification:
 sqlc-core:
 	cd core/database && sqlc generate
 
+.PHONY: sqlc-databridge
+sqlc-databridge:
+	cd databridge/db && sqlc generate
+
+.PHONY: sqlc-masters
+sqlc-masters:
+	cd masters/db && sqlc generate
+
+.PHONY: sqlc-searchservice
+sqlc-searchservice:
+	cd searchservice/db && sqlc generate
+
+.PHONY: sqlc-documentviewer
+sqlc-documentviewer:
+	cd documentviewer/db && sqlc generate
+
+.PHONY: sqlc-approvalworkflow
+sqlc-approvalworkflow:
+	cd approvalworkflow/db && sqlc generate
+
+.PHONY: sqlc-dataarchive
+sqlc-dataarchive:
+	cd dataarchive/db && sqlc generate
+
+.PHONY: sqlc-backupdr
+sqlc-backupdr:
+	cd backupdr/db && sqlc generate
+
 # Verify all configurations
 .PHONY: sqlc-verify-all
 sqlc-verify-all:
@@ -78,6 +113,7 @@ sqlc-verify-all:
 	cd identity/tenant/db && sqlc verify
 	cd identity/auth/db && sqlc verify
 	cd projects/db && sqlc verify
+	cd databridge/db && sqlc verify
 
 # Combined generation
 .PHONY: generate-all

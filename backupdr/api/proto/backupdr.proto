@@ -1,0 +1,894 @@
+syntax = "proto3";
+
+package backupdr.api.v1;
+option go_package = "p9e.in/ugcl/backupdr/api/proto;backupdrpb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/duration.proto";
+
+// =============================================================================
+// BACKUP & DISASTER RECOVERY SERVICE
+// =============================================================================
+
+service BackupDRService {
+  // Backup Policy Management
+  rpc CreateBackupPolicy(CreateBackupPolicyRequest) returns (CreateBackupPolicyResponse);
+  rpc GetBackupPolicy(GetBackupPolicyRequest) returns (GetBackupPolicyResponse);
+  rpc UpdateBackupPolicy(UpdateBackupPolicyRequest) returns (UpdateBackupPolicyResponse);
+  rpc DeleteBackupPolicy(DeleteBackupPolicyRequest) returns (google.protobuf.Empty);
+  rpc ListBackupPolicies(ListBackupPoliciesRequest) returns (ListBackupPoliciesResponse);
+
+  // Backup Execution
+  rpc ExecuteBackup(ExecuteBackupRequest) returns (ExecuteBackupResponse);
+  rpc GetBackupJob(GetBackupJobRequest) returns (GetBackupJobResponse);
+  rpc ListBackupJobs(ListBackupJobsRequest) returns (ListBackupJobsResponse);
+  rpc CancelBackupJob(CancelBackupJobRequest) returns (google.protobuf.Empty);
+  rpc RetryBackupJob(RetryBackupJobRequest) returns (RetryBackupJobResponse);
+
+  // Restore Operations
+  rpc CreateRestoreRequest(CreateRestoreRequestRequest) returns (CreateRestoreRequestResponse);
+  rpc GetRestoreRequest(GetRestoreRequestRequest) returns (GetRestoreRequestResponse);
+  rpc ListRestoreRequests(ListRestoreRequestsRequest) returns (ListRestoreRequestsResponse);
+  rpc ApproveRestoreRequest(ApproveRestoreRequestRequest) returns (ApproveRestoreRequestResponse);
+  rpc ExecuteRestore(ExecuteRestoreRequest) returns (ExecuteRestoreResponse);
+
+  // Disaster Recovery Plans
+  rpc CreateDRPlan(CreateDRPlanRequest) returns (CreateDRPlanResponse);
+  rpc GetDRPlan(GetDRPlanRequest) returns (GetDRPlanResponse);
+  rpc UpdateDRPlan(UpdateDRPlanRequest) returns (UpdateDRPlanResponse);
+  rpc DeleteDRPlan(DeleteDRPlanRequest) returns (google.protobuf.Empty);
+  rpc ListDRPlans(ListDRPlansRequest) returns (ListDRPlansResponse);
+  rpc TestDRPlan(TestDRPlanRequest) returns (TestDRPlanResponse);
+
+  // Recovery Execution
+  rpc ExecuteRecovery(ExecuteRecoveryRequest) returns (ExecuteRecoveryResponse);
+  rpc GetRecoveryExecution(GetRecoveryExecutionRequest) returns (GetRecoveryExecutionResponse);
+  rpc ListRecoveryExecutions(ListRecoveryExecutionsRequest) returns (ListRecoveryExecutionsResponse);
+  rpc AbortRecovery(AbortRecoveryRequest) returns (google.protobuf.Empty);
+
+  // System Health Monitoring
+  rpc GetSystemHealth(GetSystemHealthRequest) returns (GetSystemHealthResponse);
+  rpc ListSystemHealth(ListSystemHealthRequest) returns (ListSystemHealthResponse);
+  rpc UpdateSystemHealth(UpdateSystemHealthRequest) returns (UpdateSystemHealthResponse);
+
+  // Storage Management
+  rpc CreateStorageLocation(CreateStorageLocationRequest) returns (CreateStorageLocationResponse);
+  rpc GetStorageLocation(GetStorageLocationRequest) returns (GetStorageLocationResponse);
+  rpc ListStorageLocations(ListStorageLocationsRequest) returns (ListStorageLocationsResponse);
+  rpc TestStorageConnection(TestStorageConnectionRequest) returns (TestStorageConnectionResponse);
+
+  // Analytics and Reporting
+  rpc GetBackupMetrics(GetBackupMetricsRequest) returns (GetBackupMetricsResponse);
+  rpc GetRecoveryMetrics(GetRecoveryMetricsRequest) returns (GetRecoveryMetricsResponse);
+  rpc GetBackupDashboard(GetBackupDashboardRequest) returns (GetBackupDashboardResponse);
+  rpc GetOverdueBackups(GetOverdueBackupsRequest) returns (GetOverdueBackupsResponse);
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum BackupType {
+  BACKUP_TYPE_UNSPECIFIED = 0;
+  BACKUP_TYPE_FULL = 1;
+  BACKUP_TYPE_INCREMENTAL = 2;
+  BACKUP_TYPE_DIFFERENTIAL = 3;
+  BACKUP_TYPE_SNAPSHOT = 4;
+  BACKUP_TYPE_CONTINUOUS = 5;
+}
+
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  TARGET_TYPE_DATABASE = 1;
+  TARGET_TYPE_FILES = 2;
+  TARGET_TYPE_APPLICATION = 3;
+  TARGET_TYPE_SYSTEM = 4;
+  TARGET_TYPE_VOLUME = 5;
+}
+
+enum ScheduleType {
+  SCHEDULE_TYPE_UNSPECIFIED = 0;
+  SCHEDULE_TYPE_CRON = 1;
+  SCHEDULE_TYPE_INTERVAL = 2;
+  SCHEDULE_TYPE_MANUAL = 3;
+  SCHEDULE_TYPE_EVENT = 4;
+}
+
+enum StorageType {
+  STORAGE_TYPE_UNSPECIFIED = 0;
+  STORAGE_TYPE_LOCAL = 1;
+  STORAGE_TYPE_S3 = 2;
+  STORAGE_TYPE_AZURE = 3;
+  STORAGE_TYPE_GCP = 4;
+  STORAGE_TYPE_NETWORK = 5;
+}
+
+enum CompressionType {
+  COMPRESSION_TYPE_UNSPECIFIED = 0;
+  COMPRESSION_TYPE_NONE = 1;
+  COMPRESSION_TYPE_GZIP = 2;
+  COMPRESSION_TYPE_ZSTD = 3;
+  COMPRESSION_TYPE_LZ4 = 4;
+  COMPRESSION_TYPE_BZIP2 = 5;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_SCHEDULED = 1;
+  JOB_STATUS_QUEUED = 2;
+  JOB_STATUS_RUNNING = 3;
+  JOB_STATUS_COMPLETED = 4;
+  JOB_STATUS_FAILED = 5;
+  JOB_STATUS_CANCELLED = 6;
+  JOB_STATUS_PAUSED = 7;
+  JOB_STATUS_RETRYING = 8;
+}
+
+enum JobPriority {
+  JOB_PRIORITY_UNSPECIFIED = 0;
+  JOB_PRIORITY_LOW = 1;
+  JOB_PRIORITY_NORMAL = 2;
+  JOB_PRIORITY_HIGH = 3;
+  JOB_PRIORITY_CRITICAL = 4;
+}
+
+enum RestoreType {
+  RESTORE_TYPE_UNSPECIFIED = 0;
+  RESTORE_TYPE_FULL = 1;
+  RESTORE_TYPE_PARTIAL = 2;
+  RESTORE_TYPE_POINT_IN_TIME = 3;
+  RESTORE_TYPE_INSTANT = 4;
+}
+
+enum RestoreScope {
+  RESTORE_SCOPE_UNSPECIFIED = 0;
+  RESTORE_SCOPE_DATABASE = 1;
+  RESTORE_SCOPE_TABLE = 2;
+  RESTORE_SCOPE_FILES = 3;
+  RESTORE_SCOPE_SYSTEM = 4;
+}
+
+enum RestoreStatus {
+  RESTORE_STATUS_UNSPECIFIED = 0;
+  RESTORE_STATUS_REQUESTED = 1;
+  RESTORE_STATUS_APPROVED = 2;
+  RESTORE_STATUS_QUEUED = 3;
+  RESTORE_STATUS_RUNNING = 4;
+  RESTORE_STATUS_COMPLETED = 5;
+  RESTORE_STATUS_FAILED = 6;
+  RESTORE_STATUS_CANCELLED = 7;
+}
+
+enum DRPlanType {
+  DR_PLAN_TYPE_UNSPECIFIED = 0;
+  DR_PLAN_TYPE_DATA_RECOVERY = 1;
+  DR_PLAN_TYPE_SYSTEM_FAILOVER = 2;
+  DR_PLAN_TYPE_SITE_FAILOVER = 3;
+  DR_PLAN_TYPE_BUSINESS_CONTINUITY = 4;
+  DR_PLAN_TYPE_CYBER_INCIDENT = 5;
+}
+
+enum DRSeverity {
+  DR_SEVERITY_UNSPECIFIED = 0;
+  DR_SEVERITY_MINOR = 1;
+  DR_SEVERITY_MAJOR = 2;
+  DR_SEVERITY_CRITICAL = 3;
+  DR_SEVERITY_CATASTROPHIC = 4;
+}
+
+enum ExecutionType {
+  EXECUTION_TYPE_UNSPECIFIED = 0;
+  EXECUTION_TYPE_TEST = 1;
+  EXECUTION_TYPE_ACTUAL = 2;
+  EXECUTION_TYPE_DRILL = 3;
+  EXECUTION_TYPE_PARTIAL = 4;
+}
+
+enum ExecutionStatus {
+  EXECUTION_STATUS_UNSPECIFIED = 0;
+  EXECUTION_STATUS_INITIATED = 1;
+  EXECUTION_STATUS_IN_PROGRESS = 2;
+  EXECUTION_STATUS_COMPLETED = 3;
+  EXECUTION_STATUS_FAILED = 4;
+  EXECUTION_STATUS_ABORTED = 5;
+  EXECUTION_STATUS_ROLLED_BACK = 6;
+}
+
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_WARNING = 2;
+  HEALTH_STATUS_CRITICAL = 3;
+  HEALTH_STATUS_UNKNOWN = 4;
+  HEALTH_STATUS_DOWN = 5;
+}
+
+// =============================================================================
+// MESSAGES
+// =============================================================================
+
+message BackupPolicy {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  BackupType backup_type = 4;
+  TargetType target_type = 5;
+  string target_name = 6;
+  repeated string include_rules = 7;
+  repeated string exclude_rules = 8;
+  ScheduleType schedule_type = 9;
+  string cron_expression = 10;
+  int32 interval_minutes = 11;
+  BackupWindow backup_window = 12;
+  RetentionPolicy retention_policy = 13;
+  StorageConfig storage_config = 14;
+  CompressionType compression = 15;
+  EncryptionConfig encryption = 16;
+  int32 max_parallel_jobs = 17;
+  int64 bandwidth_limit = 18;
+  int32 timeout_minutes = 19;
+  bool notify_on_success = 20;
+  bool notify_on_failure = 21;
+  repeated string notify_channels = 22;
+  bool is_active = 23;
+  google.protobuf.Timestamp last_backup = 24;
+  google.protobuf.Timestamp next_backup = 25;
+  string created_by = 26;
+  string updated_by = 27;
+  google.protobuf.Timestamp created_at = 28;
+  google.protobuf.Timestamp updated_at = 29;
+  google.protobuf.Struct metadata = 30;
+}
+
+message BackupWindow {
+  string start_time = 1;
+  string end_time = 2;
+  string time_zone = 3;
+  repeated int32 week_days = 4;
+}
+
+message RetentionPolicy {
+  int32 keep_daily = 1;
+  int32 keep_weekly = 2;
+  int32 keep_monthly = 3;
+  int32 keep_yearly = 4;
+  int32 max_age = 5;
+}
+
+message StorageConfig {
+  StorageType storage_type = 1;
+  string local_path = 2;
+  S3Config s3_config = 3;
+  AzureConfig azure_config = 4;
+  GCPConfig gcp_config = 5;
+  NetworkConfig network_config = 6;
+}
+
+message S3Config {
+  string region = 1;
+  string bucket = 2;
+  string access_key_id = 3;
+  string secret_access_key = 4;
+  string endpoint = 5;
+  bool use_ssl = 6;
+  bool path_style = 7;
+}
+
+message AzureConfig {
+  string account_name = 1;
+  string account_key = 2;
+  string container_name = 3;
+  string endpoint = 4;
+}
+
+message GCPConfig {
+  string project_id = 1;
+  string bucket_name = 2;
+  string credentials = 3;
+}
+
+message NetworkConfig {
+  string host = 1;
+  int32 port = 2;
+  string username = 3;
+  string password = 4;
+  string protocol = 5;
+  string path = 6;
+}
+
+message EncryptionConfig {
+  bool enabled = 1;
+  string algorithm = 2;
+  string key_source = 3;
+  string key_id = 4;
+  string passphrase = 5;
+}
+
+message BackupJob {
+  string id = 1;
+  string policy_id = 2;
+  BackupType job_type = 3;
+  JobStatus status = 4;
+  JobPriority priority = 5;
+  google.protobuf.Timestamp scheduled_at = 6;
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp completed_at = 8;
+  google.protobuf.Duration duration = 9;
+  int64 total_size = 10;
+  int64 processed_size = 11;
+  int64 compressed_size = 12;
+  double progress_percent = 13;
+  google.protobuf.Timestamp estimated_finish = 14;
+  int64 total_files = 15;
+  int64 processed_files = 16;
+  int64 skipped_files = 17;
+  int64 errored_files = 18;
+  string backup_path = 19;
+  int64 backup_size = 20;
+  double compression_ratio = 21;
+  string checksum = 22;
+  double throughput_mbps = 23;
+  double average_speed = 24;
+  int64 network_usage = 25;
+  double cpu_usage = 26;
+  string error_message = 27;
+  int32 retry_count = 28;
+  int32 max_retries = 29;
+  string parent_job_id = 30;
+  string baseline_job_id = 31;
+  string executed_by = 32;
+  google.protobuf.Struct job_metadata = 33;
+}
+
+message RestoreRequest {
+  string id = 1;
+  string backup_job_id = 2;
+  string requested_by = 3;
+  RestoreType restore_type = 4;
+  RestoreScope restore_scope = 5;
+  string target_location = 6;
+  string overwrite_policy = 7;
+  repeated string include_filters = 8;
+  repeated string exclude_filters = 9;
+  google.protobuf.Timestamp point_in_time = 10;
+  RestoreStatus status = 11;
+  google.protobuf.Timestamp started_at = 12;
+  google.protobuf.Timestamp completed_at = 13;
+  double progress_percent = 14;
+  int64 restored_files = 15;
+  int64 restored_size = 16;
+  int64 error_count = 17;
+  string error_message = 18;
+  bool requires_approval = 19;
+  string approval_status = 20;
+  string approved_by = 21;
+  google.protobuf.Timestamp approved_at = 22;
+  google.protobuf.Timestamp created_at = 23;
+  google.protobuf.Struct metadata = 24;
+}
+
+message DisasterRecoveryPlan {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  DRPlanType plan_type = 4;
+  DRSeverity severity = 5;
+  string scope = 6;
+  google.protobuf.Duration rto = 7;
+  google.protobuf.Duration rpo = 8;
+  google.protobuf.Duration mttr = 9;
+  double availability = 10;
+  google.protobuf.Struct pre_recovery_steps = 11;
+  google.protobuf.Struct recovery_steps = 12;
+  google.protobuf.Struct post_recovery_steps = 13;
+  google.protobuf.Struct rollback_steps = 14;
+  google.protobuf.Struct resource_requirements = 15;
+  repeated string dependencies = 16;
+  google.protobuf.Struct prerequisites = 17;
+  google.protobuf.Timestamp last_tested = 18;
+  string test_schedule = 19;
+  google.protobuf.Struct validation_criteria = 20;
+  repeated string notification_list = 21;
+  google.protobuf.Struct escalation_matrix = 22;
+  google.protobuf.Struct communication_plan = 23;
+  bool is_active = 24;
+  int32 version = 25;
+  string approved_by = 26;
+  google.protobuf.Timestamp approved_at = 27;
+  string created_by = 28;
+  string updated_by = 29;
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp updated_at = 31;
+  google.protobuf.Struct metadata = 32;
+}
+
+message RecoveryExecution {
+  string id = 1;
+  string plan_id = 2;
+  ExecutionType execution_type = 3;
+  string trigger_reason = 4;
+  ExecutionStatus status = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  google.protobuf.Duration estimated_rto = 8;
+  google.protobuf.Duration actual_rto = 9;
+  int32 total_steps = 10;
+  int32 completed_steps = 11;
+  int32 failed_steps = 12;
+  string current_step = 13;
+  double success_rate = 14;
+  int64 data_recovered = 15;
+  int32 systems_recovered = 16;
+  google.protobuf.Struct notifications_sent = 17;
+  repeated string stakeholders_notified = 18;
+  google.protobuf.Struct issues_encountered = 19;
+  google.protobuf.Struct resolution_actions = 20;
+  string executed_by = 21;
+  google.protobuf.Struct execution_log = 22;
+  google.protobuf.Struct metadata = 23;
+}
+
+message SystemHealth {
+  string id = 1;
+  string system_name = 2;
+  string system_type = 3;
+  HealthStatus health_status = 4;
+  double cpu_usage = 5;
+  double memory_usage = 6;
+  double disk_usage = 7;
+  double network_latency = 8;
+  double response_time = 9;
+  google.protobuf.Duration uptime = 10;
+  google.protobuf.Timestamp last_downtime = 11;
+  double availability_pct = 12;
+  google.protobuf.Timestamp last_backup_time = 13;
+  string backup_status = 14;
+  int64 backup_size = 15;
+  google.protobuf.Struct active_alerts = 16;
+  google.protobuf.Struct threshold_breaches = 17;
+  google.protobuf.Timestamp checked_at = 18;
+  google.protobuf.Struct metadata = 19;
+}
+
+message BackupStorageLocation {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  StorageType storage_type = 4;
+  google.protobuf.Struct connection_config = 5;
+  bool is_encrypted = 6;
+  bool compression_enabled = 7;
+  int64 total_capacity = 8;
+  int64 used_capacity = 9;
+  int64 available_capacity = 10;
+  int64 read_bandwidth = 11;
+  int64 write_bandwidth = 12;
+  double access_latency = 13;
+  bool is_active = 14;
+  bool is_healthy = 15;
+  google.protobuf.Timestamp last_health_check = 16;
+  google.protobuf.Struct health_details = 17;
+  string region = 18;
+  string availability_zone = 19;
+  string geographic_location = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+  google.protobuf.Struct metadata = 23;
+}
+
+// =============================================================================
+// REQUEST/RESPONSE MESSAGES
+// =============================================================================
+
+// Backup Policy Management
+message CreateBackupPolicyRequest {
+  BackupPolicy policy = 1;
+}
+
+message CreateBackupPolicyResponse {
+  BackupPolicy policy = 1;
+}
+
+message GetBackupPolicyRequest {
+  string id = 1;
+}
+
+message GetBackupPolicyResponse {
+  BackupPolicy policy = 1;
+}
+
+message UpdateBackupPolicyRequest {
+  BackupPolicy policy = 1;
+}
+
+message UpdateBackupPolicyResponse {
+  BackupPolicy policy = 1;
+}
+
+message DeleteBackupPolicyRequest {
+  string id = 1;
+}
+
+message ListBackupPoliciesRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  TargetType target_type = 3;
+  bool active_only = 4;
+}
+
+message ListBackupPoliciesResponse {
+  repeated BackupPolicy policies = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+// Backup Execution
+message ExecuteBackupRequest {
+  string policy_id = 1;
+  BackupType backup_type = 2;
+  JobPriority priority = 3;
+}
+
+message ExecuteBackupResponse {
+  BackupJob job = 1;
+}
+
+message GetBackupJobRequest {
+  string id = 1;
+}
+
+message GetBackupJobResponse {
+  BackupJob job = 1;
+}
+
+message ListBackupJobsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string policy_id = 3;
+  repeated JobStatus status_filter = 4;
+  google.protobuf.Timestamp created_after = 5;
+  google.protobuf.Timestamp created_before = 6;
+}
+
+message ListBackupJobsResponse {
+  repeated BackupJob jobs = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message CancelBackupJobRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message RetryBackupJobRequest {
+  string id = 1;
+}
+
+message RetryBackupJobResponse {
+  BackupJob job = 1;
+}
+
+// Restore Operations
+message CreateRestoreRequestRequest {
+  RestoreRequest request = 1;
+}
+
+message CreateRestoreRequestResponse {
+  RestoreRequest request = 1;
+}
+
+message GetRestoreRequestRequest {
+  string id = 1;
+}
+
+message GetRestoreRequestResponse {
+  RestoreRequest request = 1;
+}
+
+message ListRestoreRequestsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string requested_by = 3;
+  repeated RestoreStatus status_filter = 4;
+}
+
+message ListRestoreRequestsResponse {
+  repeated RestoreRequest requests = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message ApproveRestoreRequestRequest {
+  string id = 1;
+  string approved_by = 2;
+  string comments = 3;
+}
+
+message ApproveRestoreRequestResponse {
+  RestoreRequest request = 1;
+}
+
+message ExecuteRestoreRequest {
+  string request_id = 1;
+}
+
+message ExecuteRestoreResponse {
+  string execution_id = 1;
+  google.protobuf.Timestamp estimated_completion = 2;
+}
+
+// Disaster Recovery Plans
+message CreateDRPlanRequest {
+  DisasterRecoveryPlan plan = 1;
+}
+
+message CreateDRPlanResponse {
+  DisasterRecoveryPlan plan = 1;
+}
+
+message GetDRPlanRequest {
+  string id = 1;
+}
+
+message GetDRPlanResponse {
+  DisasterRecoveryPlan plan = 1;
+}
+
+message UpdateDRPlanRequest {
+  DisasterRecoveryPlan plan = 1;
+}
+
+message UpdateDRPlanResponse {
+  DisasterRecoveryPlan plan = 1;
+}
+
+message DeleteDRPlanRequest {
+  string id = 1;
+}
+
+message ListDRPlansRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  DRPlanType plan_type = 3;
+  bool active_only = 4;
+}
+
+message ListDRPlansResponse {
+  repeated DisasterRecoveryPlan plans = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message TestDRPlanRequest {
+  string plan_id = 1;
+  ExecutionType test_type = 2;
+  string reason = 3;
+}
+
+message TestDRPlanResponse {
+  RecoveryExecution execution = 1;
+}
+
+// Recovery Execution
+message ExecuteRecoveryRequest {
+  string plan_id = 1;
+  ExecutionType execution_type = 2;
+  string trigger_reason = 3;
+}
+
+message ExecuteRecoveryResponse {
+  RecoveryExecution execution = 1;
+}
+
+message GetRecoveryExecutionRequest {
+  string id = 1;
+}
+
+message GetRecoveryExecutionResponse {
+  RecoveryExecution execution = 1;
+}
+
+message ListRecoveryExecutionsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string plan_id = 3;
+  ExecutionType execution_type = 4;
+  ExecutionStatus status = 5;
+}
+
+message ListRecoveryExecutionsResponse {
+  repeated RecoveryExecution executions = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message AbortRecoveryRequest {
+  string id = 1;
+  string reason = 2;
+  string aborted_by = 3;
+}
+
+// System Health Monitoring
+message GetSystemHealthRequest {
+  string system_name = 1;
+}
+
+message GetSystemHealthResponse {
+  SystemHealth health = 1;
+}
+
+message ListSystemHealthRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  HealthStatus status_filter = 3;
+  string system_type = 4;
+}
+
+message ListSystemHealthResponse {
+  repeated SystemHealth health_records = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message UpdateSystemHealthRequest {
+  SystemHealth health = 1;
+}
+
+message UpdateSystemHealthResponse {
+  SystemHealth health = 1;
+}
+
+// Storage Management
+message CreateStorageLocationRequest {
+  BackupStorageLocation location = 1;
+}
+
+message CreateStorageLocationResponse {
+  BackupStorageLocation location = 1;
+}
+
+message GetStorageLocationRequest {
+  string id = 1;
+}
+
+message GetStorageLocationResponse {
+  BackupStorageLocation location = 1;
+}
+
+message ListStorageLocationsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  StorageType storage_type = 3;
+  bool active_only = 4;
+}
+
+message ListStorageLocationsResponse {
+  repeated BackupStorageLocation locations = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message TestStorageConnectionRequest {
+  string location_id = 1;
+}
+
+message TestStorageConnectionResponse {
+  bool is_healthy = 1;
+  double latency_ms = 2;
+  string error_message = 3;
+  google.protobuf.Struct connection_details = 4;
+}
+
+// Analytics and Reporting
+message GetBackupMetricsRequest {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  string target_type = 3;
+}
+
+message GetBackupMetricsResponse {
+  int32 total_policies = 1;
+  int32 active_policies = 2;
+  int64 successful_backups = 3;
+  int64 failed_backups = 4;
+  int64 total_backup_size = 5;
+  google.protobuf.Duration avg_backup_duration = 6;
+  repeated DailyBackupMetric daily_metrics = 7;
+}
+
+message DailyBackupMetric {
+  google.protobuf.Timestamp date = 1;
+  int32 successful_jobs = 2;
+  int32 failed_jobs = 3;
+  int64 total_size = 4;
+  google.protobuf.Duration avg_duration = 5;
+}
+
+message GetRecoveryMetricsRequest {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+}
+
+message GetRecoveryMetricsResponse {
+  int64 total_executions = 1;
+  int64 successful_executions = 2;
+  int64 failed_executions = 3;
+  google.protobuf.Duration avg_rto = 4;
+  double success_rate = 5;
+  repeated RecoveryMetric recovery_metrics = 6;
+}
+
+message RecoveryMetric {
+  google.protobuf.Timestamp date = 1;
+  int32 executions = 2;
+  google.protobuf.Duration avg_rto = 3;
+  double success_rate = 4;
+}
+
+message GetBackupDashboardRequest {
+  string target_type = 1;
+}
+
+message GetBackupDashboardResponse {
+  repeated PolicySummary policy_summaries = 1;
+  int32 active_jobs = 2;
+  int32 failed_jobs = 3;
+  int32 overdue_backups = 4;
+  SystemHealthSummary health_summary = 5;
+  StorageSummary storage_summary = 6;
+}
+
+message PolicySummary {
+  string id = 1;
+  string name = 2;
+  string target_name = 3;
+  BackupType backup_type = 4;
+  bool is_active = 5;
+  google.protobuf.Timestamp last_backup = 6;
+  google.protobuf.Timestamp next_backup = 7;
+  bool is_overdue = 8;
+  int32 total_jobs = 9;
+  int32 successful_jobs = 10;
+  int32 failed_jobs = 11;
+  int64 total_backup_size = 12;
+}
+
+message SystemHealthSummary {
+  int32 healthy_systems = 1;
+  int32 warning_systems = 2;
+  int32 critical_systems = 3;
+  int32 down_systems = 4;
+  double overall_availability = 5;
+}
+
+message StorageSummary {
+  int64 total_capacity = 1;
+  int64 used_capacity = 2;
+  int64 available_capacity = 3;
+  double usage_percentage = 4;
+  int32 healthy_locations = 5;
+  int32 unhealthy_locations = 6;
+}
+
+message GetOverdueBackupsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message GetOverdueBackupsResponse {
+  repeated OverdueBackup overdue_backups = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message OverdueBackup {
+  string policy_id = 1;
+  string policy_name = 2;
+  string target_name = 3;
+  google.protobuf.Timestamp last_backup = 4;
+  google.protobuf.Timestamp next_backup = 5;
+  double hours_overdue = 6;
+}

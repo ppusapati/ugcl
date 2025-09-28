@@ -8,10 +8,17 @@ use (
 	./identity/tenant
 	./identity/user
 	./masters/pipeline
+	./masters
 	./migrations
 	./monitoring
 	./notification
 	./packages
 	./projects
 	./vendors
+	./databridge
+	./searchservice
+	./documentviewer
+	./approvalworkflow
+	./dataarchive
+	./backupdr
 )

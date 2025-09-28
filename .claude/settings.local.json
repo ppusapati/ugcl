@@ -17,7 +17,11 @@
       "Bash(cat:*)",
       "Bash(tree:*)",
       "Bash(dir:*)",
-      "Bash(npm run build.types:*)"
+      "Bash(npm run build.types:*)",
+      "Read(//d/Maheshwari/UGCL/web/ugcl/apps/**)",
+      "Read(//d/Maheshwari/UGCL/web/ugcl/packages/**)",
+      "Bash(make sqlc-masters:*)",
+      "Bash(make sqlc-databridge:*)"
     ],
     "deny": [],
     "ask": [],
