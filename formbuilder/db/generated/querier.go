@@ -16,6 +16,12 @@ type Querier interface {
 	CountForms(ctx context.Context) (int64, error)
 	CountWorkflows(ctx context.Context) (int64, error)
 	// =============================================================================
+	// approval.sql - Queries for approval workflow functionality
+	// =============================================================================
+	CreateApprovalAction(ctx context.Context, arg CreateApprovalActionParams) (*ApprovalAction, error)
+	CreateApprovalDelegate(ctx context.Context, arg CreateApprovalDelegateParams) (*ApprovalDelegate, error)
+	CreateApprovalReport(ctx context.Context, arg CreateApprovalReportParams) (*ApprovalReport, error)
+	// =============================================================================
 	// ATTACHMENT QUERIES
 	// =============================================================================
 	CreateAttachment(ctx context.Context, arg CreateAttachmentParams) (*Attachment, error)
@@ -77,6 +83,7 @@ type Querier interface {
 	// WORKFLOW QUERIES
 	// =============================================================================
 	CreateWorkflow(ctx context.Context, arg CreateWorkflowParams) (*Workflow, error)
+	DeleteApprovalDelegate(ctx context.Context, arg DeleteApprovalDelegateParams) error
 	DeleteAttachment(ctx context.Context, arg DeleteAttachmentParams) error
 	DeleteComment(ctx context.Context, arg DeleteCommentParams) error
 	DeleteEscalation(ctx context.Context, arg DeleteEscalationParams) error
@@ -86,9 +93,19 @@ type Querier interface {
 	DeleteWorkflow(ctx context.Context, arg DeleteWorkflowParams) error
 	FailEscalation(ctx context.Context, arg FailEscalationParams) (*SlaEscalationInstance, error)
 	FailNotification(ctx context.Context, arg FailNotificationParams) (*SlaNotification, error)
+	GetActiveDelegation(ctx context.Context, arg GetActiveDelegationParams) (*ApprovalDelegate, error)
 	GetActivePauses(ctx context.Context) ([]*SlaPauseLog, error)
 	GetActiveSLAInstances(ctx context.Context) ([]*SlaInstance, error)
 	GetActiveSLARules(ctx context.Context) ([]*SlaRule, error)
+	GetApprovalActionByID(ctx context.Context, arg GetApprovalActionByIDParams) (*ApprovalAction, error)
+	GetApprovalActionsByApprover(ctx context.Context, arg GetApprovalActionsByApproverParams) ([]*ApprovalAction, error)
+	GetApprovalActionsByInstanceID(ctx context.Context, arg GetApprovalActionsByInstanceIDParams) ([]*ApprovalAction, error)
+	GetApprovalDelegatesByDelegate(ctx context.Context, arg GetApprovalDelegatesByDelegateParams) ([]*ApprovalDelegate, error)
+	GetApprovalDelegatesByDelegator(ctx context.Context, arg GetApprovalDelegatesByDelegatorParams) ([]*ApprovalDelegate, error)
+	GetApprovalHistory(ctx context.Context, arg GetApprovalHistoryParams) ([]*GetApprovalHistoryRow, error)
+	GetApprovalMetrics(ctx context.Context, arg GetApprovalMetricsParams) (*GetApprovalMetricsRow, error)
+	GetApprovalReportsByEntityType(ctx context.Context, arg GetApprovalReportsByEntityTypeParams) ([]*ApprovalReport, error)
+	GetApprovalReportsByWorkflow(ctx context.Context, arg GetApprovalReportsByWorkflowParams) ([]*ApprovalReport, error)
 	GetAttachment(ctx context.Context, arg GetAttachmentParams) (*Attachment, error)
 	GetAttachments(ctx context.Context, arg GetAttachmentsParams) ([]*Attachment, error)
 	GetAttachmentsByField(ctx context.Context, arg GetAttachmentsByFieldParams) ([]*Attachment, error)
@@ -99,6 +116,7 @@ type Querier interface {
 	GetAutoEscalations(ctx context.Context) ([]*Escalation, error)
 	GetComments(ctx context.Context, arg GetCommentsParams) ([]*Comment, error)
 	GetCommentsByUser(ctx context.Context, arg GetCommentsByUserParams) ([]*Comment, error)
+	GetEscalatedInstances(ctx context.Context, arg GetEscalatedInstancesParams) ([]*GetEscalatedInstancesRow, error)
 	GetEscalation(ctx context.Context, arg GetEscalationParams) (*Escalation, error)
 	GetEscalations(ctx context.Context) ([]*Escalation, error)
 	GetEscalationsByFromState(ctx context.Context, arg GetEscalationsByFromStateParams) ([]*Escalation, error)
@@ -120,6 +138,7 @@ type Querier interface {
 	GetNotificationsByType(ctx context.Context, arg GetNotificationsByTypeParams) ([]*SlaNotification, error)
 	GetOverdueInstances(ctx context.Context) ([]*GetOverdueInstancesRow, error)
 	GetOverdueSLAInstances(ctx context.Context) ([]*SlaInstance, error)
+	GetPendingApprovalsForUser(ctx context.Context, arg GetPendingApprovalsForUserParams) ([]*GetPendingApprovalsForUserRow, error)
 	GetPendingEscalations(ctx context.Context) ([]*SlaEscalationInstance, error)
 	GetPendingNotifications(ctx context.Context) ([]*SlaNotification, error)
 	GetPublicComments(ctx context.Context, arg GetPublicCommentsParams) ([]*Comment, error)
@@ -167,6 +186,7 @@ type Querier interface {
 	SearchForms(ctx context.Context, arg SearchFormsParams) ([]*Form, error)
 	ToggleAutoEscalation(ctx context.Context, arg ToggleAutoEscalationParams) (*Escalation, error)
 	ToggleSLARule(ctx context.Context, arg ToggleSLARuleParams) (*SlaRule, error)
+	UpdateApprovalDelegate(ctx context.Context, arg UpdateApprovalDelegateParams) (*ApprovalDelegate, error)
 	UpdateComment(ctx context.Context, arg UpdateCommentParams) (*Comment, error)
 	UpdateEscalation(ctx context.Context, arg UpdateEscalationParams) (*Escalation, error)
 	UpdateEscalationStatus(ctx context.Context, arg UpdateEscalationStatusParams) (*SlaEscalationInstance, error)

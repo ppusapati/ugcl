@@ -4,6 +4,8 @@ package identity.user.api.v2.permission;
 option go_package = "p9e.in/ugcl/identity/user/api/v2/permission;permission";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 
 service PermissionService {
   rpc Grant(Permission) returns (google.protobuf.Empty) {
@@ -45,14 +47,53 @@ message RevokePermissionRequest {
 }
 
 message CheckPermissionRequest {
-  string subject = 1 ;
-  string namespace = 2 ;
-  string resource = 3 ;
-  string action = 4 ;
+  string subject = 1; // "entity:abc", "user:123", "role:admin"
+  string namespace = 2;
+  string resource = 3;
+  string action = 4;
+
+  // Organizational context (optional)
+  google.protobuf.StringValue division_id = 5;
+  google.protobuf.StringValue branch_id = 6;
+  google.protobuf.StringValue department_id = 7;
+
+  // Resource instance (optional) - check permission on specific instance
+  google.protobuf.StringValue resource_id = 8;
+
+  // Check mode - how to resolve permissions
+  PermissionCheckMode mode = 9;
+
+  // Additional context for permission checks
+  string tenant_id = 10;
 }
 
 message CheckPermissionResponse {
   Effect effect = 1;
+
+  // Matched permission details (optional)
+  Permission matched_permission = 2;
+
+  // Resolution path - how the permission was resolved
+  repeated PermissionResolutionStep resolution_path = 3;
+
+  // Human-readable reason
+  string reason = 4;
+}
+
+// Permission check mode - controls how permissions are resolved
+enum PermissionCheckMode {
+  PERMISSION_CHECK_MODE_UNSPECIFIED = 0;
+  PERMISSION_CHECK_MODE_EXACT = 1;           // Exact match only
+  PERMISSION_CHECK_MODE_WITH_INHERITANCE = 2; // Check with org hierarchy
+  PERMISSION_CHECK_MODE_ANY = 3;              // Any matching permission
+}
+
+// Permission resolution step - shows how a permission was resolved
+message PermissionResolutionStep {
+  string source = 1;    // "direct", "role", "entity_role", "inherited", "owner"
+  string source_id = 2; // ID of the source (role_id, entity_id, etc.)
+  string scope = 3;     // "division", "branch", "department", "resource", "tenant"
+  string description = 4; // Human-readable description
 }
 
 message ListPermissionsRequest {
@@ -67,10 +108,25 @@ message Permission {
   string namespace = 1;
   string resource = 2;
   string action = 3;
-  string subject = 4;
+  string subject = 4; // Enhanced: "entity:abc", "user:123", "role:admin"
   Effect effect = 5;
   string tenant_id = 6;
   string def_name = 7; // linkage to permission definition
+
+  // Organizational scope (optional)
+  google.protobuf.StringValue division_id = 8;
+  google.protobuf.StringValue branch_id = 9;
+  google.protobuf.StringValue department_id = 10;
+
+  // Resource instance scoping (optional) - for permissions on specific instances
+  google.protobuf.StringValue resource_id = 11;
+
+  // Temporal constraints (optional) - for time-bound permissions
+  google.protobuf.Timestamp valid_from = 12;
+  google.protobuf.Timestamp valid_until = 13;
+
+  // Inheritance control - whether child org units inherit this permission
+  bool allow_inheritance = 14;
 }
 
 enum Effect {

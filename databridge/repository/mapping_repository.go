@@ -48,7 +48,7 @@ func (r *MappingRepository) GetMappingsByTable(ctx context.Context, tableID uuid
 }
 
 // GetMappingByID retrieves a mapping by its ID
-func (r *MappingRepository) GetMappingByID(ctx context.Context, mappingID uuid.UUID) (*db.GetMappingByIDRow, error) {
+func (r *MappingRepository) GetMappingByID(ctx context.Context, mappingID uuid.UUID) (*db.ImportMapping, error) {
 	var pgUUID pgtype.UUID
 	if err := pgUUID.Scan(mappingID.String()); err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (r *MappingRepository) GetMappingByTableAndName(ctx context.Context, tableI
 }
 
 // GetRecentMappingsByUser retrieves recent mappings for a user
-func (r *MappingRepository) GetRecentMappingsByUser(ctx context.Context, userID string, limit int32) ([]*db.GetRecentMappingsByUserRow, error) {
+func (r *MappingRepository) GetRecentMappingsByUser(ctx context.Context, userID string, limit int32) ([]*db.ImportMapping, error) {
 	mappings, err := r.queries.GetRecentMappingsByUser(ctx, db.GetRecentMappingsByUserParams{
 		CreatedBy: userID,
 		Limit:     limit,
@@ -90,7 +90,7 @@ func (r *MappingRepository) GetRecentMappingsByUser(ctx context.Context, userID 
 		return nil, err
 	}
 
-	result := make([]*db.GetRecentMappingsByUserRow, len(mappings))
+	result := make([]*db.ImportMapping, len(mappings))
 	for i, mapping := range mappings {
 		result[i] = &mapping
 	}
@@ -208,13 +208,18 @@ func (r *MappingRepository) DeactivateMapping(ctx context.Context, mappingID uui
 }
 
 // SearchMappings searches mappings by query
-func (r *MappingRepository) SearchMappings(ctx context.Context, query string) ([]*db.SearchMappingsRow, error) {
-	mappings, err := r.queries.SearchMappings(ctx, query)
+func (r *MappingRepository) SearchMappings(ctx context.Context, query string) ([]*db.ImportMapping, error) {
+	pgQuery := pgtype.Text{
+		String: query,
+		Valid:  true,
+	}
+
+	mappings, err := r.queries.SearchMappings(ctx, pgQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]*db.SearchMappingsRow, len(mappings))
+	result := make([]*db.ImportMapping, len(mappings))
 	for i, mapping := range mappings {
 		result[i] = &mapping
 	}

@@ -518,3 +518,209 @@ const (
 	RestoreStatusFailed     RestoreStatus = "FAILED"
 	RestoreStatusCancelled  RestoreStatus = "CANCELLED"
 )
+
+// Filter structs for repository queries
+type BackupPolicyFilters struct {
+	TargetType   *TargetType    `json:"target_type,omitempty"`
+	TargetName   string         `json:"target_name,omitempty"`
+	BackupType   *BackupType    `json:"backup_type,omitempty"`
+	IsActive     *bool          `json:"is_active,omitempty"`
+	ScheduleType *ScheduleType  `json:"schedule_type,omitempty"`
+}
+
+type BackupJobFilters struct {
+	PolicyID      *uuid.UUID     `json:"policy_id,omitempty"`
+	JobType       *BackupType    `json:"job_type,omitempty"`
+	Status        *JobStatus     `json:"status,omitempty"`
+	Priority      *JobPriority   `json:"priority,omitempty"`
+	ScheduledAfter *time.Time    `json:"scheduled_after,omitempty"`
+	ScheduledBefore *time.Time   `json:"scheduled_before,omitempty"`
+	StartedAfter   *time.Time    `json:"started_after,omitempty"`
+	StartedBefore  *time.Time    `json:"started_before,omitempty"`
+}
+
+type DRPlanFilters struct {
+	PlanType  *DRPlanType `json:"plan_type,omitempty"`
+	Severity  *DRSeverity `json:"severity,omitempty"`
+	Scope     *DRScope    `json:"scope,omitempty"`
+	IsActive  *bool       `json:"is_active,omitempty"`
+	Version   *int        `json:"version,omitempty"`
+}
+
+type RecoveryExecutionFilters struct {
+	PlanID         *uuid.UUID       `json:"plan_id,omitempty"`
+	ExecutionType  *ExecutionType   `json:"execution_type,omitempty"`
+	Status         *ExecutionStatus `json:"status,omitempty"`
+	StartedAfter   *time.Time       `json:"started_after,omitempty"`
+	StartedBefore  *time.Time       `json:"started_before,omitempty"`
+	ExecutedBy     *uuid.UUID       `json:"executed_by,omitempty"`
+}
+
+type SystemHealthFilters struct {
+	SystemName     string         `json:"system_name,omitempty"`
+	SystemType     string         `json:"system_type,omitempty"`
+	HealthStatus   *HealthStatus  `json:"health_status,omitempty"`
+	CheckedAfter   *time.Time     `json:"checked_after,omitempty"`
+	CheckedBefore  *time.Time     `json:"checked_before,omitempty"`
+}
+
+type RestoreRequestFilters struct {
+	BackupJobID    *uuid.UUID     `json:"backup_job_id,omitempty"`
+	RequestedBy    *uuid.UUID     `json:"requested_by,omitempty"`
+	Status         *RestoreStatus `json:"status,omitempty"`
+	RestoreType    *RestoreType   `json:"restore_type,omitempty"`
+	RestoreScope   *RestoreScope  `json:"restore_scope,omitempty"`
+	RequiresApproval *bool        `json:"requires_approval,omitempty"`
+	CreatedAfter   *time.Time     `json:"created_after,omitempty"`
+	CreatedBefore  *time.Time     `json:"created_before,omitempty"`
+}
+
+// BackupInstance represents a specific backup execution instance
+type BackupInstance struct {
+	ID              uuid.UUID       `json:"id" db:"id"`
+	JobID           uuid.UUID       `json:"job_id" db:"job_id"`
+	BackupPath      string          `json:"backup_path" db:"backup_path"`
+	BackupSize      int64           `json:"backup_size" db:"backup_size"`
+	ChecksumType    string          `json:"checksum_type" db:"checksum_type"`
+	ChecksumValue   string          `json:"checksum_value" db:"checksum_value"`
+	Status          InstanceStatus  `json:"status" db:"status"`
+	CreatedAt       time.Time       `json:"created_at" db:"created_at"`
+	ExpiresAt       *time.Time      `json:"expires_at" db:"expires_at"`
+	Metadata        json.RawMessage `json:"metadata" db:"metadata"`
+}
+
+type InstanceStatus string
+
+const (
+	InstanceStatusValid   InstanceStatus = "VALID"
+	InstanceStatusCorrupt InstanceStatus = "CORRUPT"
+	InstanceStatusExpired InstanceStatus = "EXPIRED"
+	InstanceStatusDeleted InstanceStatus = "DELETED"
+)
+
+type BackupInstanceFilters struct {
+	JobID         *uuid.UUID      `json:"job_id,omitempty"`
+	Status        *InstanceStatus `json:"status,omitempty"`
+	CreatedAfter  *time.Time      `json:"created_after,omitempty"`
+	CreatedBefore *time.Time      `json:"created_before,omitempty"`
+	ExpiresAfter  *time.Time      `json:"expires_after,omitempty"`
+	ExpiresBefore *time.Time      `json:"expires_before,omitempty"`
+}
+
+// DRPlan alias for DisasterRecoveryPlan for interface consistency
+type DRPlan = DisasterRecoveryPlan
+
+// DRTest represents disaster recovery test execution
+type DRTest struct {
+	ID              uuid.UUID       `json:"id" db:"id"`
+	PlanID          uuid.UUID       `json:"plan_id" db:"plan_id"`
+	TestName        string          `json:"test_name" db:"test_name"`
+	TestType        DRTestType      `json:"test_type" db:"test_type"`
+	Status          DRTestStatus    `json:"status" db:"status"`
+	ScheduledAt     time.Time       `json:"scheduled_at" db:"scheduled_at"`
+	StartedAt       *time.Time      `json:"started_at" db:"started_at"`
+	CompletedAt     *time.Time      `json:"completed_at" db:"completed_at"`
+	TestResults     json.RawMessage `json:"test_results" db:"test_results"`
+	IssuesFound     json.RawMessage `json:"issues_found" db:"issues_found"`
+	Recommendations json.RawMessage `json:"recommendations" db:"recommendations"`
+	ExecutedBy      uuid.UUID       `json:"executed_by" db:"executed_by"`
+	CreatedAt       time.Time       `json:"created_at" db:"created_at"`
+	Metadata        json.RawMessage `json:"metadata" db:"metadata"`
+}
+
+type DRTestType string
+
+const (
+	DRTestTypeTabletop      DRTestType = "TABLETOP"
+	DRTestTypeWalkthrough   DRTestType = "WALKTHROUGH"
+	DRTestTypeSimulation    DRTestType = "SIMULATION"
+	DRTestTypeParallel      DRTestType = "PARALLEL"
+	DRTestTypeFullInterrupt DRTestType = "FULL_INTERRUPT"
+)
+
+type DRTestStatus string
+
+const (
+	DRTestStatusScheduled  DRTestStatus = "SCHEDULED"
+	DRTestStatusInProgress DRTestStatus = "IN_PROGRESS"
+	DRTestStatusCompleted  DRTestStatus = "COMPLETED"
+	DRTestStatusFailed     DRTestStatus = "FAILED"
+	DRTestStatusCancelled  DRTestStatus = "CANCELLED"
+)
+
+type DRTestFilters struct {
+	PlanID         *uuid.UUID    `json:"plan_id,omitempty"`
+	TestType       *DRTestType   `json:"test_type,omitempty"`
+	Status         *DRTestStatus `json:"status,omitempty"`
+	ScheduledAfter *time.Time    `json:"scheduled_after,omitempty"`
+	ScheduledBefore *time.Time   `json:"scheduled_before,omitempty"`
+	ExecutedBy     *uuid.UUID    `json:"executed_by,omitempty"`
+}
+
+// Analytics and reporting models
+type BackupStatistics struct {
+	TotalPolicies        int64             `json:"total_policies"`
+	ActivePolicies       int64             `json:"active_policies"`
+	TotalJobs            int64             `json:"total_jobs"`
+	SuccessfulJobs       int64             `json:"successful_jobs"`
+	FailedJobs           int64             `json:"failed_jobs"`
+	TotalBackupSize      int64             `json:"total_backup_size"`
+	AverageBackupTime    time.Duration     `json:"average_backup_time"`
+	CompressionRatio     float64           `json:"compression_ratio"`
+	StorageUtilization   float64           `json:"storage_utilization"`
+	LastCalculatedAt     time.Time         `json:"last_calculated_at"`
+}
+
+type BackupStatsFilters struct {
+	StartDate   time.Time    `json:"start_date"`
+	EndDate     time.Time    `json:"end_date"`
+	TargetType  *TargetType  `json:"target_type,omitempty"`
+	BackupType  *BackupType  `json:"backup_type,omitempty"`
+	PolicyID    *uuid.UUID   `json:"policy_id,omitempty"`
+}
+
+type StorageUtilization struct {
+	TargetType      TargetType `json:"target_type"`
+	TargetName      string     `json:"target_name"`
+	TotalSize       int64      `json:"total_size"`
+	UsedSize        int64      `json:"used_size"`
+	AvailableSize   int64      `json:"available_size"`
+	UtilizationPct  float64    `json:"utilization_pct"`
+	BackupCount     int64      `json:"backup_count"`
+	OldestBackup    *time.Time `json:"oldest_backup,omitempty"`
+	NewestBackup    *time.Time `json:"newest_backup,omitempty"`
+	LastUpdated     time.Time  `json:"last_updated"`
+}
+
+type ComplianceReport struct {
+	PolicyID            uuid.UUID     `json:"policy_id"`
+	PolicyName          string        `json:"policy_name"`
+	ComplianceStatus    ComplianceStatus `json:"compliance_status"`
+	LastSuccessfulBackup *time.Time   `json:"last_successful_backup,omitempty"`
+	NextScheduledBackup  *time.Time   `json:"next_scheduled_backup,omitempty"`
+	BackupCount         int64         `json:"backup_count"`
+	FailureCount        int64         `json:"failure_count"`
+	SuccessRate         float64       `json:"success_rate"`
+	RTOCompliance       bool          `json:"rto_compliance"`
+	RPOCompliance       bool          `json:"rpo_compliance"`
+	Issues              []string      `json:"issues"`
+	Recommendations     []string      `json:"recommendations"`
+	LastChecked         time.Time     `json:"last_checked"`
+}
+
+type ComplianceStatus string
+
+const (
+	ComplianceStatusCompliant    ComplianceStatus = "COMPLIANT"
+	ComplianceStatusNonCompliant ComplianceStatus = "NON_COMPLIANT"
+	ComplianceStatusWarning      ComplianceStatus = "WARNING"
+	ComplianceStatusUnknown      ComplianceStatus = "UNKNOWN"
+)
+
+type ComplianceFilters struct {
+	PolicyID         *uuid.UUID        `json:"policy_id,omitempty"`
+	ComplianceStatus *ComplianceStatus `json:"compliance_status,omitempty"`
+	TargetType       *TargetType       `json:"target_type,omitempty"`
+	CheckedAfter     *time.Time        `json:"checked_after,omitempty"`
+	CheckedBefore    *time.Time        `json:"checked_before,omitempty"`
+}

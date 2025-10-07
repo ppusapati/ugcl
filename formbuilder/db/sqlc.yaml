@@ -214,3 +214,35 @@ sql:
             go_type:
               import: "encoding/json"
               type: "RawMessage"
+          - column: "*.attachment_urls"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.entity_types"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.bottleneck_steps"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.top_approvers"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "*.acted_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.start_date"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "*.end_date"
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+          - column: "*.report_date"
+            go_type:
+              import: "time"
+              type: "Time"

@@ -4,6 +4,8 @@ import (
 	pb "p9e.in/ugcl/identity/user/api/v2/permission"
 	sqlc "p9e.in/ugcl/identity/user/db/sqlc/generated"
 	"p9e.in/ugcl/identity/user/models"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func PermissionProtoToModel(pb *pb.Permission) *models.Permission {
@@ -18,14 +20,50 @@ func PermissionProtoToModel(pb *pb.Permission) *models.Permission {
 }
 
 func PermissionModelToProto(m *models.Permission) *pb.Permission {
-	return &pb.Permission{
+	if m == nil {
+		return nil
+	}
+
+	perm := &pb.Permission{
 		Namespace: m.Namespace,
 		Resource:  m.Resource,
 		Action:    m.Action,
 		Subject:   m.Subject,
 		TenantId:  m.TenantID,
 		Effect:    pb.Effect(m.Effect),
+		DefName:   m.DefName,
 	}
+
+	// Add organizational scope if present
+	if m.DivisionID != nil && *m.DivisionID != "" {
+		perm.DivisionId = wrapperspb.String(*m.DivisionID)
+	}
+	if m.BranchID != nil && *m.BranchID != "" {
+		perm.BranchId = wrapperspb.String(*m.BranchID)
+	}
+	if m.DepartmentID != nil && *m.DepartmentID != "" {
+		perm.DepartmentId = wrapperspb.String(*m.DepartmentID)
+	}
+
+	// Add resource instance if present
+	if m.ResourceID != nil && *m.ResourceID != "" {
+		perm.ResourceId = wrapperspb.String(*m.ResourceID)
+	}
+
+	// Add temporal constraints if present
+	if m.ValidFrom != nil {
+		perm.ValidFrom = timestamppb.New(*m.ValidFrom)
+	}
+	if m.ValidUntil != nil {
+		perm.ValidUntil = timestamppb.New(*m.ValidUntil)
+	}
+
+	// Add inheritance flag
+	if m.AllowInheritance != nil {
+		perm.AllowInheritance = *m.AllowInheritance
+	}
+
+	return perm
 }
 
 func PermissionModelToSQLC(m *models.Permission) sqlc.Permission {

@@ -10,33 +10,23 @@ import (
 	"p9e.in/ugcl/vendors/services"
 )
 
-// Module bundles all Contractor dependencies
+// Module bundles all Vendor dependencies
 var Module = fx.Module("vendors",
 	fx.Provide(
-		NewContractorQueries,
-		// func(pool *pgxpool.Pool) *db.Queries {
-		// 	return db.New(pool)
-		// },
+		NewVendorQueries,
 		fx.Annotate(
-			repository.NewContractorRepository,
-			fx.As(new(repository.IContractorRepository)),
+			repository.NewVendorRepository,
+			fx.As(new(repository.IVendorRepository)),
 		),
-		// fx.Annotate(
-		// 	uservice.NewUserService, // 👈 constructor for IUserService
-		// 	fx.As(new(uservice.IUserService)),
-		// ),
 		fx.Annotate(
-			services.NewContractorService,
-			fx.As(new(services.IContractorService)),
+			services.NewVendorService,
+			fx.As(new(services.IVendorService)),
 		),
-		// fx.Annotate(
-		// handlers.NewContractorHandler,
-		handlers.NewContractorHandler, // optional interface
-		// ),
+		handlers.NewVendorHandler,
 	),
 )
 
-// NewContractorQueries creates contractor queries using the database manager
-func NewContractorQueries(dbManager *sqlc.DatabaseManager) *db.Queries {
-	return dbManager.GetContractorQueries()
+// NewVendorQueries creates vendor queries using the database manager
+func NewVendorQueries(dbManager *sqlc.DatabaseManager) *db.Queries {
+	return dbManager.GetVendorQueries()
 }

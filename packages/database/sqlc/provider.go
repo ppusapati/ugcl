@@ -8,6 +8,7 @@ import (
 	conf "p9e.in/ugcl/packages/api/v1/config"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	employeeDB "p9e.in/ugcl/employee/db/generated"
 	formInstanceDb "p9e.in/ugcl/formbuilder/db/generated"
 	formbuilderDb "p9e.in/ugcl/formbuilder/db/generated"
 	workflowDb "p9e.in/ugcl/formbuilder/db/generated"
@@ -15,6 +16,7 @@ import (
 	userDB "p9e.in/ugcl/identity/user/db/sqlc/generated"
 	"p9e.in/ugcl/identity/user/uow"
 	notificationDB "p9e.in/ugcl/notification/db/generated"
+	organizationDB "p9e.in/ugcl/organization/db/generated"
 	dairySiteDB "p9e.in/ugcl/projects/db/generated"
 	contractorDB "p9e.in/ugcl/vendors/db/generated"
 )
@@ -98,4 +100,13 @@ func (m *DatabaseManager) ExecRaw(ctx context.Context, query string, args ...int
 
 func (m *DatabaseManager) GetNotificationQueries() *notificationDB.Queries {
 	return notificationDB.New(m.Pool)
+}
+
+func (m *DatabaseManager) GetOrganizationQueries() *organizationDB.Queries {
+	return organizationDB.New(m.Pool)
+}
+
+// GetEmployeeQueries returns a new instance of employee queries
+func (m *DatabaseManager) GetEmployeeQueries() *employeeDB.Queries {
+	return employeeDB.New(m.Pool)
 }

@@ -85,3 +85,37 @@ type IAnalyticsService interface {
 	GetRecentActivity(ctx context.Context, since time.Time, page, pageSize int32) ([]*ActivityEntry, error)
 	GetDashboardMetrics(ctx context.Context, userID string) (*DashboardMetrics, error)
 }
+
+// IApprovalService defines approval workflow service interface
+type IApprovalService interface {
+	// Approval process management
+	StartApprovalProcess(ctx context.Context, req *StartApprovalRequest) (*db.FormInstance, error)
+	ProcessApprovalAction(ctx context.Context, req *ProcessApprovalActionRequest) (*db.ApprovalAction, *db.FormInstance, error)
+
+	// Approval actions
+	CreateApprovalAction(ctx context.Context, action *CreateApprovalActionRequest) (*db.ApprovalAction, error)
+	GetApprovalActionsByInstance(ctx context.Context, instanceID uuid.UUID) ([]*db.ApprovalAction, error)
+	GetApprovalActionsByApprover(ctx context.Context, approverID string, limit, offset int32) ([]*db.ApprovalAction, error)
+
+	// Delegation management
+	CreateDelegate(ctx context.Context, delegate *CreateDelegateRequest) (*db.ApprovalDelegate, error)
+	UpdateDelegate(ctx context.Context, delegateID uuid.UUID, req *UpdateDelegateRequest) (*db.ApprovalDelegate, error)
+	DeleteDelegate(ctx context.Context, delegateID uuid.UUID) error
+	GetDelegatesByDelegator(ctx context.Context, delegatorID string) ([]*db.ApprovalDelegate, error)
+	GetDelegatesByDelegate(ctx context.Context, delegateID string) ([]*db.ApprovalDelegate, error)
+	GetActiveDelegation(ctx context.Context, delegatorID, entityType string) (*db.ApprovalDelegate, error)
+
+	// Pending approvals and workload
+	GetPendingApprovalsForUser(ctx context.Context, userID string, limit, offset int32) ([]*PendingApprovalWithForm, error)
+	GetApprovalHistory(ctx context.Context, instanceID uuid.UUID) ([]*ApprovalHistoryEntry, error)
+
+	// Metrics and reporting
+	GetApprovalMetrics(ctx context.Context, req *ApprovalMetricsRequest) (*ApprovalMetrics, error)
+	CreateApprovalReport(ctx context.Context, report *CreateApprovalReportRequest) (*db.ApprovalReport, error)
+	GetApprovalReportsByWorkflow(ctx context.Context, workflowID uuid.UUID, startDate, endDate *time.Time) ([]*db.ApprovalReport, error)
+	GetApprovalReportsByEntityType(ctx context.Context, entityType string, startDate, endDate *time.Time) ([]*db.ApprovalReport, error)
+
+	// Escalation management
+	GetEscalatedInstances(ctx context.Context, limit, offset int32) ([]*FormInstanceWithTitle, error)
+	ProcessEscalations(ctx context.Context) (int32, []string, error)
+}

@@ -8,7 +8,7 @@ sql:
         package: "db"
         out: "./generated"
         sql_package: "pgx/v5"
-        
+
         # Essential settings
         emit_json_tags: true
         emit_db_tags: true
@@ -18,14 +18,14 @@ sql:
         emit_empty_slices: true
         emit_pointers_for_null_types: true
         emit_methods_with_db_argument: false
-        
+
         output_models_file_name: "models.go"     # Default: models.go
         output_querier_file_name: "querier.go"   # Default: querier.go
         output_copyfrom_file_name: "copyfrom.go" # Default: copyfrom.go
-        
+
         # Alternative: Use single file output
         # output_file_name: "sqlc_gen.go"     # Put everything in one file
-        
+
         # Control struct/interface naming
         query_parameter_limit: 0              # Use struct for >5 params
 

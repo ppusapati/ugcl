@@ -9,19 +9,22 @@ import (
 )
 
 type Querier interface {
-	CountContractors(ctx context.Context, column1 string, column2 string, column3 string, column4 []string, column5 []string) (int64, error)
+	CountVendors(ctx context.Context, arg CountVendorsParams) (int64, error)
 	// queries.sql
-	CreateContractor(ctx context.Context, arg CreateContractorParams) (Contractor, error)
-	DeleteContractor(ctx context.Context, id string) error
-	GetContractorByGST(ctx context.Context, gst *string) (Contractor, error)
-	GetContractorByID(ctx context.Context, id string) (Contractor, error)
-	GetContractorByPAN(ctx context.Context, pan *string) (Contractor, error)
-	GetContractorByPersonID(ctx context.Context, personID string) (Contractor, error)
-	ListContractors(ctx context.Context, arg ListContractorsParams) ([]Contractor, error)
-	ListContractorsByProject(ctx context.Context, associatedProject []string) ([]Contractor, error)
-	ListContractorsBySite(ctx context.Context, workingSite []string) ([]Contractor, error)
-	UpdateContractor(ctx context.Context, arg UpdateContractorParams) (Contractor, error)
-	UpdateContractorPersonID(ctx context.Context, iD string, personID string) (Contractor, error)
+	CreateVendor(ctx context.Context, arg CreateVendorParams) (Vendor, error)
+	DeleteVendor(ctx context.Context, arg DeleteVendorParams) error
+	GetVendorByGST(ctx context.Context, arg GetVendorByGSTParams) (Vendor, error)
+	GetVendorByID(ctx context.Context, arg GetVendorByIDParams) (Vendor, error)
+	GetVendorByPAN(ctx context.Context, arg GetVendorByPANParams) (Vendor, error)
+	GetVendorByPersonID(ctx context.Context, arg GetVendorByPersonIDParams) (Vendor, error)
+	GetVendorByUUID(ctx context.Context, arg GetVendorByUUIDParams) (Vendor, error)
+	ListBlacklistedVendors(ctx context.Context) ([]Vendor, error)
+	ListVendors(ctx context.Context, arg ListVendorsParams) ([]Vendor, error)
+	ListVendorsByCategory(ctx context.Context, arg ListVendorsByCategoryParams) ([]Vendor, error)
+	ListVendorsByContract(ctx context.Context, arg ListVendorsByContractParams) ([]Vendor, error)
+	ListVendorsByPurchaseOrder(ctx context.Context, arg ListVendorsByPurchaseOrderParams) ([]Vendor, error)
+	UpdateVendor(ctx context.Context, arg UpdateVendorParams) (Vendor, error)
+	UpdateVendorPersonID(ctx context.Context, arg UpdateVendorPersonIDParams) (Vendor, error)
 }
 
 var _ Querier = (*Queries)(nil)

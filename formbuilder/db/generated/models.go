@@ -37,6 +37,54 @@ type ActiveSlaInstance struct {
 	HoursOverdue      int32           `json:"hours_overdue"`
 }
 
+type ApprovalAction struct {
+	ID             uuid.UUID       `json:"id"`
+	FormInstanceID pgtype.UUID     `json:"form_instance_id"`
+	ApproverID     string          `json:"approver_id"`
+	Action         string          `json:"action"`
+	Comments       *string         `json:"comments"`
+	ActedAt        time.Time       `json:"acted_at"`
+	IpAddress      *netip.Addr     `json:"ip_address"`
+	UserAgent      *string         `json:"user_agent"`
+	DelegatedFrom  *string         `json:"delegated_from"`
+	AttachmentUrls json.RawMessage `json:"attachment_urls"`
+	Metadata       json.RawMessage `json:"metadata"`
+	CreatedAt      time.Time       `json:"created_at"`
+}
+
+type ApprovalDelegate struct {
+	ID          uuid.UUID       `json:"id"`
+	DelegatorID string          `json:"delegator_id"`
+	DelegateID  string          `json:"delegate_id"`
+	EntityTypes json.RawMessage `json:"entity_types"`
+	StartDate   time.Time       `json:"start_date"`
+	EndDate     sql.NullTime    `json:"end_date"`
+	IsActive    *bool           `json:"is_active"`
+	Reason      *string         `json:"reason"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	Metadata    json.RawMessage `json:"metadata"`
+}
+
+type ApprovalReport struct {
+	ID                uuid.UUID       `json:"id"`
+	WorkflowID        uuid.NullUUID   `json:"workflow_id"`
+	EntityType        *string         `json:"entity_type"`
+	ReportDate        time.Time       `json:"report_date"`
+	TotalRequests     *int32          `json:"total_requests"`
+	ApprovedCount     *int32          `json:"approved_count"`
+	RejectedCount     *int32          `json:"rejected_count"`
+	PendingCount      *int32          `json:"pending_count"`
+	EscalatedCount    *int32          `json:"escalated_count"`
+	AvgProcessingTime pgtype.Interval `json:"avg_processing_time"`
+	SlaBreachCount    *int32          `json:"sla_breach_count"`
+	SlaComplianceRate pgtype.Numeric  `json:"sla_compliance_rate"`
+	BottleneckSteps   json.RawMessage `json:"bottleneck_steps"`
+	TopApprovers      json.RawMessage `json:"top_approvers"`
+	CreatedAt         time.Time       `json:"created_at"`
+	Metadata          json.RawMessage `json:"metadata"`
+}
+
 type Attachment struct {
 	ID          uuid.UUID `json:"id"`
 	InstanceID  uuid.UUID `json:"instance_id"`

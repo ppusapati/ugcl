@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package vendors.api.v2.vendor;
+option go_package = "p9e.in/ugcl/vendors/api/v2/vendor;vendor";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+import "identity/user/proto/user.proto";
+
+service VendorService {
+  rpc CreateVendor(CreateVendorRequest) returns (Vendor) {}
+
+  rpc UpdateVendor(UpdateVendorRequest) returns (Vendor) {}
+
+  rpc GetVendor(VendorIdentifier) returns (Vendor) {}
+
+  rpc ListVendors(ListVendorsRequest) returns (ListVendorsResponse) {}
+
+  rpc DeleteVendor(VendorIdentifier) returns (google.protobuf.Empty) {}
+
+  rpc GetVendorByUserId(UserIdentifier) returns (Vendor) {}
+
+  rpc GetVendorsByCategory(CategoryIdentifier) returns (ListVendorsResponse) {}
+}
+
+message Vendor {
+  string id = 1;
+  string company_name = 2;
+  string company_type = 3;
+  string gst = 4;
+  string pan = 5;
+  string vendor_category = 6; // RAW_MATERIAL, EQUIPMENT, SERVICES, CONSUMABLES
+  string person_id = 7; // user id of the person who is the contact person
+  string payment_terms = 8;
+  int32 credit_period_days = 9;
+  string bank_name = 10;
+  string account_number = 11;
+  string ifsc = 12;
+  int32 rating = 13; // 1-5 stars
+  bool is_blacklisted = 14;
+  repeated string contracts = 15; // array of contract IDs
+  repeated string purchase_orders = 16; // array of PO IDs
+  string status = 17; // ACTIVE, INACTIVE, SUSPENDED, BLACKLISTED
+  google.protobuf.Struct metadata = 18;
+  google.protobuf.Timestamp created_at = 19;
+  google.protobuf.Timestamp updated_at = 20;
+}
+
+message CreateVendorRequest {
+  Vendor vendor = 1;
+  identity.user.api.v2.user.User user = 2;
+}
+
+message UpdateVendorRequest {
+  Vendor vendor = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message VendorIdentifier {
+  string id = 1;
+}
+
+message UserIdentifier {
+  string user_id = 1;
+}
+
+message CategoryIdentifier {
+  string category = 1;
+}
+
+message ListVendorsRequest {
+  int32 page_size = 1;
+  int32 page_offset = 2;
+  VendorFilter filter = 3;
+  repeated string sort = 4;
+}
+
+message ListVendorsResponse {
+  repeated Vendor vendors = 1;
+  int32 total_count = 2;
+}
+
+message VendorFilter {
+  string company_name = 1;
+  string vendor_category = 2;
+  string status = 3;
+  int32 min_rating = 4;
+  int32 max_rating = 5;
+  bool is_blacklisted = 6;
+}

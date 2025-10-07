@@ -16,6 +16,9 @@ import (
 	pservices "p9e.in/ugcl/masters/pipeline/services"
 	"p9e.in/ugcl/monitoring"
 	"p9e.in/ugcl/notification"
+	"p9e.in/ugcl/organization"
+	entity "p9e.in/ugcl/identity/entity"
+	"p9e.in/ugcl/dms"
 
 	migrations "p9e.in/ugcl/migrations" // commented out for dev
 	conf "p9e.in/ugcl/packages/api/v1/config"
@@ -98,6 +101,8 @@ func (b *ApplicationBuilder) addAllServices() fx.Option {
 		// b.addUtilityServices(),
 		b.addFormBuilderServices(),
 		b.addNotificationServices(),
+		b.addOrganizationServices(),
+		b.addDMSServices(),
 	)
 }
 
@@ -129,6 +134,7 @@ func (b *ApplicationBuilder) addIdentityServices() fx.Option {
 		user.UserModule,
 		tenant.TenantModule,
 		auth.AuthModule,
+		entity.Module,
 	)
 }
 
@@ -158,6 +164,20 @@ func (b *ApplicationBuilder) addNotificationServices() fx.Option {
 	return fx.Module("notification-services",
 		// Notification service
 		notification.Module,
+	)
+}
+
+func (b *ApplicationBuilder) addOrganizationServices() fx.Option {
+	return fx.Module("organization-services",
+		// Organization service
+		organization.Module,
+	)
+}
+
+func (b *ApplicationBuilder) addDMSServices() fx.Option {
+	return fx.Module("dms-services",
+		// Document Management System service
+		dms.ModuleSQLC,
 	)
 }
 

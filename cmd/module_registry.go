@@ -33,10 +33,18 @@ import (
 	vhandlers "p9e.in/ugcl/vendors/handlers"
 
 	// Search and Document services
-	"p9e.in/ugcl/searchservice/api/proto/searchserviceconnect"
-	searchhandlers "p9e.in/ugcl/searchservice/handlers"
-	"p9e.in/ugcl/documentviewer/api/proto/documentviewerconnect"
-	dochandlers "p9e.in/ugcl/documentviewer/handlers"
+	"p9e.in/ugcl/dms/api/v1/dmsv1connect"
+	dmshandlers "p9e.in/ugcl/dms/handlers"
+	"p9e.in/ugcl/metasearch/api/proto/searchserviceconnect"
+	searchhandlers "p9e.in/ugcl/metasearch/handlers"
+
+	// Organization service
+	"p9e.in/ugcl/organization/api/v1/organization/organizationconnect"
+	orghandlers "p9e.in/ugcl/organization/handlers"
+
+	// Entity service
+	"p9e.in/ugcl/identity/entity/api/v1/entityv1connect"
+	entityhandlers "p9e.in/ugcl/identity/entity/handlers"
 )
 
 // ServiceRegistry manages all service registrations with DI
@@ -60,9 +68,11 @@ type RegisterAllServicesParams struct {
 	FormBuilderHandler  *fbhandlers.FormBuilderHandler  `optional:"true"`
 	FormInstanceHandler *fbhandlers.FormInstanceHandler `optional:"true"`
 	WorkflowHandler     *fbhandlers.WorkflowHandler     `optional:"true"`
-	NotificationHandler *nhandlers.NotificationHandler  `optional:"true"`
-	SearchHandler       *searchhandlers.SearchHandler   `optional:"true"`
-	DocumentHandler     *dochandlers.DocumentHandler    `optional:"true"`
+	NotificationHandler   *nhandlers.NotificationHandler  `optional:"true"`
+	SearchHandler         *searchhandlers.SearchHandler   `optional:"true"`
+	DMSHandler            dmshandlers.DMSServiceHandler    `optional:"true"`
+	OrganizationHandler   orghandlers.OrganizationServiceHandler `optional:"true"`
+	EntityHandler         entityhandlers.EntityServiceHandler `optional:"true"`
 }
 
 // RegisterAllServices registers all services with the HTTP mux using Fx DI
@@ -116,8 +126,16 @@ func RegisterAllServices(params RegisterAllServicesParams) {
 		registry.registerSearchService(params.SearchHandler)
 	}
 
-	if params.DocumentHandler != nil {
-		registry.registerDocumentService(params.DocumentHandler)
+	if params.DMSHandler != nil {
+		registry.registerDMSService(params.DMSHandler)
+	}
+
+	if params.OrganizationHandler != nil {
+		registry.registerOrganizationService(params.OrganizationHandler)
+	}
+
+	if params.EntityHandler != nil {
+		registry.registerEntityService(params.EntityHandler)
 	}
 
 	// Always register health checks and reflection (no auth required)
@@ -251,20 +269,55 @@ func (r *ServiceRegistry) registerSearchService(searchHandler *searchhandlers.Se
 }
 
 // Register document viewer service
-func (r *ServiceRegistry) registerDocumentService(documentHandler *dochandlers.DocumentHandler) {
-	// Document Service - accessible to all authenticated users with document permissions
-	documentOptions := append(r.getCommonConnectOptions(),
+// Register DMS service
+func (r *ServiceRegistry) registerDMSService(dmsHandler dmshandlers.DMSServiceHandler) {
+	// DMS Service - accessible to all authenticated users with document permissions
+	dmsOptions := append(r.getCommonConnectOptions(),
 		connect.WithInterceptors(
 			// Allow authenticated users to access documents based on permissions
 			r.authService.RequireApp([]string{"WebApp", "MobileApp", "InternalOps"}),
 		),
 	)
 
-	documentPath, documentServiceHandler := documentviewerconnect.NewDocumentViewerServiceHandler(
-		documentHandler, documentOptions...,
+	dmsPath, dmsServiceHandler := dmsv1connect.NewDMSServiceHandler(
+		dmsHandler, dmsOptions...,
 	)
-	r.mux.Handle(documentPath, documentServiceHandler)
-	r.services = append(r.services, "Document: "+documentPath+" (Any authenticated user with document permissions)")
+	r.mux.Handle(dmsPath, dmsServiceHandler)
+	r.services = append(r.services, "DMS: "+dmsPath+" (Any authenticated user with document permissions)")
+}
+
+// Register organization service
+func (r *ServiceRegistry) registerOrganizationService(organizationHandler orghandlers.OrganizationServiceHandler) {
+	// Organization Service - requires admin or manager role for write operations
+	organizationOptions := append(r.getCommonConnectOptions(),
+		connect.WithInterceptors(
+			r.authService.RequireRole([]string{"admin", "manager", "Super Admin", "super_admin"}),
+			r.authService.RequireApp([]string{"WebApp", "InternalOps"}),
+		),
+	)
+
+	organizationPath, organizationServiceHandler := organizationconnect.NewOrganizationServiceHandler(
+		organizationHandler, organizationOptions...,
+	)
+	r.mux.Handle(organizationPath, organizationServiceHandler)
+	r.services = append(r.services, "Organization: "+organizationPath+" (Admin/Manager role OR WebApp/InternalOps app)")
+}
+
+// Register entity service
+func (r *ServiceRegistry) registerEntityService(entityHandler entityhandlers.EntityServiceHandler) {
+	// Entity Service - requires admin or super admin role for entity management
+	entityOptions := append(r.getCommonConnectOptions(),
+		connect.WithInterceptors(
+			r.authService.RequireRole([]string{"admin", "Super Admin", "super_admin"}),
+			r.authService.RequireApp([]string{"WebApp", "InternalOps"}),
+		),
+	)
+
+	entityPath, entityServiceHandler := entityv1connect.NewEntityServiceHandler(
+		entityHandler, entityOptions...,
+	)
+	r.mux.Handle(entityPath, entityServiceHandler)
+	r.services = append(r.services, "Entity: "+entityPath+" (Admin/Super Admin role OR WebApp/InternalOps app)")
 }
 
 // Register vendor services

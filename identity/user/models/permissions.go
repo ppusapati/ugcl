@@ -19,7 +19,23 @@ type Permission struct {
 	Subject   string    `db:"subject"`
 	Effect    Effect    `db:"effect"`
 	TenantID  string    `db:"tenant_id"`
+	DefName   string    `db:"def_name"` // Link to permission definition
 	Granted   bool      `db:"granted"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+
+	// Enhanced fields for organizational scope
+	DivisionID   *string `db:"division_id"`
+	BranchID     *string `db:"branch_id"`
+	DepartmentID *string `db:"department_id"`
+
+	// Resource instance scoping
+	ResourceID *string `db:"resource_id"`
+
+	// Temporal constraints
+	ValidFrom *time.Time `db:"valid_from"`
+	ValidUntil *time.Time `db:"valid_until"`
+
+	// Inheritance control
+	AllowInheritance *bool `db:"allow_inheritance"`
 }

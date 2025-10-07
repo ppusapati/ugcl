@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package insighthub.v1;
+package insighthub.api.v1.insighthub;
 
-option go_package = "p9e.in/ugcl/insighthub/api/proto;insighthubv1";
+option go_package = "p9e.in/ugcl/insighthub/api/v1/insighthub;insighthub";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";

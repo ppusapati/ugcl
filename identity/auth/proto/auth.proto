@@ -144,6 +144,31 @@ message UserSession {
   bool two_factor_enabled = 10;
   bool two_factor_verified = 11;
   optional google.protobuf.Timestamp last_login = 12;
+
+  // Entity and organizational context (enhanced)
+  optional string entity_id = 13;              // Links to entity.Entity
+  optional string entity_type = 14;            // EMPLOYEE, CONTRACTOR, etc.
+  optional string division_id = 15;            // Current division context
+  optional string branch_id = 16;              // Current branch context
+  optional string department_id = 17;          // Current department context
+  optional string division_name = 18;
+  optional string branch_name = 19;
+  optional string department_name = 20;
+
+  // Enhanced role information with organizational scope
+  repeated EntityRoleInfo entity_roles = 21;
+}
+
+// Entity role information with organizational scope
+message EntityRoleInfo {
+  string role_id = 1;
+  string role_name = 2;
+  optional string division_id = 3;
+  optional string branch_id = 4;
+  optional string department_id = 5;
+  optional google.protobuf.Timestamp valid_from = 6;
+  optional google.protobuf.Timestamp valid_until = 7;
+  bool is_active = 8;
 }
 
 message Session {

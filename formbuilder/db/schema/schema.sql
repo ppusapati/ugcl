@@ -209,5 +209,92 @@ ALTER TABLE form_instances ADD CONSTRAINT chk_instances_current_state_not_empty
 ALTER TABLE audit_logs ADD CONSTRAINT chk_audit_action_not_empty 
     CHECK (length(trim(action)) > 0);
 
-ALTER TABLE attachments ADD CONSTRAINT chk_attachments_filename_not_empty 
+ALTER TABLE attachments ADD CONSTRAINT chk_attachments_filename_not_empty
     CHECK (length(trim(filename)) > 0);
+
+-- =============================================================================
+-- Approval-specific extensions to formbuilder
+-- =============================================================================
+
+-- Approval actions table - tracks approval decisions
+CREATE TABLE approval_actions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    form_instance_id UUID NOT NULL REFERENCES form_instances(id) ON DELETE CASCADE,
+    approver_id VARCHAR(255) NOT NULL,
+    action VARCHAR(50) NOT NULL CHECK (action IN ('APPROVE', 'REJECT', 'DELEGATE', 'REQUEST_INFO', 'WITHDRAW', 'REASSIGN')),
+    comments TEXT,
+    acted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    ip_address INET,
+    user_agent TEXT,
+    delegated_from VARCHAR(255),
+    attachment_urls JSONB DEFAULT '[]'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Approval delegates table - manages delegation relationships
+CREATE TABLE approval_delegates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    delegator_id VARCHAR(255) NOT NULL,
+    delegate_id VARCHAR(255) NOT NULL,
+    entity_types JSONB DEFAULT '[]'::jsonb, -- What can be delegated (form types)
+    start_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    end_date TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- Approval metrics table - for reporting and analytics
+CREATE TABLE approval_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workflow_id UUID REFERENCES workflows(id) ON DELETE CASCADE,
+    entity_type VARCHAR(255), -- form type
+    report_date DATE NOT NULL,
+    total_requests INTEGER DEFAULT 0,
+    approved_count INTEGER DEFAULT 0,
+    rejected_count INTEGER DEFAULT 0,
+    pending_count INTEGER DEFAULT 0,
+    escalated_count INTEGER DEFAULT 0,
+    avg_processing_time INTERVAL,
+    sla_breach_count INTEGER DEFAULT 0,
+    sla_compliance_rate DECIMAL(5,2),
+    bottleneck_steps JSONB DEFAULT '[]'::jsonb,
+    top_approvers JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- =============================================================================
+-- Approval-specific indexes
+-- =============================================================================
+CREATE INDEX idx_approval_actions_form_instance_id ON approval_actions(form_instance_id);
+CREATE INDEX idx_approval_actions_approver_id ON approval_actions(approver_id);
+CREATE INDEX idx_approval_actions_action ON approval_actions(action);
+CREATE INDEX idx_approval_actions_acted_at ON approval_actions(acted_at);
+
+CREATE INDEX idx_approval_delegates_delegator_id ON approval_delegates(delegator_id);
+CREATE INDEX idx_approval_delegates_delegate_id ON approval_delegates(delegate_id);
+CREATE INDEX idx_approval_delegates_active ON approval_delegates(is_active);
+CREATE INDEX idx_approval_delegates_date_range ON approval_delegates(start_date, end_date);
+
+CREATE INDEX idx_approval_reports_workflow_id ON approval_reports(workflow_id);
+CREATE INDEX idx_approval_reports_entity_type ON approval_reports(entity_type);
+CREATE INDEX idx_approval_reports_report_date ON approval_reports(report_date);
+
+-- =============================================================================
+-- Approval-specific constraints
+-- =============================================================================
+ALTER TABLE approval_actions ADD CONSTRAINT chk_approval_actions_approver_not_empty
+    CHECK (length(trim(approver_id)) > 0);
+
+ALTER TABLE approval_delegates ADD CONSTRAINT chk_approval_delegates_delegator_not_empty
+    CHECK (length(trim(delegator_id)) > 0);
+
+ALTER TABLE approval_delegates ADD CONSTRAINT chk_approval_delegates_delegate_not_empty
+    CHECK (length(trim(delegate_id)) > 0);
+
+ALTER TABLE approval_delegates ADD CONSTRAINT chk_approval_delegates_date_range
+    CHECK (end_date IS NULL OR end_date > start_date);

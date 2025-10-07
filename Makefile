@@ -22,15 +22,17 @@ sqlc-generate-all:
 	cd identity/user/db/sqlc && sqlc generate
 	cd identity/tenant/db && sqlc generate
 	cd identity/auth/db && sqlc generate
+	cd identity/entity/db && sqlc generate
 	cd contractor/db && sqlc generate
 	cd finance/db && sqlc generate
 	cd formbuilder/db && sqlc generate
 	cd notification/db && sqlc generate
+	cd organization/db && sqlc generate
 	cd core/database && sqlc generate
 	cd projects/db && sqlc generate
 	cd databridge/db && sqlc generate
 	cd masters/db && sqlc generate
-	cd searchservice/db && sqlc generate
+	cd metasearch/db && sqlc generate
 	cd documentviewer/db && sqlc generate
 	cd approvalworkflow/db && sqlc generate
 	cd dataarchive/db && sqlc generate
@@ -44,6 +46,14 @@ sqlc-vendors:
 .PHONY: sqlc-user
 sqlc-user:
 	cd identity/user/db/sqlc && sqlc generate
+
+.PHONY: sqlc-contractor
+sqlc-contractor:
+	cd contractor/db && sqlc generate
+
+.PHONY: sqlc-entity
+sqlc-entity:
+	cd identity/entity/db && sqlc generate 
 
 .PHONY: sqlc-tenant
 sqlc-tenant:
@@ -69,6 +79,10 @@ sqlc-formbuilder:
 sqlc-notification:
 	cd notification/db && sqlc generate
 
+.PHONY: sqlc-organization
+sqlc-organization:
+	cd organization/db && sqlc generate
+
 .PHONY: sqlc-core
 sqlc-core:
 	cd core/database && sqlc generate
@@ -81,9 +95,9 @@ sqlc-databridge:
 sqlc-masters:
 	cd masters/db && sqlc generate
 
-.PHONY: sqlc-searchservice
-sqlc-searchservice:
-	cd searchservice/db && sqlc generate
+.PHONY: sqlc-metasearch
+sqlc-metasearch:
+	cd metasearch/db && sqlc generate
 
 .PHONY: sqlc-documentviewer
 sqlc-documentviewer:
@@ -112,8 +126,11 @@ sqlc-verify-all:
 	cd identity/user/db/sqlc && sqlc verify
 	cd identity/tenant/db && sqlc verify
 	cd identity/auth/db && sqlc verify
+	cd identity/entity/db && sqlc verify
+	cd vendors/db && sqlc verify
 	cd projects/db && sqlc verify
 	cd databridge/db && sqlc verify
+	cd masters/db && sqlc verify
 
 # Combined generation
 .PHONY: generate-all
@@ -216,3 +233,74 @@ migrate-lint:
 migrate-full: migrate-aggregate migrate-validate
 	@echo "Full migration workflow completed!"
 	@echo "If this is a new setup, run: make migrate-generate NAME=initial_schema"
+# API Documentation Generation
+.PHONY: docs docs-api docs-clean docs-serve
+
+# Generate API documentation from all proto files
+docs-api:
+	@echo "Generating API documentation from proto files..."
+	@mkdir -p docs/api
+	@echo "Generating organization documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,organization.html organization/proto/*.proto packages/proto/*.proto
+	@echo "Generating DMS documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,dms.html dms/proto/*.proto packages/proto/*.proto
+	@echo "Generating identity/entity documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,entity.html identity/entity/proto/*.proto packages/proto/*.proto
+	@echo "Generating identity/user documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,user.html identity/user/proto/*.proto packages/proto/*.proto
+	@echo "Generating identity/auth documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,auth.html identity/auth/proto/*.proto packages/proto/*.proto
+	@echo "Generating identity/tenant documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,tenant.html identity/tenant/proto/*.proto packages/proto/*.proto
+	@echo "Generating employee documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,employee.html employee/proto/*.proto packages/proto/*.proto
+	@echo "Generating contractors documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,contractors.html contractors/proto/*.proto packages/proto/*.proto
+	@echo "Generating vendors documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,vendors.html vendors/proto/*.proto packages/proto/*.proto
+	@echo "Generating formbuilder documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,formbuilder.html formbuilder/proto/*.proto packages/proto/*.proto
+	@echo "Generating backupdr documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,backupdr.html backupdr/proto/*.proto packages/proto/*.proto
+	@echo "Generating dataarchive documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,dataarchive.html dataarchive/proto/*.proto packages/proto/*.proto
+	@echo "Generating scheduler documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,scheduler.html scheduler/proto/*.proto packages/proto/*.proto
+	@echo "Generating insighthub documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,insighthub.html insighthub/proto/*.proto packages/proto/*.proto
+	@echo "Generating insightviewer documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,insightviewer.html insightviewer/proto/*.proto packages/proto/*.proto
+	@echo "Generating metasearch documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,metasearch.html metasearch/proto/*.proto packages/proto/*.proto
+	@echo "Generating projects documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,projects.html projects/protos/*.proto packages/proto/*.proto
+	@echo "Generating masters documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,masters.html masters/proto/*.proto packages/proto/*.proto
+	@echo "Generating masters/pipeline documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,pipeline.html masters/pipeline/proto/*.proto packages/proto/*.proto
+	@echo "Generating notification documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,notification.html notification/proto/*.proto packages/proto/*.proto
+	@echo "Generating databridge documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,databridge.html databridge/proto/*.proto packages/proto/*.proto
+	@echo "Generating core documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,core.html core/proto/*.proto packages/proto/*.proto
+	@echo "Generating packages documentation..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,packages.html packages/proto/*.proto
+	@echo "Generating API index..."
+	@protoc --proto_path=. --doc_out=docs/api --doc_opt=html,index.html organization/proto/*.proto dms/proto/*.proto identity/entity/proto/*.proto identity/user/proto/*.proto identity/auth/proto/*.proto identity/tenant/proto/*.proto employee/proto/*.proto contractors/proto/*.proto vendors/proto/*.proto formbuilder/proto/*.proto packages/proto/*.proto
+	@echo "API documentation generated successfully in docs/api/"
+
+# Generate all documentation
+docs: docs-api
+	@echo "All documentation generated successfully!"
+
+# Clean documentation
+docs-clean:
+	@echo "Cleaning documentation..."
+	@rm -rf docs/api/*.html
+	@echo "Documentation cleaned!"
+
+# Serve documentation locally (requires python)
+docs-serve:
+	@echo "Serving documentation at http://localhost:8000/docs/api/"
+	@cd docs/api && python -m http.server 8000

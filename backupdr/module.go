@@ -9,18 +9,19 @@ import (
 
 // Module provides the backup and disaster recovery module for dependency injection
 var Module = fx.Module("backupdr",
-	// Repository layer
 	fx.Provide(
-		repository.NewBackupRepository,
-		repository.NewDisasterRecoveryRepository,
-	),
+		// Repository layer
+		fx.Annotate(
+			repository.NewBackupDRRepository,
+			fx.As(new(repository.IBackupDRRepository)),
+		),
 
-	// Service layer
-	fx.Provide(
+		// Service layer
 		services.NewBackupOrchestrator,
-		services.NewDisasterRecoveryManager,
-		services.NewSystemHealthMonitor,
-		services.NewStorageManager,
+		// TODO: Add other services when implemented:
+		// services.NewDisasterRecoveryManager,
+		// services.NewSystemHealthMonitor,
+		// services.NewStorageManager,
 	),
 
 	// Optional: Handlers (if gRPC/HTTP handlers are needed)

@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	go.uber.org/fx v1.24.0
 	google.golang.org/protobuf v1.36.7
 )

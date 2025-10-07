@@ -5,21 +5,29 @@ import (
 	"fmt"
 
 	"p9e.in/ugcl/identity/user/helper"
+	"p9e.in/ugcl/identity/user/mappers"
 	"p9e.in/ugcl/identity/user/models"
 	"p9e.in/ugcl/identity/user/uow"
 
+	pb "p9e.in/ugcl/identity/user/api/v2/permission"
 	"github.com/google/uuid"
 )
 
 var _ IPermissionService = (*PermissionService)(nil)
 
 type IPermissionService interface {
+	// Legacy model-based methods (for backward compatibility)
 	GetUserPermissions(ctx context.Context, userID string) ([]*models.Permission, error)
 	CheckPermission(ctx context.Context, userID, namespace, resource, action string) (*models.Effect, error)
 	GrantPermission(ctx context.Context, permission *models.Permission) error
 	RevokePermission(ctx context.Context, userID, namespace, resource, action string) error
 	GetPermissions(ctx context.Context, subject []string) ([]*models.Permission, error)
 	GetRolePermissions(ctx context.Context, uuid uuid.UUID) (*models.Role, []*models.Permission, error)
+
+	// New proto-based methods (enhanced permission system)
+	GetPermissionsProto(ctx context.Context, req *pb.ListPermissionsRequest) (*pb.ListPermissionsResponse, error)
+	ListPermissionsByRole(ctx context.Context, req *pb.RoleIdentifier) (*pb.ListPermissionsResponse, error)
+	ListPermissionsByUser(ctx context.Context, req *pb.UserIdentifier) (*pb.ListPermissionsResponse, error)
 }
 
 type PermissionService struct {
@@ -141,4 +149,82 @@ func (s *PermissionService) checkEnforcement(ctx context.Context, subjectID, nam
 		eff = perm.Effect
 	}
 	return &eff, nil
+}
+
+// Proto-based permission methods
+
+// GetPermissionsProto returns permissions for subjects using proto format
+func (s *PermissionService) GetPermissionsProto(ctx context.Context, req *pb.ListPermissionsRequest) (*pb.ListPermissionsResponse, error) {
+	uow, err := s.factory.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer uow.Rollback(ctx)
+
+	allPerms := []*models.Permission{}
+	for _, subj := range req.Subjects {
+		perms, err := uow.PermissionRepo().GetBySubject(ctx, subj)
+		if err != nil {
+			return nil, err
+		}
+		allPerms = append(allPerms, perms...)
+	}
+
+	// Convert to proto
+	protoPerms := make([]*pb.Permission, len(allPerms))
+	for i, perm := range allPerms {
+		protoPerms[i] = mappers.PermissionModelToProto(perm)
+	}
+
+	return &pb.ListPermissionsResponse{
+		Permissions: protoPerms,
+	}, nil
+}
+
+// ListPermissionsByRole returns all permissions for a role
+func (s *PermissionService) ListPermissionsByRole(ctx context.Context, req *pb.RoleIdentifier) (*pb.ListPermissionsResponse, error) {
+	uid, err := uuid.Parse(req.Uuid)
+	if err != nil {
+		return nil, fmt.Errorf("invalid role ID: %w", err)
+	}
+
+	_, perms, err := s.GetRolePermissions(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to proto
+	protoPerms := make([]*pb.Permission, len(perms))
+	for i, perm := range perms {
+		protoPerms[i] = mappers.PermissionModelToProto(perm)
+	}
+
+	return &pb.ListPermissionsResponse{
+		Permissions: protoPerms,
+	}, nil
+}
+
+// ListPermissionsByUser returns all permissions for a user
+func (s *PermissionService) ListPermissionsByUser(ctx context.Context, req *pb.UserIdentifier) (*pb.ListPermissionsResponse, error) {
+	var userID string
+	if req.Uuid != "" {
+		userID = req.Uuid
+	} else {
+		return nil, fmt.Errorf("user ID required")
+	}
+
+	perms, err := s.GetUserPermissions(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to proto
+	protoPerms := make([]*pb.Permission, len(perms))
+	for i, perm := range perms {
+		protoPerms[i] = mappers.PermissionModelToProto(perm)
+	}
+
+	return &pb.ListPermissionsResponse{
+		Permissions: protoPerms,
+	}, nil
 }

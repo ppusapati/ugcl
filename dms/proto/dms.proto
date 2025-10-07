@@ -1,0 +1,737 @@
+syntax = "proto3";
+
+package dms.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "p9e.in/ugcl/dms/api/v1;dmsv1";
+
+// DMSService provides comprehensive document management capabilities
+service DMSService {
+  // Document CRUD operations
+  rpc UploadDocument(UploadDocumentRequest) returns (UploadDocumentResponse);
+  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse);
+  rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse);
+  rpc GetDocumentVersions(GetDocumentVersionsRequest) returns (GetDocumentVersionsResponse);
+
+  // Document processing
+  rpc ProcessDocument(ProcessDocumentRequest) returns (ProcessDocumentResponse);
+  rpc GetProcessingStatus(GetProcessingStatusRequest) returns (GetProcessingStatusResponse);
+  rpc GenerateThumbnail(GenerateThumbnailRequest) returns (GenerateThumbnailResponse);
+  rpc ExtractText(ExtractTextRequest) returns (ExtractTextResponse);
+
+  // Document viewing
+  rpc GetDocumentPreview(GetDocumentPreviewRequest) returns (GetDocumentPreviewResponse);
+  rpc GetDocumentPage(GetDocumentPageRequest) returns (GetDocumentPageResponse);
+  rpc StreamDocument(StreamDocumentRequest) returns (stream StreamDocumentResponse);
+
+  // Watermark operations
+  rpc CreateWatermarkConfig(CreateWatermarkConfigRequest) returns (CreateWatermarkConfigResponse);
+  rpc GetWatermarkConfigs(GetWatermarkConfigsRequest) returns (GetWatermarkConfigsResponse);
+  rpc UpdateWatermarkConfig(UpdateWatermarkConfigRequest) returns (UpdateWatermarkConfigResponse);
+  rpc DeleteWatermarkConfig(DeleteWatermarkConfigRequest) returns (DeleteWatermarkConfigResponse);
+  rpc ApplyWatermark(ApplyWatermarkRequest) returns (ApplyWatermarkResponse);
+
+  // Document sharing
+  rpc CreateDocumentShare(CreateDocumentShareRequest) returns (CreateDocumentShareResponse);
+  rpc GetDocumentShare(GetDocumentShareRequest) returns (GetDocumentShareResponse);
+  rpc ListDocumentShares(ListDocumentSharesRequest) returns (ListDocumentSharesResponse);
+  rpc DeleteDocumentShare(DeleteDocumentShareRequest) returns (DeleteDocumentShareResponse);
+
+  // Analytics and auditing
+  rpc GetDocumentAccess(GetDocumentAccessRequest) returns (GetDocumentAccessResponse);
+  rpc GetDocumentAnalytics(GetDocumentAnalyticsRequest) returns (GetDocumentAnalyticsResponse);
+  rpc GetStorageUsage(GetStorageUsageRequest) returns (GetStorageUsageResponse);
+}
+
+// Enumerations
+enum DocumentType {
+  DOCUMENT_TYPE_UNSPECIFIED = 0;
+  DOCUMENT_TYPE_PDF = 1;
+  DOCUMENT_TYPE_IMAGE = 2;
+  DOCUMENT_TYPE_VIDEO = 3;
+  DOCUMENT_TYPE_AUDIO = 4;
+  DOCUMENT_TYPE_SPREADSHEET = 5;
+  DOCUMENT_TYPE_PRESENTATION = 6;
+  DOCUMENT_TYPE_TEXT = 7;
+  DOCUMENT_TYPE_ARCHIVE = 8;
+  DOCUMENT_TYPE_OTHER = 9;
+}
+
+enum DocumentCategory {
+  DOCUMENT_CATEGORY_UNSPECIFIED = 0;
+  DOCUMENT_CATEGORY_CONTRACT = 1;
+  DOCUMENT_CATEGORY_INVOICE = 2;
+  DOCUMENT_CATEGORY_REPORT = 3;
+  DOCUMENT_CATEGORY_MEMO = 4;
+  DOCUMENT_CATEGORY_LETTER = 5;
+  DOCUMENT_CATEGORY_FORM = 6;
+  DOCUMENT_CATEGORY_POLICY = 7;
+  DOCUMENT_CATEGORY_PROCEDURE = 8;
+  DOCUMENT_CATEGORY_MANUAL = 9;
+  DOCUMENT_CATEGORY_PRESENTATION = 10;
+  DOCUMENT_CATEGORY_DRAWING = 11;
+  DOCUMENT_CATEGORY_PHOTO = 12;
+  DOCUMENT_CATEGORY_VIDEO = 13;
+  DOCUMENT_CATEGORY_AUDIO = 14;
+  DOCUMENT_CATEGORY_OTHER = 15;
+}
+
+enum ProcessingStatus {
+  PROCESSING_STATUS_UNSPECIFIED = 0;
+  PROCESSING_STATUS_PENDING = 1;
+  PROCESSING_STATUS_PROCESSING = 2;
+  PROCESSING_STATUS_COMPLETED = 3;
+  PROCESSING_STATUS_FAILED = 4;
+}
+
+enum OCRStatus {
+  OCR_STATUS_UNSPECIFIED = 0;
+  OCR_STATUS_PENDING = 1;
+  OCR_STATUS_PROCESSING = 2;
+  OCR_STATUS_COMPLETED = 3;
+  OCR_STATUS_FAILED = 4;
+  OCR_STATUS_SKIPPED = 5;
+}
+
+enum VirusScanStatus {
+  VIRUS_SCAN_STATUS_UNSPECIFIED = 0;
+  VIRUS_SCAN_STATUS_PENDING = 1;
+  VIRUS_SCAN_STATUS_SCANNING = 2;
+  VIRUS_SCAN_STATUS_CLEAN = 3;
+  VIRUS_SCAN_STATUS_INFECTED = 4;
+  VIRUS_SCAN_STATUS_FAILED = 5;
+}
+
+enum SharePermission {
+  SHARE_PERMISSION_UNSPECIFIED = 0;
+  SHARE_PERMISSION_VIEW = 1;
+  SHARE_PERMISSION_DOWNLOAD = 2;
+  SHARE_PERMISSION_EDIT = 3;
+  SHARE_PERMISSION_DELETE = 4;
+}
+
+// Core messages
+message Document {
+  string id = 1;
+  string tenant_id = 2;
+
+  // Entity-based ownership
+  string owner_entity_type = 3;
+  string owner_entity_id = 4;
+
+  // Organizational context
+  string division_id = 5;
+  string branch_id = 6;
+  string department_id = 7;
+
+  // Document classification
+  DocumentType document_type = 8;
+  DocumentCategory document_category = 9;
+
+  // File information
+  string file_name = 10;
+  string original_name = 11;
+  string title = 12;
+  string description = 13;
+  string mime_type = 14;
+  string file_extension = 15;
+  int64 size_bytes = 16;
+  int64 compressed_size = 17;
+  string checksum = 18;
+
+  // Storage paths
+  string storage_path = 19;
+  string compressed_path = 20;
+  string thumbnail_path = 21;
+  string preview_path = 22;
+
+  // Document specific fields
+  int32 page_count = 23;
+  int32 word_count = 24;
+  string extracted_text = 25;
+  string language = 26;
+  string author = 27;
+  string subject = 28;
+  string keywords = 29;
+
+  // Processing status
+  ProcessingStatus processing_status = 30;
+  string processing_error = 31;
+  google.protobuf.Timestamp processed_at = 32;
+
+  // Compression info
+  string compression_type = 33;
+  double compression_ratio = 34;
+
+  // OCR info
+  OCRStatus ocr_status = 35;
+  double ocr_confidence = 36;
+  google.protobuf.Timestamp ocr_processed_at = 37;
+
+  // Security
+  VirusScanStatus virus_scan_status = 38;
+  string virus_scan_result = 39;
+  google.protobuf.Timestamp virus_scanned_at = 40;
+
+  // Watermark info
+  google.protobuf.Struct watermark_config = 41;
+  bool has_watermark = 42;
+
+  // Metadata and tags
+  google.protobuf.Struct metadata = 43;
+  repeated string tags = 44;
+
+  // Expiration tracking
+  google.protobuf.Timestamp expires_at = 45;
+  bool is_expired = 46;
+
+  // Access control
+  string uploaded_by = 47;
+  google.protobuf.Struct permissions = 48;
+
+  // Soft delete
+  bool is_deleted = 49;
+  google.protobuf.Timestamp deleted_at = 50;
+  string deleted_by = 51;
+
+  // Audit fields
+  google.protobuf.Timestamp created_at = 52;
+  google.protobuf.Timestamp updated_at = 53;
+  string created_by = 54;
+  string updated_by = 55;
+}
+
+// Document version message
+message DocumentVersion {
+  string id = 1;
+  string document_id = 2;
+  int32 version = 3;
+  string file_name = 4;
+  string storage_path = 5;
+  int64 size_bytes = 6;
+  string checksum = 7;
+  string change_log = 8;
+  string created_by = 9;
+  bool is_active = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+// Watermark configuration message
+message WatermarkConfig {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool is_default = 4;
+  bool is_active = 5;
+
+  // Watermark content
+  string type = 6; // "text", "image", "combined"
+  string text_content = 7;
+  string image_path = 8;
+  string logo_path = 9;
+
+  // Dynamic content placeholders
+  bool use_dynamic_text = 10;
+  bool show_username = 11;
+  bool show_timestamp = 12;
+  bool show_company_logo = 13;
+  bool show_document_info = 14;
+  bool show_ip_address = 15;
+
+  // Positioning
+  string position = 16; // "top_left", "top_right", "bottom_left", "bottom_right", "center"
+  int32 offset_x = 17;
+  int32 offset_y = 18;
+  double rotation = 19;
+
+  // Appearance
+  string font_family = 20;
+  int32 font_size = 21;
+  string font_color = 22;
+  bool font_bold = 23;
+  bool font_italic = 24;
+
+  // Transparency and effects
+  double opacity = 25;
+  string blend_mode = 26;
+  bool shadow = 27;
+  string shadow_color = 28;
+  int32 shadow_offset_x = 29;
+  int32 shadow_offset_y = 30;
+
+  // Size constraints
+  int32 max_width = 31;
+  int32 max_height = 32;
+  double scale = 33;
+
+  // Page settings
+  bool apply_to_all_pages = 34;
+  repeated int32 page_numbers = 35;
+
+  // Template for dynamic text
+  string text_template = 36;
+
+  // Security settings
+  bool prevent_removal = 37;
+  bool encrypt_watermark = 38;
+
+  // Usage tracking
+  int64 usage_count = 39;
+  google.protobuf.Timestamp last_used_at = 40;
+
+  // Owner and permissions
+  string created_by = 41;
+  string updated_by = 42;
+  google.protobuf.Struct permissions = 43;
+
+  // Additional metadata
+  repeated string tags = 44;
+  google.protobuf.Struct metadata = 45;
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 46;
+  google.protobuf.Timestamp updated_at = 47;
+}
+
+// Processing job message
+message ProcessingJob {
+  string id = 1;
+  string document_id = 2;
+  string job_type = 3; // "compress", "thumbnail", "ocr", etc.
+  string status = 4; // "pending", "running", "completed", "failed"
+  int32 priority = 5;
+  int32 progress = 6; // percentage 0-100
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp completed_at = 8;
+  string error_message = 9;
+  google.protobuf.Struct job_data = 10;
+  google.protobuf.Struct result = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+// Document access log message
+message DocumentAccessLog {
+  string id = 1;
+  string document_id = 2;
+  string user_id = 3;
+  string action = 4; // "view", "download", "print", etc.
+  string ip_address = 5;
+  string user_agent = 6;
+  int64 duration = 7; // in milliseconds
+  bool success = 8;
+  string error_message = 9;
+
+  // Watermark info for this access
+  bool watermark_applied = 10;
+  google.protobuf.Struct watermark_data = 11;
+
+  google.protobuf.Timestamp created_at = 12;
+}
+
+// Document share message
+message DocumentShare {
+  string id = 1;
+  string tenant_id = 2;
+  string document_id = 3;
+
+  // Share target
+  string shared_with_entity_id = 4;
+  string shared_with_user_id = 5;
+  string shared_with_email = 6;
+
+  // Organizational scope
+  string division_id = 7;
+  string branch_id = 8;
+  string department_id = 9;
+
+  // Share permissions
+  bool can_view = 10;
+  bool can_download = 11;
+  bool can_edit = 12;
+  bool can_delete = 13;
+
+  // Share lifecycle
+  string share_link = 14;
+  string share_password = 15;
+  google.protobuf.Timestamp expires_at = 16;
+  bool is_expired = 17;
+
+  // Access tracking
+  int32 access_count = 18;
+  google.protobuf.Timestamp last_accessed_at = 19;
+
+  // Audit fields
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+  string created_by = 22;
+  string updated_by = 23;
+}
+
+// Request/Response messages
+
+// Upload document
+message UploadDocumentRequest {
+  string tenant_id = 1;
+  string owner_entity_type = 2;
+  string owner_entity_id = 3;
+  string division_id = 4;
+  string branch_id = 5;
+  string department_id = 6;
+  DocumentType document_type = 7;
+  DocumentCategory document_category = 8;
+  string file_name = 9;
+  string title = 10;
+  string description = 11;
+  bytes content = 12;
+  string mime_type = 13;
+  repeated string tags = 14;
+  google.protobuf.Struct metadata = 15;
+  bool auto_process = 16;
+  string watermark_config_id = 17;
+  google.protobuf.Timestamp expires_at = 18;
+}
+
+message UploadDocumentResponse {
+  Document document = 1;
+  ProcessingJob processing_job = 2;
+}
+
+// Get document
+message GetDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+  bool include_content = 3;
+  bool include_versions = 4;
+}
+
+message GetDocumentResponse {
+  Document document = 1;
+  repeated DocumentVersion versions = 2;
+}
+
+// Get documents
+message GetDocumentsRequest {
+  string tenant_id = 1;
+  string owner_entity_type = 2;
+  string owner_entity_id = 3;
+  string division_id = 4;
+  string branch_id = 5;
+  string department_id = 6;
+  string document_type = 7;
+  string document_category = 8;
+  int32 page = 9;
+  int32 size = 10;
+  string sort_by = 11;
+  string sort_order = 12;
+  string search_query = 13;
+}
+
+message GetDocumentsResponse {
+  repeated Document documents = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+// Update document
+message UpdateDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string description = 4;
+  DocumentType document_type = 5;
+  DocumentCategory document_category = 6;
+  string division_id = 7;
+  string branch_id = 8;
+  string department_id = 9;
+  google.protobuf.Timestamp expires_at = 10;
+  repeated string tags = 11;
+  google.protobuf.Struct metadata = 12;
+}
+
+message UpdateDocumentResponse {
+  Document document = 1;
+}
+
+// Delete document
+message DeleteDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+  bool hard_delete = 3;
+}
+
+message DeleteDocumentResponse {
+  bool success = 1;
+}
+
+// Get document versions
+message GetDocumentVersionsRequest {
+  string document_id = 1;
+}
+
+message GetDocumentVersionsResponse {
+  repeated DocumentVersion versions = 1;
+}
+
+// Process document
+message ProcessDocumentRequest {
+  string document_id = 1;
+  repeated string job_types = 2; // "compress", "thumbnail", "ocr", "extract_text"
+  int32 priority = 3;
+  google.protobuf.Struct options = 4;
+}
+
+message ProcessDocumentResponse {
+  repeated ProcessingJob jobs = 1;
+}
+
+// Get processing status
+message GetProcessingStatusRequest {
+  string document_id = 1;
+}
+
+message GetProcessingStatusResponse {
+  repeated ProcessingJob jobs = 1;
+}
+
+// Generate thumbnail
+message GenerateThumbnailRequest {
+  string document_id = 1;
+  int32 page = 2;
+  int32 width = 3;
+  int32 height = 4;
+  string format = 5; // "png", "jpg"
+}
+
+message GenerateThumbnailResponse {
+  bytes thumbnail = 1;
+  string mime_type = 2;
+}
+
+// Extract text
+message ExtractTextRequest {
+  string document_id = 1;
+  int32 page = 2; // 0 for all pages
+  bool use_ocr = 3;
+}
+
+message ExtractTextResponse {
+  string text = 1;
+  double confidence = 2;
+  string language = 3;
+}
+
+// Get document preview
+message GetDocumentPreviewRequest {
+  string document_id = 1;
+  string watermark_config_id = 2;
+  string user_context = 3;
+  google.protobuf.Struct watermark_data = 4;
+}
+
+message GetDocumentPreviewResponse {
+  bytes content = 1;
+  string mime_type = 2;
+  bool watermarked = 3;
+}
+
+// Get document page
+message GetDocumentPageRequest {
+  string document_id = 1;
+  int32 page = 2;
+  string format = 3; // "png", "jpg", "svg"
+  int32 width = 4;
+  int32 height = 5;
+  double scale = 6;
+  string watermark_config_id = 7;
+  google.protobuf.Struct watermark_data = 8;
+}
+
+message GetDocumentPageResponse {
+  bytes content = 1;
+  string mime_type = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+// Stream document
+message StreamDocumentRequest {
+  string document_id = 1;
+  string format = 2; // "original", "pdf", "images"
+  string watermark_config_id = 3;
+  google.protobuf.Struct watermark_data = 4;
+}
+
+message StreamDocumentResponse {
+  bytes chunk = 1;
+  string mime_type = 2;
+  int32 page = 3;
+  bool is_final = 4;
+}
+
+// Create watermark config
+message CreateWatermarkConfigRequest {
+  WatermarkConfig config = 1;
+}
+
+message CreateWatermarkConfigResponse {
+  WatermarkConfig config = 1;
+}
+
+// Get watermark configs
+message GetWatermarkConfigsRequest {
+  bool active_only = 1;
+}
+
+message GetWatermarkConfigsResponse {
+  repeated WatermarkConfig configs = 1;
+}
+
+// Update watermark config
+message UpdateWatermarkConfigRequest {
+  WatermarkConfig config = 1;
+}
+
+message UpdateWatermarkConfigResponse {
+  WatermarkConfig config = 1;
+}
+
+// Delete watermark config
+message DeleteWatermarkConfigRequest {
+  string id = 1;
+}
+
+message DeleteWatermarkConfigResponse {
+  bool success = 1;
+}
+
+// Apply watermark
+message ApplyWatermarkRequest {
+  string document_id = 1;
+  string watermark_config_id = 2;
+  google.protobuf.Struct dynamic_data = 3;
+  string output_format = 4;
+}
+
+message ApplyWatermarkResponse {
+  bytes content = 1;
+  string mime_type = 2;
+  string watermark_info = 3;
+}
+
+// Document sharing operations
+
+// Create document share
+message CreateDocumentShareRequest {
+  string tenant_id = 1;
+  string document_id = 2;
+  string shared_with_entity_id = 3;
+  string shared_with_user_id = 4;
+  string shared_with_email = 5;
+  string division_id = 6;
+  string branch_id = 7;
+  string department_id = 8;
+  bool can_view = 9;
+  bool can_download = 10;
+  bool can_edit = 11;
+  bool can_delete = 12;
+  string share_link = 13;
+  google.protobuf.Timestamp expires_at = 14;
+}
+
+message CreateDocumentShareResponse {
+  DocumentShare share = 1;
+}
+
+// Get document share
+message GetDocumentShareRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message GetDocumentShareResponse {
+  DocumentShare share = 1;
+}
+
+// List document shares
+message ListDocumentSharesRequest {
+  string document_id = 1;
+  string tenant_id = 2;
+}
+
+message ListDocumentSharesResponse {
+  repeated DocumentShare shares = 1;
+}
+
+// Delete document share
+message DeleteDocumentShareRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message DeleteDocumentShareResponse {
+  bool success = 1;
+}
+
+// Get document access
+message GetDocumentAccessRequest {
+  string document_id = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+  int32 page = 4;
+  int32 size = 5;
+}
+
+message GetDocumentAccessResponse {
+  repeated DocumentAccessLog access_logs = 1;
+  int64 total = 2;
+}
+
+// Get document analytics
+message GetDocumentAnalyticsRequest {
+  string document_id = 1; // optional, for all documents if empty
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+  string granularity = 4; // "hour", "day", "week", "month"
+}
+
+message DocumentAnalytics {
+  int64 total_views = 1;
+  int64 total_downloads = 2;
+  int64 total_prints = 3;
+  int64 unique_users = 4;
+  double average_view_duration = 5;
+  map<string, int64> access_by_hour = 6;
+  map<string, int64> access_by_day = 7;
+  repeated string top_users = 8;
+  repeated string popular_documents = 9;
+}
+
+message GetDocumentAnalyticsResponse {
+  DocumentAnalytics analytics = 1;
+}
+
+// Get storage usage
+message GetStorageUsageRequest {
+  string user_id = 1; // optional, for all users if empty
+}
+
+message StorageUsage {
+  string user_id = 1;
+  int64 total_documents = 2;
+  int64 total_size_bytes = 3;
+  int64 compressed_size_bytes = 4;
+  double compression_ratio = 5;
+  map<string, int64> size_by_type = 6;
+  map<string, int64> count_by_type = 7;
+}
+
+message GetStorageUsageResponse {
+  repeated StorageUsage usage = 1;
+  StorageUsage total = 2;
+}

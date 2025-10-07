@@ -5,11 +5,11 @@ go 1.25.0
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	go.uber.org/fx v1.24.0
 	google.golang.org/protobuf v1.36.7
 	gorm.io/datatypes v1.2.6
-	gorm.io/gorm v1.30.0
+	gorm.io/gorm v1.31.0
 )
 
 require (
@@ -33,5 +33,3 @@ require (
 	gorm.io/driver/mysql v1.5.6 // indirect
 	gorm.io/driver/postgres v1.5.11 // indirect
 )
-
-

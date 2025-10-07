@@ -241,3 +241,118 @@ func NewServiceError(code, message string, details ...map[string]interface{}) *S
 		Details: detailsMap,
 	}
 }
+
+// =============================================================================
+// Approval Service Types
+// =============================================================================
+
+// Approval workflow requests
+type StartApprovalRequest struct {
+	EntityType     string                 `json:"entity_type"`
+	EntityID       string                 `json:"entity_id"`
+	RequestedBy    string                 `json:"requested_by"`
+	Priority       string                 `json:"priority"`
+	RequestData    map[string]interface{} `json:"request_data"`
+	Comments       string                 `json:"comments"`
+	AttachmentURLs []string               `json:"attachment_urls"`
+	Metadata       map[string]interface{} `json:"metadata"`
+}
+
+type ProcessApprovalActionRequest struct {
+	InstanceID     uuid.UUID              `json:"instance_id"`
+	ApproverID     string                 `json:"approver_id"`
+	Action         string                 `json:"action"` // APPROVE, REJECT, DELEGATE, REQUEST_INFO, WITHDRAW, REASSIGN
+	Comments       string                 `json:"comments"`
+	IPAddress      string                 `json:"ip_address"`
+	UserAgent      string                 `json:"user_agent"`
+	DelegatedFrom  *string                `json:"delegated_from"`
+	DelegateTo     *string                `json:"delegate_to"`
+	AttachmentURLs []string               `json:"attachment_urls"`
+	Metadata       map[string]interface{} `json:"metadata"`
+}
+
+type CreateApprovalActionRequest struct {
+	FormInstanceID uuid.UUID              `json:"form_instance_id"`
+	ApproverID     string                 `json:"approver_id"`
+	Action         string                 `json:"action"`
+	Comments       string                 `json:"comments"`
+	IPAddress      string                 `json:"ip_address"`
+	UserAgent      string                 `json:"user_agent"`
+	DelegatedFrom  *string                `json:"delegated_from"`
+	AttachmentURLs []string               `json:"attachment_urls"`
+	Metadata       map[string]interface{} `json:"metadata"`
+}
+
+// Delegation requests
+type CreateDelegateRequest struct {
+	DelegatorID string    `json:"delegator_id"`
+	DelegateID  string    `json:"delegate_id"`
+	EntityTypes []string  `json:"entity_types"`
+	StartDate   time.Time `json:"start_date"`
+	EndDate     *time.Time `json:"end_date"`
+	Reason      string    `json:"reason"`
+	Metadata    map[string]interface{} `json:"metadata"`
+}
+
+type UpdateDelegateRequest struct {
+	DelegateID  string     `json:"delegate_id"`
+	EntityTypes []string   `json:"entity_types"`
+	EndDate     *time.Time `json:"end_date"`
+	IsActive    bool       `json:"is_active"`
+	Reason      string     `json:"reason"`
+	Metadata    map[string]interface{} `json:"metadata"`
+}
+
+// Reporting and metrics requests
+type ApprovalMetricsRequest struct {
+	EntityType string     `json:"entity_type"`
+	WorkflowID *uuid.UUID `json:"workflow_id"`
+	StartDate  time.Time  `json:"start_date"`
+	EndDate    time.Time  `json:"end_date"`
+}
+
+type CreateApprovalReportRequest struct {
+	WorkflowID        *uuid.UUID             `json:"workflow_id"`
+	EntityType        string                 `json:"entity_type"`
+	ReportDate        time.Time              `json:"report_date"`
+	TotalRequests     int32                  `json:"total_requests"`
+	ApprovedCount     int32                  `json:"approved_count"`
+	RejectedCount     int32                  `json:"rejected_count"`
+	PendingCount      int32                  `json:"pending_count"`
+	EscalatedCount    int32                  `json:"escalated_count"`
+	AvgProcessingTime float64                `json:"avg_processing_time_hours"`
+	SLABreachCount    int32                  `json:"sla_breach_count"`
+	SLAComplianceRate float64                `json:"sla_compliance_rate"`
+	BottleneckSteps   []string               `json:"bottleneck_steps"`
+	TopApprovers      []string               `json:"top_approvers"`
+	Metadata          map[string]interface{} `json:"metadata"`
+}
+
+// Response types
+type ApprovalMetrics struct {
+	TotalRequests          int32   `json:"total_requests"`
+	ApprovedCount          int32   `json:"approved_count"`
+	RejectedCount          int32   `json:"rejected_count"`
+	PendingCount           int32   `json:"pending_count"`
+	EscalatedCount         int32   `json:"escalated_count"`
+	AvgProcessingTimeHours float64 `json:"avg_processing_time_hours"`
+	SLAComplianceRate      float64 `json:"sla_compliance_rate"`
+}
+
+type PendingApprovalWithForm struct {
+	Instance       *db.FormInstance `json:"instance"`
+	FormTitle      string           `json:"form_title"`
+	FormDescription string          `json:"form_description"`
+}
+
+type FormInstanceWithTitle struct {
+	Instance  *db.FormInstance `json:"instance"`
+	FormTitle string           `json:"form_title"`
+}
+
+type ApprovalHistoryEntry struct {
+	ApprovalAction *db.ApprovalAction `json:"approval_action"`
+	AuditAction    string             `json:"audit_action"`
+	Changes        json.RawMessage    `json:"changes"`
+	AuditTimestamp time.Time          `json:"audit_timestamp"`
+}

@@ -342,3 +342,60 @@ const (
 	AuditStatusCompleted  AuditStatus = "COMPLETED"
 	AuditStatusFailed     AuditStatus = "FAILED"
 )
+
+// Filter structs for repository queries
+type RetentionPolicyFilters struct {
+	EntityType     string       `json:"entity_type,omitempty"`
+	SchemaName     string       `json:"schema_name,omitempty"`
+	DatabaseName   string       `json:"database_name,omitempty"`
+	IsActive       *bool        `json:"is_active,omitempty"`
+	PolicyType     *PolicyType  `json:"policy_type,omitempty"`
+	ComplianceLevel *ComplianceLevel `json:"compliance_level,omitempty"`
+}
+
+type ArchivalJobFilters struct {
+	PolicyID    *uuid.UUID `json:"policy_id,omitempty"`
+	JobType     *JobType   `json:"job_type,omitempty"`
+	Status      *JobStatus `json:"status,omitempty"`
+	StartedAfter *time.Time `json:"started_after,omitempty"`
+	StartedBefore *time.Time `json:"started_before,omitempty"`
+}
+
+type LegalHoldFilters struct {
+	IsActive       *bool      `json:"is_active,omitempty"`
+	CaseNumber     string     `json:"case_number,omitempty"`
+	EntityTypes    []string   `json:"entity_types,omitempty"`
+	StartDateAfter *time.Time `json:"start_date_after,omitempty"`
+	StartDateBefore *time.Time `json:"start_date_before,omitempty"`
+}
+
+type ArchivedDataFilters struct {
+	PolicyID       *uuid.UUID   `json:"policy_id,omitempty"`
+	JobID          *uuid.UUID   `json:"job_id,omitempty"`
+	SourceTable    string       `json:"source_table,omitempty"`
+	SourceSchema   string       `json:"source_schema,omitempty"`
+	SourceDatabase string       `json:"source_database,omitempty"`
+	StorageTier    *StorageTier `json:"storage_tier,omitempty"`
+	IsOnLegalHold  *bool        `json:"is_on_legal_hold,omitempty"`
+	ArchivedAfter  *time.Time   `json:"archived_after,omitempty"`
+	ArchivedBefore *time.Time   `json:"archived_before,omitempty"`
+}
+
+type DataInventoryFilters struct {
+	DatabaseName       string              `json:"database_name,omitempty"`
+	SchemaName         string              `json:"schema_name,omitempty"`
+	TableName          string              `json:"table_name,omitempty"`
+	DataClassification *DataClassification `json:"data_classification,omitempty"`
+	ContainsPII        *bool               `json:"contains_pii,omitempty"`
+	ContainsPHI        *bool               `json:"contains_phi,omitempty"`
+	ContainsPCI        *bool               `json:"contains_pci,omitempty"`
+}
+
+type ComplianceAuditFilters struct {
+	AuditType     *AuditType   `json:"audit_type,omitempty"`
+	Status        *AuditStatus `json:"status,omitempty"`
+	PolicyIDs     []uuid.UUID  `json:"policy_ids,omitempty"`
+	EntityTypes   []string     `json:"entity_types,omitempty"`
+	StartedAfter  *time.Time   `json:"started_after,omitempty"`
+	StartedBefore *time.Time   `json:"started_before,omitempty"`
+}

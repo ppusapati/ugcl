@@ -6,7 +6,7 @@ require (
 	connectrpc.com/connect v1.18.1
 	go.uber.org/fx v1.24.0
 	golang.org/x/net v0.40.0
-	gorm.io/gorm v1.30.0
+	gorm.io/gorm v1.31.0
 )
 
 require (
