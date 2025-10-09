@@ -14,6 +14,55 @@ proto-breaking:
 	@echo "Checking for breaking changes in protobuf..."
 	buf breaking --against '.git#branch=main'
 
+# Unit Testing with coverage
+.PHONY: test-all
+
+test-all:
+	@echo "Running tests in all Go packages containing *_test.go files..."
+	@find . -type f -name '*_test.go' \
+		-exec dirname {} \; | \
+		sort -u | \
+		while read dir; do \
+			echo "==== Running tests in $$dir ===="; \
+			go test $$dir -v || exit 1; \
+		done
+
+# Test specific modules (update paths as per your project layout)
+.PHONY: test-user
+test-user:
+	@echo "Running user module tests..."
+	go test ./identity/user/... -v
+
+.PHONY: test-contractor
+test-contractor:
+	@echo "Running contractor module tests..."
+	go test ./contractor/... -v
+
+.PHONY: test-finance
+test-finance:
+	@echo "Running finance module tests..."
+	go test ./finance/... -v
+
+.PHONY: test-notification
+test-notification:
+	@echo "Running notification module tests..."
+	go test ./notification/... -v
+
+.PHONY: test-core
+test-core:
+	@echo "Running core module tests..."
+	go test ./core/... -v
+
+# ...Add more test targets per module as needed
+
+# Optional: Test with coverage per module
+.PHONY: test-user-coverage
+test-user-coverage:
+	@echo "Running user module tests with coverage..."
+	go test ./identity/user/... -v -coverprofile=coverage-user.out
+	go tool cover -html=coverage-user.out -o coverage-user.html
+	@echo "User coverage report saved to coverage-user.html"
+	
 # SQLC generation for all modules
 .PHONY: sqlc-generate-all
 sqlc-generate-all:
@@ -218,6 +267,8 @@ clean:
 	rm -f migrations/aggregated_schema.sql
 	rm -f migrations/atlas_temp.hcl
 	rm -f bin/migrate
+	rm -f coverage.out coverage.html
+	rm -f coverage-*.out coverage-*.html  # Remove module-specific coverage files
 
 # Check migration status
 migrate-status:

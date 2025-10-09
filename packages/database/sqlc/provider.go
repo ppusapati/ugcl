@@ -8,7 +8,6 @@ import (
 	conf "p9e.in/ugcl/packages/api/v1/config"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	employeeDB "p9e.in/ugcl/employee/db/generated"
 	formInstanceDb "p9e.in/ugcl/formbuilder/db/generated"
 	formbuilderDb "p9e.in/ugcl/formbuilder/db/generated"
 	workflowDb "p9e.in/ugcl/formbuilder/db/generated"
@@ -106,7 +105,7 @@ func (m *DatabaseManager) GetOrganizationQueries() *organizationDB.Queries {
 	return organizationDB.New(m.Pool)
 }
 
-// GetEmployeeQueries returns a new instance of employee queries
-func (m *DatabaseManager) GetEmployeeQueries() *employeeDB.Queries {
-	return employeeDB.New(m.Pool)
-}
+// // GetEmployeeQueries returns a new instance of employee queries
+// func (m *DatabaseManager) GetEmployeeQueries() *employeeDB.Queries {
+// 	return employeeDB.New(m.Pool)
+// }
