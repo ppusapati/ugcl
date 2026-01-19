@@ -1,0 +1,402 @@
+syntax = "proto3";
+
+package organization.api.v1.organization;
+option go_package = "p9e.in/ugcl/organization/api/v1/organization;organization";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+// ==================== Common Messages ====================
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message Address {
+  string line1 = 1;
+  string line2 = 2;
+  string city = 3;
+  string state = 4;
+  string country = 5;
+  string postal_code = 6;
+}
+
+message ContactInfo {
+  string phone = 1;
+  string email = 2;
+}
+
+// ==================== Division Messages ====================
+
+message Division {
+  string id = 1;
+  string tenant_id = 2;
+  string code = 3;
+  string name = 4;
+  string description = 5;
+  string head_user_id = 6;
+  bool is_active = 7;
+  int32 display_order = 8;
+  google.protobuf.Struct metadata = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string created_by = 12;
+  string updated_by = 13;
+}
+
+message DivisionSummary {
+  string id = 1;
+  string tenant_id = 2;
+  string code = 3;
+  string name = 4;
+  string description = 5;
+  string head_user_id = 6;
+  bool is_active = 7;
+  int32 display_order = 8;
+  int64 branch_count = 9;
+  int64 department_count = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message CreateDivisionRequest {
+  string tenant_id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  string head_user_id = 5;
+  bool is_active = 6;
+  int32 display_order = 7;
+  google.protobuf.Struct metadata = 8;
+  string created_by = 9;
+}
+
+message UpdateDivisionRequest {
+  string id = 1;
+  google.protobuf.StringValue code = 2;
+  google.protobuf.StringValue name = 3;
+  google.protobuf.StringValue description = 4;
+  google.protobuf.StringValue head_user_id = 5;
+  google.protobuf.BoolValue is_active = 6;
+  google.protobuf.Int32Value display_order = 7;
+  google.protobuf.Struct metadata = 8;
+  string updated_by = 9;
+}
+
+message GetDivisionRequest {
+  string id = 1;
+}
+
+message GetDivisionByCodeRequest {
+  string tenant_id = 1;
+  string code = 2;
+}
+
+message ListDivisionsRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ListDivisionsResponse {
+  repeated Division divisions = 1;
+  int64 total_count = 2;
+}
+
+message ListDivisionSummariesRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message ListDivisionSummariesResponse {
+  repeated DivisionSummary summaries = 1;
+}
+
+message DeleteDivisionRequest {
+  string id = 1;
+  string deleted_by = 2;
+}
+
+// ==================== Branch Messages ====================
+
+message Branch {
+  string id = 1;
+  string division_id = 2;
+  string tenant_id = 3;
+  string code = 4;
+  string name = 5;
+  string branch_type = 6;
+  Address address = 7;
+  Location location = 8;
+  ContactInfo contact = 9;
+  string branch_manager_user_id = 10;
+  bool is_active = 11;
+  int32 display_order = 12;
+  google.protobuf.Struct metadata = 13;
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp updated_at = 15;
+  string created_by = 16;
+  string updated_by = 17;
+}
+
+message BranchSummary {
+  string id = 1;
+  string division_id = 2;
+  string division_name = 3;
+  string division_code = 4;
+  string tenant_id = 5;
+  string code = 6;
+  string name = 7;
+  string branch_type = 8;
+  string city = 9;
+  string state = 10;
+  string country = 11;
+  string branch_manager_user_id = 12;
+  bool is_active = 13;
+  int32 display_order = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+message CreateBranchRequest {
+  string division_id = 1;
+  string tenant_id = 2;
+  string code = 3;
+  string name = 4;
+  string branch_type = 5;
+  Address address = 6;
+  Location location = 7;
+  ContactInfo contact = 8;
+  string branch_manager_user_id = 9;
+  bool is_active = 10;
+  int32 display_order = 11;
+  google.protobuf.Struct metadata = 12;
+  string created_by = 13;
+}
+
+message UpdateBranchRequest {
+  string id = 1;
+  google.protobuf.StringValue code = 2;
+  google.protobuf.StringValue name = 3;
+  google.protobuf.StringValue branch_type = 4;
+  Address address = 5;
+  Location location = 6;
+  ContactInfo contact = 7;
+  google.protobuf.StringValue branch_manager_user_id = 8;
+  google.protobuf.BoolValue is_active = 9;
+  google.protobuf.Int32Value display_order = 10;
+  google.protobuf.Struct metadata = 11;
+  string updated_by = 12;
+}
+
+message GetBranchRequest {
+  string id = 1;
+}
+
+message GetBranchByCodeRequest {
+  string tenant_id = 1;
+  string code = 2;
+}
+
+message ListBranchesRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ListBranchesResponse {
+  repeated Branch branches = 1;
+  int64 total_count = 2;
+}
+
+message ListBranchesByDivisionRequest {
+  string division_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message ListBranchesByDivisionResponse {
+  repeated Branch branches = 1;
+}
+
+message ListBranchesByCityRequest {
+  string tenant_id = 1;
+  string city = 2;
+}
+
+message ListBranchesByStateRequest {
+  string tenant_id = 1;
+  string state = 2;
+}
+
+message ListBranchSummariesRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message ListBranchSummariesResponse {
+  repeated BranchSummary summaries = 1;
+}
+
+message DeleteBranchRequest {
+  string id = 1;
+  string deleted_by = 2;
+}
+
+// ==================== Department Messages ====================
+
+message Department {
+  string id = 1;
+  string tenant_id = 2;
+  string division_id = 3; // NULL for business-level
+  string code = 4;
+  string name = 5;
+  string description = 6;
+  string department_type = 7;
+  string head_user_id = 8;
+  string parent_department_id = 9;
+  bool is_active = 10;
+  int32 display_order = 11;
+  google.protobuf.Struct metadata = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  string created_by = 15;
+  string updated_by = 16;
+}
+
+message DepartmentHierarchy {
+  string id = 1;
+  string tenant_id = 2;
+  string division_id = 3;
+  string code = 4;
+  string name = 5;
+  string description = 6;
+  string department_type = 7;
+  string head_user_id = 8;
+  string parent_department_id = 9;
+  bool is_active = 10;
+  int32 display_order = 11;
+  int32 level = 12;
+  repeated string path = 13;
+  string full_path = 14;
+}
+
+message CreateDepartmentRequest {
+  string tenant_id = 1;
+  string division_id = 2; // NULL for business-level
+  string code = 3;
+  string name = 4;
+  string description = 5;
+  string department_type = 6;
+  string head_user_id = 7;
+  string parent_department_id = 8;
+  bool is_active = 9;
+  int32 display_order = 10;
+  google.protobuf.Struct metadata = 11;
+  string created_by = 12;
+}
+
+message UpdateDepartmentRequest {
+  string id = 1;
+  google.protobuf.StringValue code = 2;
+  google.protobuf.StringValue name = 3;
+  google.protobuf.StringValue description = 4;
+  google.protobuf.StringValue department_type = 5;
+  google.protobuf.StringValue head_user_id = 6;
+  google.protobuf.StringValue parent_department_id = 7;
+  google.protobuf.BoolValue is_active = 8;
+  google.protobuf.Int32Value display_order = 9;
+  google.protobuf.Struct metadata = 10;
+  string updated_by = 11;
+}
+
+message GetDepartmentRequest {
+  string id = 1;
+}
+
+message GetDepartmentByCodeRequest {
+  string tenant_id = 1;
+  string code = 2;
+}
+
+message ListDepartmentsRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ListDepartmentsResponse {
+  repeated Department departments = 1;
+  int64 total_count = 2;
+}
+
+message ListDepartmentsByDivisionRequest {
+  string division_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message ListBusinessLevelDepartmentsRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message ListSubDepartmentsRequest {
+  string parent_department_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message GetDepartmentHierarchyRequest {
+  string tenant_id = 1;
+  google.protobuf.BoolValue is_active = 2;
+}
+
+message GetDepartmentHierarchyResponse {
+  repeated DepartmentHierarchy departments = 1;
+}
+
+message DeleteDepartmentRequest {
+  string id = 1;
+  string deleted_by = 2;
+}
+
+// ==================== Organization Service ====================
+
+service OrganizationService {
+  // Division Operations
+  rpc CreateDivision(CreateDivisionRequest) returns (Division);
+  rpc UpdateDivision(UpdateDivisionRequest) returns (Division);
+  rpc GetDivision(GetDivisionRequest) returns (Division);
+  rpc GetDivisionByCode(GetDivisionByCodeRequest) returns (Division);
+  rpc ListDivisions(ListDivisionsRequest) returns (ListDivisionsResponse);
+  rpc ListDivisionSummaries(ListDivisionSummariesRequest) returns (ListDivisionSummariesResponse);
+  rpc DeleteDivision(DeleteDivisionRequest) returns (google.protobuf.Empty);
+
+  // Branch Operations
+  rpc CreateBranch(CreateBranchRequest) returns (Branch);
+  rpc UpdateBranch(UpdateBranchRequest) returns (Branch);
+  rpc GetBranch(GetBranchRequest) returns (Branch);
+  rpc GetBranchByCode(GetBranchByCodeRequest) returns (Branch);
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
+  rpc ListBranchesByDivision(ListBranchesByDivisionRequest) returns (ListBranchesByDivisionResponse);
+  rpc ListBranchesByCity(ListBranchesByCityRequest) returns (ListBranchesResponse);
+  rpc ListBranchesByState(ListBranchesByStateRequest) returns (ListBranchesResponse);
+  rpc ListBranchSummaries(ListBranchSummariesRequest) returns (ListBranchSummariesResponse);
+  rpc DeleteBranch(DeleteBranchRequest) returns (google.protobuf.Empty);
+
+  // Department Operations
+  rpc CreateDepartment(CreateDepartmentRequest) returns (Department);
+  rpc UpdateDepartment(UpdateDepartmentRequest) returns (Department);
+  rpc GetDepartment(GetDepartmentRequest) returns (Department);
+  rpc GetDepartmentByCode(GetDepartmentByCodeRequest) returns (Department);
+  rpc ListDepartments(ListDepartmentsRequest) returns (ListDepartmentsResponse);
+  rpc ListDepartmentsByDivision(ListDepartmentsByDivisionRequest) returns (ListDepartmentsResponse);
+  rpc ListBusinessLevelDepartments(ListBusinessLevelDepartmentsRequest) returns (ListDepartmentsResponse);
+  rpc ListSubDepartments(ListSubDepartmentsRequest) returns (ListDepartmentsResponse);
+  rpc GetDepartmentHierarchy(GetDepartmentHierarchyRequest) returns (GetDepartmentHierarchyResponse);
+  rpc DeleteDepartment(DeleteDepartmentRequest) returns (google.protobuf.Empty);
+}

@@ -1,2 +1,4 @@
 ugcl_v1.exe
 go.sum
+# Auto-generated API documentation
+docs/api/*.html

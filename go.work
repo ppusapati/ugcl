@@ -1,0 +1,28 @@
+go 1.25.0
+
+use (
+	./backupdr
+	./cmd
+	./core
+	./dataarchive
+	./databridge
+	./dms
+	./formbuilder
+	./identity/auth
+	./identity/entity
+	./identity/tenant
+	./identity/user
+	./insighthub
+	./insightviewer
+	./masters
+	./masters/pipeline
+	./metasearch
+	./migrations
+	./monitoring
+	./notification
+	./organization
+	./packages
+	./projects
+	./scheduler
+	./vendors
+)

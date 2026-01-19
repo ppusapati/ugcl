@@ -1,0 +1,345 @@
+syntax = "proto3";
+
+package identity.auth.api.v2.auth;
+option go_package = "p9e.in/ugcl/identity/auth/api/v2/auth;auth";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// AuthService handles core authentication operations
+service AuthService {
+  // Authentication
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc LoginWithOTP(LoginOTPRequest) returns (LoginResponse) {}
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {}
+  rpc LogoutAll(LogoutAllRequest) returns (google.protobuf.Empty) {}
+
+  // Two-Factor Authentication
+  rpc EnableTwoFactor(EnableTwoFactorRequest) returns (EnableTwoFactorResponse) {}
+  rpc DisableTwoFactor(DisableTwoFactorRequest) returns (google.protobuf.Empty) {}
+  rpc VerifyTwoFactor(VerifyTwoFactorRequest) returns (VerifyTwoFactorResponse) {}
+  rpc GenerateBackupCodes(GenerateBackupCodesRequest) returns (GenerateBackupCodesResponse) {}
+
+  // Account Security
+  rpc LockAccount(LockAccountRequest) returns (google.protobuf.Empty) {}
+  rpc UnlockAccount(UnlockAccountRequest) returns (google.protobuf.Empty) {}
+  rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse) {}
+
+  // Token Management
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse) {}
+  rpc RevokeToken(RevokeTokenRequest) returns (google.protobuf.Empty) {}
+  rpc RevokeAllTokens(RevokeAllTokensRequest) returns (google.protobuf.Empty) {}
+
+  // Session Management
+  rpc GetActiveSessions(GetActiveSessionsRequest) returns (GetActiveSessionsResponse) {}
+  rpc RevokeSession(RevokeSessionRequest) returns (google.protobuf.Empty) {}
+  rpc RevokeAllSessions(RevokeAllSessionsRequest) returns (google.protobuf.Empty) {}
+
+  // Security Events
+  rpc GetSecurityEvents(GetSecurityEventsRequest) returns (GetSecurityEventsResponse) {}
+  rpc RecordSecurityEvent(RecordSecurityEventRequest) returns (google.protobuf.Empty) {}
+}
+
+// Authentication Messages
+message LoginRequest {
+  oneof identifier {
+    string username = 1;
+    string email = 2;
+    string phone = 3;
+  }
+  string password = 4;
+  optional string tenant_id = 5; // optional, for tenant-specific login
+  optional string device_info = 6;
+  optional string ip_address = 7;
+  bool remember_me = 8;
+}
+
+message LoginOTPRequest {
+  oneof identifier {
+    string username = 1;
+    string email = 2;
+    string phone = 3;
+  }
+  string otp_code = 4;
+  optional string tenant_id = 5;
+  optional string device_info = 6;
+  optional string ip_address = 7;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  UserSession user = 4;
+  bool requires_two_factor = 5;
+  string session_id = 6;
+}
+
+message LogoutRequest {
+  string session_id = 1;
+  optional string device_info = 2;
+}
+
+message LogoutAllRequest {
+  string user_id = 1;
+}
+
+// Token Management Messages
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  optional string device_info = 2;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+  optional string required_permission = 2; // optional permission check
+  optional string resource = 3; // optional resource check
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  optional UserSession user = 2;
+  optional google.protobuf.Timestamp expires_at = 3;
+  repeated string permissions = 4;
+  optional string tenant_id = 5;
+}
+
+message RevokeTokenRequest {
+  string token = 1;
+  TokenType token_type = 2;
+}
+
+// Session Management Messages
+message GetActiveSessionsRequest {
+  string user_id = 1;
+}
+
+message GetActiveSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string session_id = 1;
+  string user_id = 2;
+}
+
+// Core Data Models
+message UserSession {
+  string user_id = 1;
+  string username = 2;
+  string email = 3;
+  string fullname = 4;
+  repeated string roles = 5;
+  repeated string permissions = 6;
+  optional string tenant_id = 7;
+  optional string tenant_name = 8;
+  bool is_host = 9;
+  bool two_factor_enabled = 10;
+  bool two_factor_verified = 11;
+  optional google.protobuf.Timestamp last_login = 12;
+
+  // Entity and organizational context (enhanced)
+  optional string entity_id = 13;              // Links to entity.Entity
+  optional string entity_type = 14;            // EMPLOYEE, CONTRACTOR, etc.
+  optional string division_id = 15;            // Current division context
+  optional string branch_id = 16;              // Current branch context
+  optional string department_id = 17;          // Current department context
+  optional string division_name = 18;
+  optional string branch_name = 19;
+  optional string department_name = 20;
+
+  // Enhanced role information with organizational scope
+  repeated EntityRoleInfo entity_roles = 21;
+}
+
+// Entity role information with organizational scope
+message EntityRoleInfo {
+  string role_id = 1;
+  string role_name = 2;
+  optional string division_id = 3;
+  optional string branch_id = 4;
+  optional string department_id = 5;
+  optional google.protobuf.Timestamp valid_from = 6;
+  optional google.protobuf.Timestamp valid_until = 7;
+  bool is_active = 8;
+}
+
+message Session {
+  string session_id = 1;
+  string user_id = 2;
+  optional string device_info = 3;
+  optional string ip_address = 4;
+  google.protobuf.Timestamp created_at = 5;
+  optional google.protobuf.Timestamp last_accessed = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  bool is_active = 8;
+  optional string tenant_id = 9;
+}
+
+// Enums
+enum TokenType {
+  TOKEN_TYPE_UNSPECIFIED = 0;
+  TOKEN_TYPE_ACCESS = 1;
+  TOKEN_TYPE_REFRESH = 2;
+  TOKEN_TYPE_RESET = 3;
+}
+
+// Two-Factor Authentication Messages
+message EnableTwoFactorRequest {
+  string user_id = 1;
+  TwoFactorMethod method = 2;
+}
+
+message EnableTwoFactorResponse {
+  string secret = 1;
+  string qr_code = 2;
+  repeated string backup_codes = 3;
+}
+
+message DisableTwoFactorRequest {
+  string user_id = 1;
+  string verification_code = 2;
+}
+
+message VerifyTwoFactorRequest {
+  string user_id = 1;
+  string code = 2;
+  TwoFactorMethod method = 3;
+}
+
+message VerifyTwoFactorResponse {
+  bool valid = 1;
+  string message = 2;
+}
+
+message GenerateBackupCodesRequest {
+  string user_id = 1;
+}
+
+message GenerateBackupCodesResponse {
+  repeated string backup_codes = 1;
+}
+
+// Account Security Messages
+message LockAccountRequest {
+  string user_id = 1;
+  string reason = 2;
+  optional google.protobuf.Timestamp unlock_at = 3;
+}
+
+message UnlockAccountRequest {
+  string user_id = 1;
+  string reason = 2;
+}
+
+message GetAccountStatusRequest {
+  string user_id = 1;
+}
+
+message GetAccountStatusResponse {
+  AccountStatus status = 1;
+  optional google.protobuf.Timestamp locked_until = 2;
+  int32 failed_login_attempts = 3;
+  optional google.protobuf.Timestamp last_failed_login = 4;
+  optional google.protobuf.Timestamp last_successful_login = 5;
+}
+
+// Additional Token Messages
+message RevokeAllTokensRequest {
+  string user_id = 1;
+  optional string except_session_id = 2;
+}
+
+// Additional Session Messages
+message RevokeAllSessionsRequest {
+  string user_id = 1;
+  optional string except_session_id = 2;
+}
+
+// Security Events Messages
+message GetSecurityEventsRequest {
+  string user_id = 1;
+  optional google.protobuf.Timestamp from_date = 2;
+  optional google.protobuf.Timestamp to_date = 3;
+  repeated SecurityEventType event_types = 4;
+  int32 page_offset = 5;
+  int32 page_size = 6;
+}
+
+message GetSecurityEventsResponse {
+  repeated SecurityEvent events = 1;
+  int32 total_count = 2;
+}
+
+message RecordSecurityEventRequest {
+  string user_id = 1;
+  SecurityEventType event_type = 2;
+  string description = 3;
+  optional string ip_address = 4;
+  optional string device_info = 5;
+  optional string tenant_id = 6;
+}
+
+message SecurityEvent {
+  string event_id = 1;
+  string user_id = 2;
+  SecurityEventType event_type = 3;
+  string description = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  optional string ip_address = 6;
+  optional string device_info = 7;
+  optional string tenant_id = 8;
+}
+
+// Enums
+enum TwoFactorMethod {
+  TWO_FACTOR_METHOD_UNSPECIFIED = 0;
+  TWO_FACTOR_METHOD_TOTP = 1;
+  TWO_FACTOR_METHOD_SMS = 2;
+  TWO_FACTOR_METHOD_EMAIL = 3;
+  TWO_FACTOR_METHOD_BACKUP_CODE = 4;
+}
+
+enum AccountStatus {
+  ACCOUNT_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_STATUS_ACTIVE = 1;
+  ACCOUNT_STATUS_LOCKED = 2;
+  ACCOUNT_STATUS_DISABLED = 3;
+  ACCOUNT_STATUS_SUSPENDED = 4;
+  ACCOUNT_STATUS_PENDING_VERIFICATION = 5;
+}
+
+enum SecurityEventType {
+  SECURITY_EVENT_TYPE_UNSPECIFIED = 0;
+  SECURITY_EVENT_TYPE_LOGIN_SUCCESS = 1;
+  SECURITY_EVENT_TYPE_LOGIN_FAILURE = 2;
+  SECURITY_EVENT_TYPE_LOGOUT = 3;
+  SECURITY_EVENT_TYPE_PASSWORD_CHANGE = 4;
+  SECURITY_EVENT_TYPE_TWO_FACTOR_ENABLED = 5;
+  SECURITY_EVENT_TYPE_TWO_FACTOR_DISABLED = 6;
+  SECURITY_EVENT_TYPE_ACCOUNT_LOCKED = 7;
+  SECURITY_EVENT_TYPE_ACCOUNT_UNLOCKED = 8;
+  SECURITY_EVENT_TYPE_TOKEN_REVOKED = 9;
+  SECURITY_EVENT_TYPE_SESSION_REVOKED = 10;
+  SECURITY_EVENT_TYPE_SUSPICIOUS_ACTIVITY = 11;
+}
+
+enum AuthenticationStatus {
+  AUTHENTICATION_STATUS_UNSPECIFIED = 0;
+  AUTHENTICATION_STATUS_SUCCESS = 1;
+  AUTHENTICATION_STATUS_INVALID_CREDENTIALS = 2;
+  AUTHENTICATION_STATUS_ACCOUNT_LOCKED = 3;
+  AUTHENTICATION_STATUS_ACCOUNT_DISABLED = 4;
+  AUTHENTICATION_STATUS_REQUIRES_TWO_FACTOR = 5;
+  AUTHENTICATION_STATUS_INVALID_TWO_FACTOR = 6;
+  AUTHENTICATION_STATUS_PASSWORD_EXPIRED = 7;
+  AUTHENTICATION_STATUS_TENANT_NOT_FOUND = 8;
+  AUTHENTICATION_STATUS_USER_NOT_IN_TENANT = 9;
+}

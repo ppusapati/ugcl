@@ -1,0 +1,302 @@
+syntax = "proto3";
+
+package formbuilder.api.v2.form_builder;
+option go_package = "p9e.in/ugcl/formbuilder/api/v2/form_builder;form_builder";
+
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "formbuilder/proto/workflow.proto";
+
+
+// Core Form Definition
+message FormDefinition {
+  FormMetadata metadata = 1;
+  repeated FormStep steps = 2;
+  repeated Dependency dependencies = 3;
+  repeated CrossFieldValidation cross_field_validations = 4;
+  formbuilder.api.v2.workflow.Workflow workflow = 5;
+  repeated formbuilder.api.v2.workflow.SLARule sla_rules = 6;
+  repeated formbuilder.api.v2.workflow.Escalation escalations = 7;
+}
+
+// Form Metadata
+message FormMetadata {
+  string form_id = 1;
+  string title = 2;
+  string description = 3;
+  string version = 4;
+  string created_by = 5;
+  repeated string allowed_roles = 6;
+  bool audit = 7;
+  string table_name = 8; // Database table name for this form
+  string module = 9; // Module name for this form
+  int32 schema_version = 10; // Schema version for versioning support
+  repeated string core_fields = 11; // Fields that are actual columns
+  formbuilder.api.v2.workflow.WorkflowIntegration workflow_integration = 12; // External workflow config
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+
+
+// Form Step (collection of fields)
+message FormStep {
+  string id = 1;
+  string label = 2;
+  repeated FormField fields = 3;
+  int32 order = 4;
+  map<string, string> metadata = 5;
+}
+
+// Form Field Definition
+message FormField {
+  string id = 1;
+  FieldType type = 2;
+  string label = 3;
+  string hint = 4;
+  bool required = 5;
+  FieldRoles roles = 6;
+  Validation validation = 7;
+  string options_source = 8; // API endpoint for dropdown options
+  FieldDependency depends_on = 9;
+  google.protobuf.Any default_value = 10;
+  map<string, string> attributes = 11; // Additional HTML attributes
+  repeated ConditionalRule conditional_rules = 12;
+  ApiConfig api_config = 13; // Enhanced API configuration
+  bool is_core_field = 14; // Whether field is in base table or extra_data
+  CacheConfig cache_config = 15; // Caching configuration
+}
+
+// API Configuration for dropdown data sources
+message ApiConfig {
+  string method = 1; // GET, POST
+  map<string, string> headers = 2;
+  string auth_type = 3; // "bearer", "basic", "api_key"
+  int32 timeout_seconds = 4;
+  int32 retry_count = 5;
+  repeated string dependent_fields = 6; // Multiple field dependencies
+  string request_transform = 7; // JS expression to transform request
+  string response_transform = 8; // JS expression to transform response
+}
+
+// Cache configuration for field options
+message CacheConfig {
+  bool enabled = 1;
+  int32 ttl_seconds = 2;
+  bool real_time = 3; // Forces fresh data
+  string cache_key_pattern = 4; // Pattern for cache key generation
+}
+
+// Field Types
+enum FieldType {
+  TEXT = 0;
+  NUMBER = 1;
+  EMAIL = 2;
+  DROPDOWN = 3;
+  RADIO = 4;
+  CHECKBOX = 5;
+  DATE = 6;
+  DATETIME = 7;
+  FILE = 8;
+  TEXTAREA = 9;
+  MULTI_SELECT = 10;
+  CURRENCY = 11;
+  PHONE = 12;
+  URL = 13;
+  JSON = 14;
+  ARRAY = 15;
+  NESTED_FORM = 16;
+}
+
+// Field Access Roles
+message FieldRoles {
+  repeated string read = 1;
+  repeated string write = 2;
+  repeated string hide = 3;
+}
+
+// Field Validation Rules
+message Validation {
+  double min = 1;
+  double max = 2;
+  int32 min_length = 3;
+  int32 max_length = 4;
+  string pattern = 5; // Regex pattern
+  repeated string allowed_values = 6;
+  string custom_validator = 7; // Custom validation function name
+  repeated ValidationRule rules = 8;
+}
+
+message ValidationRule {
+  string type = 1; // "required", "email", "url", "custom"
+  string message = 2;
+  map<string, string> params = 3;
+}
+
+// Field Dependencies
+message FieldDependency {
+  string field = 1;
+  string param = 2;
+  string api_endpoint = 3;
+}
+
+// Conditional Dependencies
+message Dependency {
+  repeated Condition if = 1;
+  DependencyAction then = 2;
+}
+
+message Condition {
+  string field = 1;
+  ConditionOperator operator = 2;
+  google.protobuf.Any value = 3;
+}
+
+enum ConditionOperator {
+  EQUALS = 0;
+  NOT_EQUALS = 1;
+  GREATER_THAN = 2;
+  LESS_THAN = 3;
+  GREATER_THAN_OR_EQUAL = 4;
+  LESS_THAN_OR_EQUAL = 5;
+  CONTAINS = 6;
+  NOT_CONTAINS = 7;
+  IN = 8;
+  NOT_IN = 9;
+  REGEX_MATCH = 10;
+}
+
+message DependencyAction {
+  string field = 1;
+  ActionType action = 2;
+  google.protobuf.Any value = 3;
+}
+
+enum ActionType {
+  SHOW = 0;
+  HIDE = 1;
+  ENABLE = 2;
+  DISABLE = 3;
+  REQUIRE = 4;
+  SET_VALUE = 5;
+  CLEAR = 6;
+  VALIDATE = 7;
+}
+
+// Conditional Rules for Fields
+message ConditionalRule {
+  string name = 1;
+  repeated Condition conditions = 2;
+  repeated DependencyAction actions = 3;
+}
+
+// Cross Field Validations
+message CrossFieldValidation {
+  repeated string fields = 1;
+  string rule = 2; // Expression language rule
+  string message = 3;
+  string validator_function = 4; // Optional custom validator
+}
+
+// Workflow Definition
+
+
+// Form Instance (Runtime Data)
+
+
+
+
+// API Messages
+message CreateFormRequest {
+  FormDefinition form_definition = 1;
+  bool create_table = 2; // Whether to create DB table
+}
+
+message CreateFormResponse {
+  string form_id = 1;
+  string table_name = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+message GetFormResponse {
+  FormDefinition form_definition = 1;
+}
+
+
+
+// Additional messages for enhanced functionality
+message MigrateFormRequest {
+  string form_id = 1;
+  string from_version = 2;
+  string to_version = 3;
+  bool migrate_data = 4;
+}
+
+message MigrateFormResponse {
+  bool success = 1;
+  int32 records_migrated = 2;
+  repeated string warnings = 3;
+}
+
+
+message GetFieldOptionsRequest {
+  string form_id = 1;
+  string field_id = 2;
+  map<string, string> context = 3; // User context, dependent field values
+}
+
+message GetFieldOptionsResponse {
+  repeated FieldOption options = 1;
+  bool from_cache = 2;
+  google.protobuf.Timestamp cached_at = 3;
+}
+
+message FieldOption {
+  string value = 1;
+  string label = 2;
+  bool disabled = 3;
+  map<string, string> metadata = 4;
+}
+
+message RefreshCacheRequest {
+  string form_id = 1;
+  string field_id = 2;
+}
+
+message RefreshCacheResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListFormsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string filter = 3;
+  string sort_by = 4;
+}
+
+message ListFormsResponse {
+  repeated FormDefinition forms = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+
+// Service Definition
+service FormBuilder {
+  rpc CreateForm(CreateFormRequest) returns (CreateFormResponse);
+  rpc GetForm(formbuilder.api.v2.workflow.GetFormRequest) returns (GetFormResponse);
+  rpc UpdateForm(FormDefinition) returns (CreateFormResponse);
+  rpc DeleteForm(formbuilder.api.v2.workflow.GetFormRequest) returns (CreateFormResponse);
+  rpc ListForms(ListFormsRequest) returns (ListFormsResponse);
+  rpc MigrateFormVersion(MigrateFormRequest) returns (MigrateFormResponse);
+  
+
+
+  
+  rpc GetFieldOptions(GetFieldOptionsRequest) returns (GetFieldOptionsResponse);
+  rpc RefreshFieldCache(RefreshCacheRequest) returns (RefreshCacheResponse);
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package identity.tenant.api.v1.tenant;
+import "packages/proto/errors.proto";
+
+option go_package = "p9e.in/ugcl/identity/tenant/api/v1/tenant;tenant";
+
+enum ErrorReason {
+
+  option (packages.api.v1.errors.default_code) = 500;
+
+  DUPLICATE_TENANT_NAME = 0 [(packages.api.v1.errors.code) = 400];
+  TENANT_NOT_FOUND = 1[(packages.api.v1.errors.code) = 404];
+  TENANT_FORBIDDEN = 2[(packages.api.v1.errors.code) = 403];
+  TENANT_NOT_READY = 3[(packages.api.v1.errors.code) = 403];
+
+  ADMIN_IDENTITY_REQUIRED =4[(packages.api.v1.errors.code) = 400];
+  ADMIN_PASSWORD_REQUIRED =5[(packages.api.v1.errors.code) = 400];
+
+  ADMIN_USERNAME_INVALID =6[(packages.api.v1.errors.code) = 400];
+  ADMIN_EMAIL_INVALID =7[(packages.api.v1.errors.code) = 400];
+}

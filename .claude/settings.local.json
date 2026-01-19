@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlc:*)",
+      "Bash(buf generate:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(sort:*)",
+      "Bash(protoc-gen-doc:*)",
+      "Bash(cat:*)",
+      "Bash(go build:*)",
+      "Bash(make:*)",
+      "Bash(tree:*)",
+      "Bash(for module in organization dms employee contractors vendors)",
+      "Bash(do echo \"=== $module ===\")",
+      "Bash(ls:*)",
+      "Bash(done)",
+      "Bash(for module in identity/entity identity/user identity/auth identity/tenant)",
+      "Bash(test:*)",
+      "Bash(while read dir)",
+      "Bash(do if [ -f \"$dir/go.mod\" ])",
+      "Bash([ -d \"$dir/proto\" ])",
+      "Bash([ -d \"$dir/db\" ])",
+      "Bash(then if [ -f \"$dir/README.md\" ])",
+      "Bash(then echo \"✓ $dir\")",
+      "Bash(else echo \"✗ $dir (MISSING README)\")",
+      "Bash(fi)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "d:\\maheshwari\\UGCL\\web\\ugcl\\"
+    ]
+  },
+  "outputStyle": "Explanatory"
+}

@@ -1,0 +1,446 @@
+syntax = "proto3";
+
+package databridge.api.v1.databridge;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "p9e.in/ugcl/databridge/api/databridge;databridge";
+
+// ============================================================================
+// Data Import Service
+// ============================================================================
+service DataBridgeService {
+  // Schema and Table Management
+  rpc GetSchemas(GetSchemasRequest) returns (GetSchemasResponse);
+  rpc GetTables(GetTablesRequest) returns (GetTablesResponse);
+  rpc GetColumns(GetColumnsRequest) returns (GetColumnsResponse);
+
+  // Import Mapping Management
+  rpc GetMappings(GetMappingsRequest) returns (GetMappingsResponse);
+  rpc GetMappingByID(GetMappingByIDRequest) returns (GetMappingByIDResponse);
+  rpc CreateMapping(CreateMappingRequest) returns (CreateMappingResponse);
+  rpc UpdateMapping(UpdateMappingRequest) returns (UpdateMappingResponse);
+  rpc DeleteMapping(DeleteMappingRequest) returns (DeleteMappingResponse);
+
+  // Data Processing
+  rpc AnalyzeData(AnalyzeDataRequest) returns (AnalyzeDataResponse);
+  rpc ValidateMapping(ValidateMappingRequest) returns (ValidateMappingResponse);
+  rpc PreviewImport(PreviewImportRequest) returns (PreviewImportResponse);
+
+  // Import Job Management
+  rpc CreateImportJob(CreateImportJobRequest) returns (CreateImportJobResponse);
+  rpc GetImportJob(GetImportJobRequest) returns (GetImportJobResponse);
+  rpc GetImportJobs(GetImportJobsRequest) returns (GetImportJobsResponse);
+  rpc CancelImportJob(CancelImportJobRequest) returns (CancelImportJobResponse);
+
+  // Import Execution
+  rpc ExecuteImport(ExecuteImportRequest) returns (stream ExecuteImportResponse);
+}
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_TEXT = 1;
+  DATA_TYPE_VARCHAR = 2;
+  DATA_TYPE_CHAR = 3;
+  DATA_TYPE_INTEGER = 4;
+  DATA_TYPE_BIGINT = 5;
+  DATA_TYPE_SMALLINT = 6;
+  DATA_TYPE_DECIMAL = 7;
+  DATA_TYPE_NUMERIC = 8;
+  DATA_TYPE_REAL = 9;
+  DATA_TYPE_DOUBLE_PRECISION = 10;
+  DATA_TYPE_BOOLEAN = 11;
+  DATA_TYPE_DATE = 12;
+  DATA_TYPE_TIME = 13;
+  DATA_TYPE_TIMESTAMP = 14;
+  DATA_TYPE_TIMESTAMPTZ = 15;
+  DATA_TYPE_UUID = 16;
+  DATA_TYPE_JSONB = 17;
+  DATA_TYPE_JSON = 18;
+}
+
+enum ImportJobStatus {
+  IMPORT_JOB_STATUS_UNSPECIFIED = 0;
+  IMPORT_JOB_STATUS_PENDING = 1;
+  IMPORT_JOB_STATUS_PROCESSING = 2;
+  IMPORT_JOB_STATUS_COMPLETED = 3;
+  IMPORT_JOB_STATUS_FAILED = 4;
+  IMPORT_JOB_STATUS_CANCELLED = 5;
+}
+
+message ValidationRule {
+  string type = 1; // "required", "min", "max", "pattern", "email", etc.
+  string value = 2;
+  string message = 3;
+}
+
+message FieldMapping {
+  string csv_field = 1;
+  string db_column = 2;
+  string transformation = 3; // "trim", "uppercase", "lowercase", "date", "decimal", etc.
+  repeated ValidationRule validations = 4;
+}
+
+message ImportError {
+  int32 row_number = 1;
+  string csv_field = 2;
+  string db_column = 3;
+  string error_message = 4;
+  string invalid_value = 5;
+  string error_type = 6; // "validation", "transformation", "database", etc.
+}
+
+// ============================================================================
+// Schema Management
+// ============================================================================
+
+message Schema {
+  string id = 1;
+  string schema_name = 2;
+  string display_name = 3;
+  string description = 4;
+  bool is_active = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string created_by = 8;
+  string updated_by = 9;
+}
+
+message Table {
+  string id = 1;
+  string schema_id = 2;
+  string table_name = 3;
+  string display_name = 4;
+  string description = 5;
+  bool is_active = 6;
+  bool supports_import = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  string created_by = 10;
+  string updated_by = 11;
+  string schema_name = 12;
+  string schema_display_name = 13;
+}
+
+message Column {
+  string id = 1;
+  string table_id = 2;
+  string column_name = 3;
+  string display_name = 4;
+  string description = 5;
+  DataType data_type = 6;
+  optional int32 max_length = 7;
+  bool is_required = 8;
+  bool is_primary_key = 9;
+  bool is_unique = 10;
+  optional string default_value = 11;
+  repeated ValidationRule validation_rules = 12;
+  repeated string example_values = 13;
+  bool is_active = 14;
+  bool supports_import = 15;
+  int32 column_order = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+  string created_by = 19;
+  string updated_by = 20;
+}
+
+message GetSchemasRequest {}
+
+message GetSchemasResponse {
+  repeated Schema schemas = 1;
+}
+
+message GetTablesRequest {
+  optional string schema_id = 1;
+  bool importable_only = 2;
+}
+
+message GetTablesResponse {
+  repeated Table tables = 1;
+}
+
+message GetColumnsRequest {
+  string table_id = 1;
+  bool importable_only = 2;
+}
+
+message GetColumnsResponse {
+  repeated Column columns = 1;
+}
+
+// ============================================================================
+// Import Mapping Management
+// ============================================================================
+
+message ImportMapping {
+  string id = 1;
+  string mapping_name = 2;
+  string description = 3;
+  string table_id = 4;
+  repeated string csv_headers = 5;
+  repeated FieldMapping field_mappings = 6;
+  repeated ValidationRule transformation_rules = 7;
+  repeated ValidationRule validation_rules = 8;
+  bool is_active = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string created_by = 12;
+  string updated_by = 13;
+  optional google.protobuf.Timestamp last_used_at = 14;
+  int32 usage_count = 15;
+  optional string table_name = 16;
+  optional string table_display_name = 17;
+  optional string schema_name = 18;
+  optional string schema_display_name = 19;
+}
+
+message GetMappingsRequest {
+  optional string table_id = 1;
+  optional string user_id = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message GetMappingsResponse {
+  repeated ImportMapping mappings = 1;
+  int32 total_count = 2;
+}
+
+message GetMappingByIDRequest {
+  string mapping_id = 1;
+}
+
+message GetMappingByIDResponse {
+  ImportMapping mapping = 1;
+}
+
+message CreateMappingRequest {
+  string mapping_name = 1;
+  string description = 2;
+  string table_id = 3;
+  repeated string csv_headers = 4;
+  repeated FieldMapping field_mappings = 5;
+  repeated ValidationRule transformation_rules = 6;
+  repeated ValidationRule validation_rules = 7;
+  string created_by = 8;
+}
+
+message CreateMappingResponse {
+  ImportMapping mapping = 1;
+}
+
+message UpdateMappingRequest {
+  string mapping_id = 1;
+  string mapping_name = 2;
+  string description = 3;
+  repeated string csv_headers = 4;
+  repeated FieldMapping field_mappings = 5;
+  repeated ValidationRule transformation_rules = 6;
+  repeated ValidationRule validation_rules = 7;
+  string updated_by = 8;
+}
+
+message UpdateMappingResponse {
+  ImportMapping mapping = 1;
+}
+
+message DeleteMappingRequest {
+  string mapping_id = 1;
+  string updated_by = 2;
+}
+
+message DeleteMappingResponse {}
+
+// ============================================================================
+// Data Analysis and Validation
+// ============================================================================
+
+message DataAnalysis {
+  repeated string headers = 1;
+  int32 total_rows = 2;
+  int32 data_rows = 3;
+  repeated DataColumnAnalysis column_analysis = 4;
+  repeated string sample_rows = 5; // JSON-encoded sample rows
+  string encoding = 6;
+  string delimiter = 7;
+  bool has_header = 8;
+  repeated string errors = 9;
+}
+
+message DataColumnAnalysis {
+  string header = 1;
+  int32 non_empty_count = 2;
+  int32 empty_count = 3;
+  DataType inferred_type = 4;
+  repeated string sample_values = 5;
+  optional int32 max_length = 6;
+  bool has_duplicates = 7;
+}
+
+message AnalyzeDataRequest {
+  bytes csv_data = 1;
+  string file_name = 2;
+  optional string delimiter = 3;
+  optional bool has_header = 4;
+}
+
+message AnalyzeDataResponse {
+  DataAnalysis analysis = 1;
+}
+
+message ValidateMappingRequest {
+  string mapping_id = 1;
+  bytes csv_data = 2;
+  string file_name = 3;
+}
+
+message ValidateMappingResponse {
+  bool is_valid = 1;
+  repeated ImportError errors = 2;
+  repeated string warnings = 3;
+  int32 total_rows = 4;
+  int32 valid_rows = 5;
+  int32 invalid_rows = 6;
+}
+
+message PreviewImportRequest {
+  string mapping_id = 1;
+  bytes csv_data = 2;
+  string file_name = 3;
+  int32 preview_rows = 4; // Number of rows to preview (default: 10)
+}
+
+message PreviewImportResponse {
+  repeated string headers = 1;
+  repeated PreviewRow preview_rows = 2;
+  repeated ImportError errors = 3;
+  repeated string warnings = 4;
+  ImportMapping mapping = 5;
+}
+
+message PreviewRow {
+  int32 row_number = 1;
+  map<string, string> original_data = 2; // Data field -> value
+  map<string, string> transformed_data = 3; // DB column -> transformed value
+  repeated ImportError row_errors = 4;
+  bool is_valid = 5;
+}
+
+// ============================================================================
+// Import Job Management
+// ============================================================================
+
+message ImportJob {
+  string id = 1;
+  string job_name = 2;
+  string mapping_id = 3;
+  string file_name = 4;
+  int64 file_size = 5;
+  string file_hash = 6;
+  ImportJobStatus status = 7;
+  optional int32 total_rows = 8;
+  int32 processed_rows = 9;
+  int32 successful_rows = 10;
+  int32 failed_rows = 11;
+  repeated ImportError error_details = 12;
+  optional google.protobuf.Timestamp started_at = 13;
+  optional google.protobuf.Timestamp completed_at = 14;
+  google.protobuf.Timestamp created_at = 15;
+  string created_by = 16;
+  optional string mapping_name = 17;
+  optional string table_name = 18;
+  optional string table_display_name = 19;
+  optional string schema_name = 20;
+  optional string schema_display_name = 21;
+}
+
+message CreateImportJobRequest {
+  string job_name = 1;
+  string mapping_id = 2;
+  string file_name = 3;
+  int64 file_size = 4;
+  string file_hash = 5;
+  int32 total_rows = 6;
+  string created_by = 7;
+}
+
+message CreateImportJobResponse {
+  ImportJob job = 1;
+}
+
+message GetImportJobRequest {
+  string job_id = 1;
+}
+
+message GetImportJobResponse {
+  ImportJob job = 1;
+}
+
+message GetImportJobsRequest {
+  optional string user_id = 1;
+  optional ImportJobStatus status = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message GetImportJobsResponse {
+  repeated ImportJob jobs = 1;
+  int32 total_count = 2;
+}
+
+message CancelImportJobRequest {
+  string job_id = 1;
+}
+
+message CancelImportJobResponse {}
+
+// ============================================================================
+// Import Execution
+// ============================================================================
+
+message ExecuteImportRequest {
+  string job_id = 1;
+  bytes csv_data = 2;
+}
+
+message ExecuteImportResponse {
+  oneof response {
+    ImportProgress progress = 1;
+    ImportCompleted completed = 2;
+    ImportFailed failed = 3;
+  }
+}
+
+message ImportProgress {
+  string job_id = 1;
+  int32 total_rows = 2;
+  int32 processed_rows = 3;
+  int32 successful_rows = 4;
+  int32 failed_rows = 5;
+  double progress_percentage = 6;
+  string current_phase = 7; // "parsing", "validating", "importing", "finalizing"
+  repeated ImportError recent_errors = 8;
+}
+
+message ImportCompleted {
+  string job_id = 1;
+  int32 total_rows = 2;
+  int32 successful_rows = 3;
+  int32 failed_rows = 4;
+  google.protobuf.Timestamp completed_at = 5;
+  string summary_message = 6;
+  repeated ImportError error_summary = 7;
+}
+
+message ImportFailed {
+  string job_id = 1;
+  string error_message = 2;
+  string error_type = 3;
+  google.protobuf.Timestamp failed_at = 4;
+  repeated ImportError error_details = 5;
+}

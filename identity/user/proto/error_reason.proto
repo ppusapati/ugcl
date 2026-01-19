@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package identity.user.api.v2.user;
+option go_package = "p9e.in/ugcl/identity/user/api/v2/user;user";
+
+import "packages/proto/response.proto";
+
+enum ErrorReason {
+  option (packages.api.v1.response.default_code) = 500;
+
+  // Password-related response
+  CONFIRM_PASSWORD_MISMATCH = 0 [(packages.api.v1.response.code) = 400];
+  PASSWORD_INSUFFICIENT_STRENGTH = 1 [(packages.api.v1.response.code) = 400];
+  INVALID_PASSWORD = 2 [(packages.api.v1.response.code) = 400];
+  PASSWORD_ENCRYPTION_FAILED = 3 [(packages.api.v1.response.code) = 500];
+  PASSWORD_MISMATCH = 4 [(packages.api.v1.response.code) = 400];
+
+  // Duplicate entry response
+  DUPLICATE_USERNAME = 5 [(packages.api.v1.response.code) = 400];
+  DUPLICATE_EMAIL = 6 [(packages.api.v1.response.code) = 400];
+  DUPLICATE_PHONE = 7 [(packages.api.v1.response.code) = 400];
+
+  // Validation response
+  INVALID_EMAIL = 8 [(packages.api.v1.response.code) = 400];
+  INVALID_PHONE = 9 [(packages.api.v1.response.code) = 400];
+  INVALID_USERNAME = 10 [(packages.api.v1.response.code) = 400];
+  INVALID_REQUEST = 11 [(packages.api.v1.response.code) = 400];
+  VALIDATION_ERROR = 12 [(packages.api.v1.response.code) = 400];
+  CONSTRAINT_VIOLATION = 13 [(packages.api.v1.response.code) = 400];
+
+  // Not found response
+  USER_NOT_FOUND = 14 [(packages.api.v1.response.code) = 404];
+
+  // Authorization and tenant-related response
+  UNAUTHORIZED_ACCESS = 15 [(packages.api.v1.response.code) = 403];
+  INVALID_TENANT = 16 [(packages.api.v1.response.code) = 403];
+  INSUFFICIENT_PERMISSIONS = 17 [(packages.api.v1.response.code) = 403];
+
+  // Upsert and update-related response
+  UPSERT_FAILED = 18 [(packages.api.v1.response.code) = 500];
+  UPDATE_FAILED = 19 [(packages.api.v1.response.code) = 500];
+  CREATE_FAILED = 20 [(packages.api.v1.response.code) = 500];
+  DELETE_FAILED = 21 [(packages.api.v1.response.code) = 500];
+
+  // Existence and search-related response
+  EXISTS_CHECK_FAILED = 22 [(packages.api.v1.response.code) = 500];
+  NORMALIZATION_FAILED = 23 [(packages.api.v1.response.code) = 500];
+  COUNT_FAILED = 24 [(packages.api.v1.response.code) = 500];
+  SEARCH_FAILED = 25 [(packages.api.v1.response.code) = 500];
+
+  // OTP and Verification-related response
+  OTP_GENERATION_FAILED = 26 [(packages.api.v1.response.code) = 500];
+  OTP_EXPIRED = 27 [(packages.api.v1.response.code) = 400];
+  INVALID_OTP = 28 [(packages.api.v1.response.code) = 400];
+  CACHE_ERROR = 29 [(packages.api.v1.response.code) = 500];
+  VERIFICATION_FAILED = 30 [(packages.api.v1.response.code) = 400];
+
+  // Other response
+  DATABASE_ERROR = 31 [(packages.api.v1.response.code) = 500];
+  UNKNOWN_ERROR = 32 [(packages.api.v1.response.code) = 500];
+}

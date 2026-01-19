@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package personnel.employee.api.v2.employee;
+option go_package = "p9e.in/ugcl/employee/api/v2/employee;employee";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/wrappers.proto";
+import "identity/user/proto/user.proto";
+
+service EmployeeService {
+  rpc CreateEmployee(CreateEmployeeRequest) returns (Employee) {}
+
+  rpc UpdateEmployee(UpdateEmployeeRequest) returns (Employee) {}
+
+  rpc GetEmployee(EmployeeIdentifier) returns (Employee) {}
+
+  rpc ListEmployees(ListEmployeesRequest) returns (ListEmployeesResponse) {}
+
+  rpc DeleteEmployee(EmployeeIdentifier) returns (google.protobuf.Empty) {}
+
+  rpc GetEmployeeByUserId(UserIdentifier) returns (Employee) {}
+
+  rpc GetEmployeesByDepartment(DepartmentIdentifier) returns (ListEmployeesResponse) {}
+
+  rpc GetEmployeesByManager(ManagerIdentifier) returns (ListEmployeesResponse) {}
+}
+
+message Employee {
+  string id = 1;  // UUID
+  string employee_code = 2;  // Unique employee code (e.g., EMP001)
+  string user_id = 3;  // Reference to identity.user
+
+  // Organizational hierarchy
+  google.protobuf.StringValue division_id = 4;
+  google.protobuf.StringValue branch_id = 5;
+  google.protobuf.StringValue department_id = 6;
+
+  // Job information
+  string designation = 7;
+  google.protobuf.StringValue job_title = 8;
+  google.protobuf.StringValue job_grade = 9;
+  google.protobuf.StringValue employee_type = 10;  // PERMANENT, TEMPORARY, PROBATION
+
+  // Reporting structure
+  google.protobuf.StringValue manager_id = 11;  // Reports to (employee ID)
+  google.protobuf.StringValue department_head_id = 12;
+
+  // Employment dates
+  google.protobuf.Timestamp date_of_joining = 13;
+  google.protobuf.Timestamp date_of_confirmation = 14;
+  google.protobuf.Timestamp date_of_leaving = 15;
+
+  // Personal information
+  google.protobuf.StringValue pan = 16;
+  google.protobuf.StringValue aadhaar = 17;
+  google.protobuf.StringValue uan = 18;  // Universal Account Number (PF)
+  google.protobuf.StringValue esic_number = 19;
+
+  // Bank details
+  google.protobuf.StringValue bank_name = 20;
+  google.protobuf.StringValue bank_account_number = 21;
+  google.protobuf.StringValue bank_ifsc = 22;
+
+  // Address
+  google.protobuf.StringValue current_address = 23;
+  google.protobuf.StringValue permanent_address = 24;
+
+  // Emergency contact
+  google.protobuf.StringValue emergency_contact_name = 25;
+  google.protobuf.StringValue emergency_contact_phone = 26;
+  google.protobuf.StringValue emergency_contact_relation = 27;
+
+  // Work location
+  google.protobuf.StringValue work_location = 28;
+  google.protobuf.StringValue office_phone = 29;
+  google.protobuf.StringValue extension = 30;
+
+  // Status
+  string status = 31;  // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED, RESIGNED
+  google.protobuf.StringValue termination_reason = 32;
+
+  // Skills and qualifications
+  repeated string skills = 33;
+  repeated string certifications = 34;
+  google.protobuf.StringValue highest_qualification = 35;
+
+  // Metadata
+  google.protobuf.Struct metadata = 36;
+
+  // Audit fields
+  google.protobuf.Timestamp created_at = 37;
+  google.protobuf.Timestamp updated_at = 38;
+  google.protobuf.StringValue created_by = 39;
+  google.protobuf.StringValue updated_by = 40;
+}
+
+message CreateEmployeeRequest {
+  Employee employee = 1;
+  identity.user.api.v2.user.User user = 2;  // User details for account creation
+}
+
+message UpdateEmployeeRequest {
+  Employee employee = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message EmployeeIdentifier {
+  oneof identifier {
+    string id = 1;           // UUID
+    string employee_code = 2; // Employee code
+  }
+}
+
+message UserIdentifier {
+  string user_id = 1;
+}
+
+message DepartmentIdentifier {
+  string department_id = 1;
+}
+
+message ManagerIdentifier {
+  string manager_id = 1;
+}
+
+message ListEmployeesRequest {
+  int32 page_size = 1;
+  int32 page_offset = 2;
+  EmployeeFilter filter = 3;
+  repeated string sort = 4;
+}
+
+message ListEmployeesResponse {
+  repeated Employee employees = 1;
+  int32 total_count = 2;
+}
+
+message EmployeeFilter {
+  google.protobuf.StringValue employee_code = 1;
+  google.protobuf.StringValue designation = 2;
+  google.protobuf.StringValue department_id = 3;
+  google.protobuf.StringValue branch_id = 4;
+  google.protobuf.StringValue division_id = 5;
+  google.protobuf.StringValue manager_id = 6;
+  google.protobuf.StringValue status = 7;
+  google.protobuf.StringValue employee_type = 8;
+  repeated string skills = 9;
+  google.protobuf.StringValue job_grade = 10;
+}

@@ -1,0 +1,347 @@
+syntax = "proto3";
+
+package formbuilder.api.v2.workflow;
+option go_package = "p9e.in/ugcl/formbuilder/api/v2/workflow;workflow";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+// External Workflow Integration (BPMN)
+message WorkflowIntegration {
+  bool enabled = 1;
+  string engine_type = 2; // "camunda", "flowable", "zeebe"
+  string process_definition_key = 3;
+  string endpoint = 4;
+  map<string, string> field_mappings = 5; // form field -> process variable
+  repeated string trigger_events = 6; // Events that trigger workflow
+}
+
+message Workflow {
+  string initial_state = 1;
+  repeated WorkflowState states = 2;
+  repeated WorkflowTransition global_transitions = 3;
+  map<string, string> metadata = 4;
+}
+
+message WorkflowState {
+  string id = 1;
+  string label = 2;
+  string assigned_role = 3;
+  repeated string assigned_users = 4;
+  repeated string actions = 5;
+  repeated WorkflowTransition transitions = 6;
+  StateType type = 7;
+  map<string, string> properties = 8;
+  repeated StateValidation validations = 9;
+}
+
+enum StateType {
+  START = 0;
+  INTERMEDIATE = 1;
+  END = 2;
+  APPROVAL = 3;
+  REVIEW = 4;
+  PARALLEL_SPLIT = 5;
+  PARALLEL_JOIN = 6;
+}
+
+message StateValidation {
+  string expression = 1;
+  string message = 2;
+  bool blocking = 3;
+}
+
+message WorkflowTransition {
+  string event = 1;
+  string condition = 2; // Expression language condition
+  string next_state = 3;
+  repeated TransitionAction actions = 4;
+  map<string, string> metadata = 5;
+}
+
+message TransitionAction {
+  string type = 1; // "email", "webhook", "script", "notification"
+  map<string, string> params = 2;
+}
+
+// SLA Rules
+message SLARule {
+  string id = 1;
+  string name = 2;
+  string state = 3; // Workflow state this SLA applies to
+  Duration duration = 4;
+  repeated EscalationLevel escalation_levels = 5;
+  bool active = 6;
+  repeated string applicable_roles = 7;
+  string condition = 8; // Optional condition expression
+}
+
+message Duration {
+  int32 value = 1;
+  TimeUnit unit = 2;
+}
+
+enum TimeUnit {
+  MINUTES = 0;
+  HOURS = 1;
+  DAYS = 2;
+  WEEKS = 3;
+  MONTHS = 4;
+}
+
+message EscalationLevel {
+  int32 level = 1;
+  Duration after = 2;
+  repeated EscalationAction actions = 3;
+}
+
+message EscalationAction {
+  string type = 1; // "email", "sms", "reassign", "notify"
+  repeated string recipients = 2;
+  string template = 3;
+  map<string, string> params = 4;
+}
+
+// Escalations
+message Escalation {
+  string id = 1;
+  string name = 2;
+  string trigger_condition = 3;
+  repeated string from_states = 4;
+  string to_state = 5;
+  repeated string notify_roles = 6;
+  string escalation_message = 7;
+  bool auto_escalate = 8;
+  Duration after_duration = 9;
+}
+
+message ExternalWorkflowRequest {
+  string instance_id = 1;
+  string action = 2;
+  map<string, google.protobuf.Any> variables = 3;
+}
+
+message ExternalWorkflowResponse {
+  string process_instance_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+
+message GetWorkflowStatesResponse {
+  repeated WorkflowState states = 1;
+  string current_state = 2;
+  repeated string available_actions = 3;
+}
+
+message TransitionRequest {
+  string instance_id = 1;
+  string event = 2;
+  map<string, string> context = 3;
+}
+
+message TransitionResponse {
+  bool success = 1;
+  string new_state = 2;
+  string message = 3;
+  repeated TransitionAction executed_actions = 4;
+}
+
+
+message GetFormRequest {
+  string form_id = 1;
+
+
+  string version = 2; // Optional, defaults to latest
+}
+
+message CreateWorkflowRequest {
+  formbuilder.api.v2.workflow.Workflow workflow = 1;
+}
+
+message CreateWorkflowResponse {
+  string workflow_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetWorkflowRequest {
+  string workflow_id = 1;
+}
+
+message GetWorkflowResponse {
+  formbuilder.api.v2.workflow.Workflow workflow = 1;
+}
+
+// SLA Rule Request/Response Messages
+message CreateSLARuleRequest {
+  SLARule sla_rule = 1;
+}
+
+message CreateSLARuleResponse {
+  string sla_rule_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetSLARulesRequest {
+  string state = 1; // Optional: filter by state
+}
+
+message GetSLARulesResponse {
+  repeated SLARule sla_rules = 1;
+}
+
+message UpdateSLARuleRequest {
+  string sla_rule_id = 1;
+  SLARule sla_rule = 2;
+}
+
+message DeleteSLARuleRequest {
+  string sla_rule_id = 1;
+}
+
+// SLA Tracking Message Types
+message SLAInstanceInfo {
+  string id = 1;
+  string instance_id = 2;
+  string sla_rule_id = 3;
+  string state = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp due_time = 6;
+  string assigned_to = 7;
+  string status = 8;
+  google.protobuf.Timestamp completion_time = 9;
+  google.protobuf.Timestamp breach_time = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message SLAViolationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string instance_id = 3;
+  string sla_rule_id = 4;
+  google.protobuf.Timestamp violation_time = 5;
+  string breach_duration = 6;
+  string severity = 7;
+  string resolution_status = 8;
+  bool resolved = 9;
+  google.protobuf.Timestamp resolved_at = 10;
+  string resolved_by = 11;
+  string resolution_notes = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+message SLAEscalationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  int32 escalation_level = 3;
+  google.protobuf.Timestamp triggered_at = 4;
+  string status = 5;
+  repeated EscalationAction actions_executed = 6;
+  string error_message = 7;
+  int32 retry_count = 8;
+  google.protobuf.Timestamp next_retry_at = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message SLANotificationInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string sla_violation_id = 3;
+  string escalation_instance_id = 4;
+  string notification_type = 5;
+  string recipient = 6;
+  string channel = 7;
+  string message = 8;
+  string status = 9;
+  string subject = 10;
+  string template_used = 11;
+  google.protobuf.Timestamp sent_at = 12;
+  google.protobuf.Timestamp delivered_at = 13;
+  string error_message = 14;
+  int32 retry_count = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+}
+
+message SLAMetricInfo {
+  string id = 1;
+  google.protobuf.Timestamp metric_date = 2;
+  string sla_rule_id = 3;
+  string state = 4;
+  string assigned_role = 5;
+  int32 total_instances = 6;
+  int32 completed_on_time = 7;
+  int32 breached_instances = 8;
+  double compliance_percentage = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message SLAPauseLogInfo {
+  string id = 1;
+  string sla_instance_id = 2;
+  string action = 3;
+  string reason = 4;
+  string paused_by = 5;
+  google.protobuf.Timestamp paused_at = 6;
+  google.protobuf.Timestamp resumed_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message SLADashboardInfo {
+  string sla_rule_id = 1;
+  string sla_rule_name = 2;
+  string state = 3;
+  int32 total_instances = 4;
+  int32 active_instances = 5;
+  int32 completed_instances = 6;
+  int32 on_time = 7;
+  int32 breached_instances = 8;
+  int32 overdue_instances = 9;
+  double compliance_rate = 10;
+}
+
+message SLAInstanceDetailInfo {
+  string id = 1;
+  string instance_id = 2;
+  string sla_rule_id = 3;
+  string sla_rule_name = 4;
+  string state = 5;
+  google.protobuf.Timestamp start_time = 6;
+  google.protobuf.Timestamp due_time = 7;
+  string status = 8;
+  string assigned_to = 9;
+  string form_id = 10;
+  string instance_created_by = 11;
+  float hours_remaining = 12;
+  bool is_overdue = 13;
+  bool is_breached = 14;
+  string breach_duration = 15;
+  google.protobuf.Timestamp completion_time = 16;
+  google.protobuf.Timestamp breach_time = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
+service WorkflowService{
+  rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
+  rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
+  rpc UpdateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
+  rpc DeleteWorkflow(GetWorkflowRequest) returns (CreateWorkflowResponse);
+
+  rpc GetWorkflowStates(GetFormRequest) returns (GetWorkflowStatesResponse);
+  rpc TransitionWorkflow(TransitionRequest) returns (TransitionResponse);
+  rpc TriggerExternalWorkflow(ExternalWorkflowRequest) returns (ExternalWorkflowResponse);
+
+  // SLA Rule Management
+  rpc CreateSLARule(CreateSLARuleRequest) returns (CreateSLARuleResponse);
+  rpc GetSLARules(GetSLARulesRequest) returns (GetSLARulesResponse);
+  rpc UpdateSLARule(UpdateSLARuleRequest) returns (CreateSLARuleResponse);
+  rpc DeleteSLARule(DeleteSLARuleRequest) returns (CreateSLARuleResponse);
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package packages.api.v1.identifier;
+option go_package = "p9e.in/ugcl/packages/api/v1/identifier;identifier";
+
+// UserId represents a user's internal ID
+message Identifier {
+    oneof identifier { // User's internal ID (required)
+    int64 id = 1;
+    // Optional UUID to identify user
+    string uuid = 2;
+  }
+  }

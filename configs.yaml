@@ -1,0 +1,153 @@
+jwt:
+    secret: hrZnUNWi3Xh35FG1RZThBkfPrQx0Jhw/RlQhi3RtCtc=
+
+# API Key configurations for third-party access
+api_keys:
+  "mobile-app-secret-key-123":
+    app_name: "MobileApp"
+    allowed_paths:
+      - "/p9e.ugcl.identity.api.v2.user.User/*"
+    allowed_methods:
+      POST: true
+    skip_ip_check: true
+
+  "partner-portal-secret-key-456":
+    app_name: "PartnerPortal"
+    allowed_paths:
+      - "/p9e.ugcl.projects.api.v2.dairy_site.DairySiteService/*"
+    allowed_methods:
+      POST: true
+    skip_ip_check: false
+
+  "internal-ops-secret-key-789":
+    app_name: "InternalOps"
+    allowed_paths:
+      - "/*"  # All services
+    allowed_methods:
+      POST: true
+      GET: true
+      PUT: true
+      DELETE: true
+    skip_ip_check: true
+
+# Security settings
+security:
+  whitelisted_ips:
+    - "20.204.19.129"
+    - "127.0.0.1"
+    - "::1"
+    - "192.168.1.0/24"  # Example subnet
+    - "10.0.0.0/8"      # Example private network
+
+server:
+    service_name:
+        service_name: yourplanter-user-service
+    http:
+        network: tcp
+        addr: 0.0.0.0:10011
+        port: 10011
+        timeout: 600000s
+    grpc:
+        network: tcp
+        addr: 127.0.0.1:10012
+        port: 10012
+        MaxConnectionIdle: 300s
+        MaxConnectionAge: 7200s
+        MaxConnectionAgeGrace: 3600s
+        Time: 600s
+        Timeout: 300s
+        MinTime: 600s
+        PermitWithoutStream: true
+        keepalive_time: 60s
+        keepalive_timeout: 20s
+        keepalive_enforcement_min_time: 30s
+        keepalive_enforcement_permit_without_stream: true
+
+observability:
+    service_name:
+        service_name: yourplanter-user-service
+    tracing:
+        provider: 0
+        endpoint: http://jaeger:14268/api/traces
+        sampling_rate: 0.5
+        enabled: true
+        verbosity: 1  # INFO
+
+    metrics:
+        provider: 1
+        endpoint: http://datadog-agent:8125
+        port: 8125
+        enabled: true
+        collection_interval: 15s
+        export_interval: 30s
+        verbosity: 2  # WARN
+
+data:
+    database:
+        driver: mysql
+        source: root:root@tcp(127.0.0.1:3306)/test
+    postgres:
+        host: 34.93.104.23 # change this value to "postgres" before deployment
+        port: 5432
+        user: postgres
+        password: s3cr3tPass!
+        dbname: postgres
+        sslmode: false
+        search_path: testing
+        max_connections: 50
+        min_connections: 5
+        max_connection_lifetime: 1h
+        max_connection_idle_time: 30m
+        connection_timeout: 30s
+        statement_timeout: 60s
+        health_check_period: 30s
+        health_check_timeout: 10s
+    redis:
+        addr: 127.0.0.1:6379
+        password: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+        db: 0
+        read_timeout: 0.2s
+        write_timeout: 0.2s
+    security:
+        jwt:
+            expire_in: 3600s
+            secret: "your_jwt_secret"
+            refresh_token_expire_in: 86400s
+            issuer: "your_app_name"
+        security_cookie:
+            hash_key: "your_hash_key"
+            block_key: "your_optional_block_key"
+        session_cookie:
+            name: "session"
+            max_age: 3600s
+            domain: "localhost"
+            path: "/"
+            http_only: true
+            secure: true
+        remember_cookie:
+            name: "remember_me"
+            max_age: 2592000s # 30 days
+            domain: "localhost"
+            path: "/"
+            http_only: true
+            secure: true
+    event:
+        broker: 0.0.0.0:9092
+        group: testGroup
+        topic:
+            - user-created
+            - tenant-config-topic
+        kafka_version: 3.6.0
+        assignor: roundrobin
+        offset_oldest: true
+        retry_max: 3
+        retry_interval: 5
+    context_config:
+        default_timeout: 5s
+        long_query_timeout: 30s
+    cache:
+        enabled: true
+        max_entries: 100
+        default_ttl: 3600s
+        enable_expiry: true
+        expiry_check_interval: 300s

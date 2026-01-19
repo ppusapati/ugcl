@@ -1,0 +1,216 @@
+syntax = "proto3";
+
+package entity.v1;
+
+option go_package = "p9e.in/ugcl/identity/entity/api/v1;entityv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// EntityType represents all possible entity types in the system
+enum EntityType {
+  ENTITY_TYPE_UNSPECIFIED = 0;
+  ENTITY_TYPE_EMPLOYEE = 1;
+  ENTITY_TYPE_CONTRACTOR = 2;
+  ENTITY_TYPE_VENDOR = 3;
+  ENTITY_TYPE_CLIENT = 4;
+  ENTITY_TYPE_DEVICE = 5;
+  ENTITY_TYPE_DRONE = 6;
+  ENTITY_TYPE_BOT = 7;
+  ENTITY_TYPE_SYSTEM = 8;
+  ENTITY_TYPE_ADMIN = 9;
+  ENTITY_TYPE_AGENT = 10;
+}
+
+// EntityStatus represents the lifecycle status of an entity
+enum EntityStatus {
+  ENTITY_STATUS_UNSPECIFIED = 0;
+  ENTITY_STATUS_ACTIVE = 1;
+  ENTITY_STATUS_INACTIVE = 2;
+  ENTITY_STATUS_SUSPENDED = 3;
+  ENTITY_STATUS_ARCHIVED = 4;
+}
+
+// ReferenceSource indicates where the reference_id points to
+enum ReferenceSource {
+  REFERENCE_SOURCE_UNSPECIFIED = 0;
+  REFERENCE_SOURCE_EMPLOYEE = 1;
+  REFERENCE_SOURCE_CONTRACTOR = 2;
+  REFERENCE_SOURCE_VENDOR = 3;
+  REFERENCE_SOURCE_CLIENT = 4;
+  REFERENCE_SOURCE_DEVICE = 5;
+  REFERENCE_SOURCE_DRONE = 6;
+  REFERENCE_SOURCE_BOT = 7;
+}
+
+// Entity represents a unified identity abstraction for all actors in the system
+message Entity {
+  string id = 1;
+  string tenant_id = 2;
+  EntityType entity_type = 3;
+  string user_id = 4; // Links to identity.user table
+  string reference_id = 5; // Points to domain-specific record (employee_id, device_id, etc.)
+  ReferenceSource reference_source = 6;
+  EntityStatus status = 7;
+
+  // Organizational context
+  google.protobuf.StringValue division_id = 8;
+  google.protobuf.StringValue branch_id = 9;
+  google.protobuf.StringValue department_id = 10;
+
+  // Metadata for extensibility
+  map<string, string> metadata = 11;
+
+  // Audit fields
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  string created_by = 14;
+  string updated_by = 15;
+}
+
+// EntityRoleBinding represents role assignments to entities
+message EntityRoleBinding {
+  string id = 1;
+  string tenant_id = 2;
+  string entity_id = 3;
+  string role_id = 4;
+
+  // Optional scope limitations
+  google.protobuf.StringValue division_id = 5;
+  google.protobuf.StringValue branch_id = 6;
+  google.protobuf.StringValue department_id = 7;
+
+  // Time-bound access
+  google.protobuf.Timestamp valid_from = 8;
+  google.protobuf.Timestamp valid_until = 9;
+
+  // Audit fields
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string created_by = 12;
+  string updated_by = 13;
+}
+
+// Request/Response messages for Entity CRUD
+
+message CreateEntityRequest {
+  string tenant_id = 1;
+  EntityType entity_type = 2;
+  string user_id = 3;
+  string reference_id = 4;
+  ReferenceSource reference_source = 5;
+  EntityStatus status = 6;
+
+  google.protobuf.StringValue division_id = 7;
+  google.protobuf.StringValue branch_id = 8;
+  google.protobuf.StringValue department_id = 9;
+
+  map<string, string> metadata = 10;
+}
+
+message UpdateEntityRequest {
+  string id = 1;
+  google.protobuf.StringValue entity_type_value = 2; // Can't directly update enum, use wrapper
+  EntityStatus status = 3;
+
+  google.protobuf.StringValue division_id = 4;
+  google.protobuf.StringValue branch_id = 5;
+  google.protobuf.StringValue department_id = 6;
+
+  map<string, string> metadata = 7;
+}
+
+message GetEntityRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message GetEntityByUserIdRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+}
+
+message GetEntityByReferenceRequest {
+  string reference_id = 1;
+  ReferenceSource reference_source = 2;
+  string tenant_id = 3;
+}
+
+message ListEntitiesRequest {
+  string tenant_id = 1;
+  google.protobuf.Int32Value entity_type = 2; // Filter by type
+  google.protobuf.Int32Value status = 3; // Filter by status
+  google.protobuf.StringValue division_id = 4;
+  google.protobuf.StringValue branch_id = 5;
+  google.protobuf.StringValue department_id = 6;
+  int32 page_size = 7;
+  int32 page_number = 8;
+}
+
+message ListEntitiesResponse {
+  repeated Entity entities = 1;
+  int32 total_count = 2;
+  int32 page_number = 3;
+  int32 page_size = 4;
+}
+
+message DeleteEntityRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message DeleteEntityResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Request/Response messages for EntityRoleBinding
+
+message CreateEntityRoleBindingRequest {
+  string tenant_id = 1;
+  string entity_id = 2;
+  string role_id = 3;
+
+  google.protobuf.StringValue division_id = 4;
+  google.protobuf.StringValue branch_id = 5;
+  google.protobuf.StringValue department_id = 6;
+
+  google.protobuf.Timestamp valid_from = 7;
+  google.protobuf.Timestamp valid_until = 8;
+}
+
+message GetEntityRoleBindingsRequest {
+  string entity_id = 1;
+  string tenant_id = 2;
+}
+
+message GetEntityRoleBindingsResponse {
+  repeated EntityRoleBinding bindings = 1;
+}
+
+message DeleteEntityRoleBindingRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message DeleteEntityRoleBindingResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// EntityService provides unified identity management
+service EntityService {
+  // Entity CRUD operations
+  rpc CreateEntity(CreateEntityRequest) returns (Entity);
+  rpc UpdateEntity(UpdateEntityRequest) returns (Entity);
+  rpc GetEntity(GetEntityRequest) returns (Entity);
+  rpc GetEntityByUserId(GetEntityByUserIdRequest) returns (Entity);
+  rpc GetEntityByReference(GetEntityByReferenceRequest) returns (Entity);
+  rpc ListEntities(ListEntitiesRequest) returns (ListEntitiesResponse);
+  rpc DeleteEntity(DeleteEntityRequest) returns (DeleteEntityResponse);
+
+  // Role binding operations
+  rpc CreateEntityRoleBinding(CreateEntityRoleBindingRequest) returns (EntityRoleBinding);
+  rpc GetEntityRoleBindings(GetEntityRoleBindingsRequest) returns (GetEntityRoleBindingsResponse);
+  rpc DeleteEntityRoleBinding(DeleteEntityRoleBindingRequest) returns (DeleteEntityRoleBindingResponse);
+}

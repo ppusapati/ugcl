@@ -1,0 +1,228 @@
+syntax = "proto3";
+
+package identity.user.api.v2.user_tenant;
+option go_package = "p9e.in/ugcl/identity/user/api/v2/user_tenant;user_tenant";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// UserTenantService manages relationships between users and tenants
+service UserTenantService {
+  // Tenant Assignment
+  rpc AssignUserToTenant(AssignUserToTenantRequest) returns (google.protobuf.Empty) {}
+  rpc RemoveUserFromTenant(RemoveUserFromTenantRequest) returns (google.protobuf.Empty) {}
+  rpc UpdateUserTenantRole(UpdateUserTenantRoleRequest) returns (google.protobuf.Empty) {}
+
+  // User-Tenant Queries
+  rpc GetUserTenants(GetUserTenantsRequest) returns (GetUserTenantsResponse) {}
+  rpc GetTenantUsers(GetTenantUsersRequest) returns (GetTenantUsersResponse) {}
+  rpc CheckUserTenantAccess(CheckUserTenantAccessRequest) returns (CheckUserTenantAccessResponse) {}
+
+  // Bulk Operations
+  rpc BulkAssignUsersToTenant(BulkAssignUsersToTenantRequest) returns (BulkAssignUsersToTenantResponse) {}
+  rpc BulkRemoveUsersFromTenant(BulkRemoveUsersFromTenantRequest) returns (BulkRemoveUsersFromTenantResponse) {}
+
+  // User-Tenant History
+  rpc GetUserTenantHistory(GetUserTenantHistoryRequest) returns (GetUserTenantHistoryResponse) {}
+
+  // Transfer Operations
+  rpc TransferUserBetweenTenants(TransferUserBetweenTenantsRequest) returns (google.protobuf.Empty) {}
+}
+
+// Assignment Messages
+message AssignUserToTenantRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+  repeated string roles = 3;
+  bool is_primary = 4; // Whether this is the user's primary tenant
+  optional google.protobuf.Timestamp valid_from = 5;
+  optional google.protobuf.Timestamp valid_until = 6;
+  string assigned_by = 7; // User ID of who made the assignment
+  optional string notes = 8;
+}
+
+message RemoveUserFromTenantRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+  string removed_by = 3; // User ID of who removed the assignment
+  optional string reason = 4;
+}
+
+message UpdateUserTenantRoleRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+  repeated string roles = 3;
+  string updated_by = 4; // User ID of who updated the roles
+  optional string notes = 5;
+}
+
+// Query Messages
+message GetUserTenantsRequest {
+  string user_id = 1;
+  bool active_only = 2;
+  google.protobuf.FieldMask fields = 3;
+}
+
+message GetUserTenantsResponse {
+  repeated UserTenantAssociation associations = 1;
+}
+
+message GetTenantUsersRequest {
+  string tenant_id = 1;
+  bool active_only = 2;
+  repeated string role_filter = 3; // Filter by specific roles
+  int32 page_offset = 4;
+  int32 page_size = 5;
+  repeated string sort = 6;
+  google.protobuf.FieldMask fields = 7;
+  UserTenantFilter filter = 8;
+}
+
+message GetTenantUsersResponse {
+  repeated UserTenantAssociation associations = 1;
+  int32 total_count = 2;
+  int32 filtered_count = 3;
+}
+
+message CheckUserTenantAccessRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+  optional string required_role = 3;
+}
+
+message CheckUserTenantAccessResponse {
+  bool has_access = 1;
+  repeated string user_roles = 2;
+  bool is_primary_tenant = 3;
+  optional google.protobuf.Timestamp access_expires = 4;
+}
+
+// Bulk Operation Messages
+message BulkAssignUsersToTenantRequest {
+  repeated string user_ids = 1;
+  string tenant_id = 2;
+  repeated string roles = 3;
+  string assigned_by = 4;
+  optional string notes = 5;
+}
+
+message BulkAssignUsersToTenantResponse {
+  int32 successful_assignments = 1;
+  int32 failed_assignments = 2;
+  repeated BulkOperationResult results = 3;
+}
+
+message BulkRemoveUsersFromTenantRequest {
+  repeated string user_ids = 1;
+  string tenant_id = 2;
+  string removed_by = 3;
+  optional string reason = 4;
+}
+
+message BulkRemoveUsersFromTenantResponse {
+  int32 successful_removals = 1;
+  int32 failed_removals = 2;
+  repeated BulkOperationResult results = 3;
+}
+
+message BulkOperationResult {
+  string user_id = 1;
+  bool success = 2;
+  optional string error_message = 3;
+}
+
+// History Messages
+message GetUserTenantHistoryRequest {
+  string user_id = 1;
+  optional string tenant_id = 2; // If provided, filter by specific tenant
+  optional google.protobuf.Timestamp from_date = 3;
+  optional google.protobuf.Timestamp to_date = 4;
+  int32 page_offset = 5;
+  int32 page_size = 6;
+}
+
+message GetUserTenantHistoryResponse {
+  repeated UserTenantHistoryEntry entries = 1;
+  int32 total_count = 2;
+}
+
+// Transfer Messages
+message TransferUserBetweenTenantsRequest {
+  string user_id = 1;
+  string from_tenant_id = 2;
+  string to_tenant_id = 3;
+  repeated string new_roles = 4;
+  bool preserve_roles = 5; // If true, keep same roles in new tenant
+  string transferred_by = 6;
+  optional string reason = 7;
+}
+
+// Core Data Models
+message UserTenantAssociation {
+  string user_id = 1;
+  string tenant_id = 2;
+  repeated string roles = 3;
+  bool is_active = 4;
+  bool is_primary = 5; // Whether this is the user's primary tenant
+  google.protobuf.Timestamp assigned_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  optional google.protobuf.Timestamp valid_from = 8;
+  optional google.protobuf.Timestamp valid_until = 9;
+  string assigned_by = 10;
+  optional string notes = 11;
+
+  // Extended user info (populated based on fields mask)
+  optional UserInfo user_info = 12;
+  optional TenantInfo tenant_info = 13;
+}
+
+message UserInfo {
+  string username = 1;
+  string fullname = 2;
+  string email = 3;
+  bool is_active = 4;
+}
+
+message TenantInfo {
+  string name = 1;
+  string display_name = 2;
+  string region = 3;
+  bool is_active = 4;
+}
+
+message UserTenantHistoryEntry {
+  string id = 1;
+  string user_id = 2;
+  string tenant_id = 3;
+  UserTenantAction action = 4;
+  repeated string old_roles = 5;
+  repeated string new_roles = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string performed_by = 8;
+  optional string reason = 9;
+  optional string notes = 10;
+}
+
+message UserTenantFilter {
+  google.protobuf.StringValue username = 1;
+  google.protobuf.StringValue email = 2;
+  google.protobuf.StringValue fullname = 3;
+  repeated string role_ids = 4;
+  bool primary_tenant_only = 5;
+  optional google.protobuf.Timestamp assigned_after = 6;
+  optional google.protobuf.Timestamp assigned_before = 7;
+}
+
+// Enums
+enum UserTenantAction {
+  USER_TENANT_ACTION_UNSPECIFIED = 0;
+  USER_TENANT_ACTION_ASSIGNED = 1;
+  USER_TENANT_ACTION_REMOVED = 2;
+  USER_TENANT_ACTION_ROLES_UPDATED = 3;
+  USER_TENANT_ACTION_ACTIVATED = 4;
+  USER_TENANT_ACTION_DEACTIVATED = 5;
+  USER_TENANT_ACTION_TRANSFERRED = 6;
+  USER_TENANT_ACTION_PRIMARY_CHANGED = 7;
+}
